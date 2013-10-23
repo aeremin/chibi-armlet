@@ -1,8 +1,6 @@
-update=22/10/2013 02:00:28
+update=22/10/2013 02:27:28
 version=1
-last_client=eeschema
-[general]
-version=1
+last_client=kicad
 [pcbnew]
 version=1
 LastNetListRead=
@@ -52,3 +50,5 @@ LibName6=st_kl
 LibName7=Tittar_kl
 LibName8=Transistors_kl
 LibName9=RF ICs
+[general]
+version=1
