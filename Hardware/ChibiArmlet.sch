@@ -661,7 +661,7 @@ Text Notes 13150 1400 0    60   ~ 0
 Matching circuit
 Text Label 6250 1950 0    60   ~ 0
 CC_GDO0
-Text Label 6250 2900 0    60   ~ 0
+Text Label 6250 2500 0    60   ~ 0
 CC_CS
 Text Label 6250 2050 0    60   ~ 0
 CC_SCK
@@ -1026,14 +1026,10 @@ F 3 "" H 3050 8350 60  0001 C CNN
 	1    3050 8350
 	-1   0    0    1   
 $EndComp
-Text Label 3200 8050 0    60   ~ 0
-PeriphPwr
-Text Label 1950 1850 0    60   ~ 0
+Text Label 6250 2900 0    60   ~ 0
 P_SCL
-Text Label 1950 1950 0    60   ~ 0
+Text Label 6250 3000 0    60   ~ 0
 P_SDA
-Text Label 1950 1750 0    60   ~ 0
-PeriphPwr
 $Comp
 L BUZZER BZ1
 U 1 1 52670A22
@@ -1086,23 +1082,8 @@ Text Label 3050 1800 0    60   ~ 0
 Buzzer
 Text Notes 1750 7850 0    60   Italic 12
 Pill
-Text Label 6350 2500 0    60   ~ 0
-UART_RX
-Text Label 1850 7150 0    60   ~ 0
-UART_TX
 Text Label 1850 7050 0    60   ~ 0
-UART_RX
-$Comp
-L CONN_3 XL2
-U 1 1 526728AC
-P 1400 7150
-F 0 "XL2" V 1350 7150 40  0000 C CNN
-F 1 "CONN_3" V 1450 7150 40  0000 C CNN
-F 2 "~" H 1400 7150 60  0000 C CNN
-F 3 "~" H 1400 7150 60  0000 C CNN
-	1    1400 7150
-	1    0    0    1   
-$EndComp
+UART_TX
 Text Notes 6050 9850 0    60   ~ 0
 1xAAA
 Wire Wire Line
@@ -1129,8 +1110,6 @@ Wire Wire Line
 	1850 5950 1950 5950
 Wire Wire Line
 	1850 6050 1950 6050
-Wire Wire Line
-	1600 7050 1850 7050
 Wire Wire Line
 	2650 3750 2650 3850
 Wire Wire Line
@@ -1276,7 +1255,7 @@ Wire Wire Line
 Wire Wire Line
 	6250 1950 6150 1950
 Wire Wire Line
-	6150 2900 6250 2900
+	6150 2500 6250 2500
 Wire Wire Line
 	6250 2050 6150 2050
 Wire Wire Line
@@ -1353,12 +1332,6 @@ Wire Wire Line
 	2150 8050 3200 8050
 Wire Wire Line
 	3050 8750 3050 8600
-Wire Wire Line
-	2450 1850 1950 1850
-Wire Wire Line
-	2450 1950 1950 1950
-Wire Wire Line
-	1950 1750 2450 1750
 Connection ~ 13650 6300
 Wire Wire Line
 	14050 6300 13550 6300
@@ -1381,9 +1354,7 @@ Wire Notes Line
 Wire Notes Line
 	4150 8600 16000 8600
 Wire Wire Line
-	6350 2500 6150 2500
-Wire Wire Line
-	1850 7150 1600 7150
+	1850 7050 1600 7050
 Wire Wire Line
 	6250 10300 7650 10300
 $Comp
@@ -1505,4 +1476,30 @@ Wire Wire Line
 Wire Wire Line
 	6600 1550 6150 1550
 NoConn ~ 10150 2500
+$Comp
+L +3.3V #PWR?
+U 1 1 526D808A
+P 3200 8050
+F 0 "#PWR?" H 3200 8010 30  0001 C CNN
+F 1 "+3.3V" H 3280 8080 30  0000 C CNN
+F 2 "" H 3200 8050 60  0000 C CNN
+F 3 "" H 3200 8050 60  0000 C CNN
+	1    3200 8050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6150 2900 6250 2900
+Wire Wire Line
+	6250 3000 6150 3000
+$Comp
+L CONN_2 XL?
+U 1 1 526D8351
+P 1400 7150
+F 0 "XL?" V 1350 7150 40  0000 C CNN
+F 1 "CONN_2" V 1450 7150 40  0000 C CNN
+F 2 "~" H 1400 7150 60  0000 C CNN
+F 3 "~" H 1400 7150 60  0000 C CNN
+	1    1400 7150
+	-1   0    0    -1  
+$EndComp
 $EndSCHEMATC
