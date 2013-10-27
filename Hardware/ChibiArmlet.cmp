@@ -1,38 +1,24 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 27/10/2013 14:31:45
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 27/10/2013 22:04:36
 
 BeginCmp
 TimeStamp = /526B6399;
 Reference = ANT1;
 ValeurCmp = ANT_PCB_MONO_2PIN;
-IdModule  = ;
-EndCmp
-
-BeginCmp
-TimeStamp = /526B8865;
-Reference = B1;
-ValeurCmp = BAT;
-IdModule  = ;
-EndCmp
-
-BeginCmp
-TimeStamp = /52664802;
-Reference = B2;
-ValeurCmp = BAT;
-IdModule  = ;
+IdModule  = RES_1206;
 EndCmp
 
 BeginCmp
 TimeStamp = /52664780;
 Reference = B3;
 ValeurCmp = BAT;
-IdModule  = ;
+IdModule  = BAT_AA;
 EndCmp
 
 BeginCmp
 TimeStamp = /526657F6;
 Reference = BLN1;
 ValeurCmp = 0896BM15A0001;
-IdModule  = ;
+IdModule  = BALUN_JOHANSON868;
 EndCmp
 
 BeginCmp
@@ -155,31 +141,10 @@ IdModule  = CAP_0402;
 EndCmp
 
 BeginCmp
-TimeStamp = /5268CFA5;
+TimeStamp = /526D45CD;
 Reference = C17;
-ValeurCmp = 15pF;
-IdModule  = CAP_0402;
-EndCmp
-
-BeginCmp
-TimeStamp = /5268CF93;
-Reference = C18;
-ValeurCmp = 15pF;
-IdModule  = CAP_0402;
-EndCmp
-
-BeginCmp
-TimeStamp = /52670A02;
-Reference = C19;
 ValeurCmp = 10u;
 IdModule  = CAP_0805;
-EndCmp
-
-BeginCmp
-TimeStamp = /526C49D3;
-Reference = C20;
-ValeurCmp = 0.1u;
-IdModule  = CAP_0402;
 EndCmp
 
 BeginCmp
@@ -211,13 +176,6 @@ IdModule  = CAP_0805;
 EndCmp
 
 BeginCmp
-TimeStamp = /52670A3E;
-Reference = D1;
-ValeurCmp = BAT54WS;
-IdModule  = DIODE_SOD323;
-EndCmp
-
-BeginCmp
 TimeStamp = /526647AB;
 Reference = D2;
 ValeurCmp = BAT54WS;
@@ -246,20 +204,6 @@ IdModule  = QFN20;
 EndCmp
 
 BeginCmp
-TimeStamp = /526C49C7;
-Reference = DD3;
-ValeurCmp = M24C02;
-IdModule  = SO8E;
-EndCmp
-
-BeginCmp
-TimeStamp = /526CCB25;
-Reference = F1;
-ValeurCmp = FUSE0R;
-IdModule  = SMD0603_FUSE;
-EndCmp
-
-BeginCmp
 TimeStamp = /52665AF6;
 Reference = L1;
 ValeurCmp = 5.6nH;
@@ -271,20 +215,6 @@ TimeStamp = /526647B7;
 Reference = L2;
 ValeurCmp = 22uH;
 IdModule  = IND_1210;
-EndCmp
-
-BeginCmp
-TimeStamp = /52670A08;
-Reference = M1;
-ValeurCmp = MOTOR;
-IdModule  = ;
-EndCmp
-
-BeginCmp
-TimeStamp = /52670A0E;
-Reference = Q1;
-ValeurCmp = MMBT2222;
-IdModule  = SOT23;
 EndCmp
 
 BeginCmp
@@ -312,13 +242,6 @@ BeginCmp
 TimeStamp = /5265B441;
 Reference = R2;
 ValeurCmp = 56k;
-IdModule  = RES_0402;
-EndCmp
-
-BeginCmp
-TimeStamp = /52670A1A;
-Reference = R3;
-ValeurCmp = 1k;
 IdModule  = RES_0402;
 EndCmp
 
@@ -400,27 +323,6 @@ IdModule  = REF_POINT_1MM;
 EndCmp
 
 BeginCmp
-TimeStamp = /52671690;
-Reference = SW1;
-ValeurCmp = BUTTON;
-IdModule  = ;
-EndCmp
-
-BeginCmp
-TimeStamp = /52671660;
-Reference = SW2;
-ValeurCmp = BUTTON;
-IdModule  = ;
-EndCmp
-
-BeginCmp
-TimeStamp = /5267165A;
-Reference = SW3;
-ValeurCmp = BUTTON;
-IdModule  = ;
-EndCmp
-
-BeginCmp
 TimeStamp = /5265B41D;
 Reference = TP1;
 ValeurCmp = TESTPOINT;
@@ -449,13 +351,6 @@ IdModule  = SIL-3;
 EndCmp
 
 BeginCmp
-TimeStamp = /5267169C;
-Reference = XL3;
-ValeurCmp = CONN_NOKIA_LCD10;
-IdModule  = CONN_NOKIA_LCD;
-EndCmp
-
-BeginCmp
 TimeStamp = /5266EE0B;
 Reference = XL4;
 ValeurCmp = CONN_4;
@@ -467,13 +362,6 @@ TimeStamp = /5265B349;
 Reference = XTAL1;
 ValeurCmp = 27MHz;
 IdModule  = CRYSTAL_03225C4;
-EndCmp
-
-BeginCmp
-TimeStamp = /5268CF8D;
-Reference = XTAL2;
-ValeurCmp = 32768Hz;
-IdModule  = CRYSTAL_KX26;
 EndCmp
 
 EndListe
