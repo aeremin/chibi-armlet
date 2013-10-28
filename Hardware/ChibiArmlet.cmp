@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 27/10/2013 22:04:36
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 28/10/2013 13:38:20
 
 BeginCmp
 TimeStamp = /526B6399;
@@ -148,6 +148,13 @@ IdModule  = CAP_0805;
 EndCmp
 
 BeginCmp
+TimeStamp = /526E3E2B;
+Reference = C18;
+ValeurCmp = 0.1u;
+IdModule  = CAP_0402;
+EndCmp
+
+BeginCmp
 TimeStamp = /526647CF;
 Reference = C21;
 ValeurCmp = 0.1u;
@@ -190,10 +197,10 @@ IdModule  = SOT23-5;
 EndCmp
 
 BeginCmp
-TimeStamp = /526B8858;
+TimeStamp = /526E377D;
 Reference = DD1;
-ValeurCmp = STM32F051C8;
-IdModule  = LQFP48;
+ValeurCmp = STM32L100CX;
+IdModule  = QFN48;
 EndCmp
 
 BeginCmp
