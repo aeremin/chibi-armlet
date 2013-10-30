@@ -1,10 +1,10 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30/10/2013 02:58:24
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30/10/2013 22:46:06
 
 BeginCmp
-TimeStamp = /526B6399;
+TimeStamp = /527152AC;
 Reference = ANT1;
-ValeurCmp = ANT_PCB_MONO_2PIN;
-IdModule  = RES_1206;
+ValeurCmp = ANT_PCB_MONO;
+IdModule  = ANT_MEANDER868_16MM;
 EndCmp
 
 BeginCmp
@@ -151,6 +151,20 @@ BeginCmp
 TimeStamp = /526E3E2B;
 Reference = C18;
 ValeurCmp = 0.1u;
+IdModule  = CAP_0402;
+EndCmp
+
+BeginCmp
+TimeStamp = /5270DB78;
+Reference = C19;
+ValeurCmp = 6.8pF;
+IdModule  = CAP_0402;
+EndCmp
+
+BeginCmp
+TimeStamp = /5270DB7E;
+Reference = C20;
+ValeurCmp = 6.8pF;
 IdModule  = CAP_0402;
 EndCmp
 
@@ -309,6 +323,13 @@ IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
+TimeStamp = /5270DB98;
+Reference = R11;
+ValeurCmp = 200k*;
+IdModule  = RES_0402;
+EndCmp
+
+BeginCmp
 TimeStamp = /5149B6E8;
 Reference = RP1;
 ValeurCmp = REFPOINT;
@@ -404,6 +425,13 @@ TimeStamp = /5265B349;
 Reference = XTAL1;
 ValeurCmp = 27MHz;
 IdModule  = CRYSTAL_03225C4;
+EndCmp
+
+BeginCmp
+TimeStamp = /5270DB72;
+Reference = XTAL2;
+ValeurCmp = 32768;
+IdModule  = CRYSTAL_KX26_NOGND;
 EndCmp
 
 EndListe

@@ -1,4 +1,4 @@
-update=27/10/2013 14:59:44
+update=30/10/2013 21:56:59
 version=1
 last_client=pcbnew
 [cvpcb]
@@ -31,10 +31,10 @@ LibName10=memory
 version=1
 LastNetListRead=
 UseCmpFile=1
-PadDrill=0.500000000000
-PadDrillOvalY=0.500000000000
-PadSizeH=1.400000000000
-PadSizeV=1.400000000000
+PadDrill=1.200000000000
+PadDrillOvalY=1.200000000000
+PadSizeH=2.500000000000
+PadSizeV=2.500000000000
 PcbTextSizeV=2.032000000000
 PcbTextSizeH=1.524000000000
 PcbTextThickness=0.304800000000
@@ -45,7 +45,7 @@ SolderMaskClearance=0.100000000000
 SolderMaskMinWidth=0.000000000000
 DrawSegmentWidth=0.381000000000
 BoardOutlineThickness=0.381000000000
-ModuleOutlineThickness=0.381000000000
+ModuleOutlineThickness=0.200000000000
 [pcbnew/libraries]
 LibDir=D:/libs/Kicad
 LibName1=Common_kl
@@ -54,3 +54,4 @@ LibName3=pcb_details
 LibName4=Power_kl
 LibName5=Tittar_kl
 LibName6=Special
+LibName7=Antennas_kl
