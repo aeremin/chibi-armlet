@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 28/10/2013 13:38:20
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30/10/2013 02:58:24
 
 BeginCmp
 TimeStamp = /526B6399;
@@ -253,6 +253,13 @@ IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
+TimeStamp = /52704260;
+Reference = R3;
+ValeurCmp = 51R;
+IdModule  = RES_0402;
+EndCmp
+
+BeginCmp
 TimeStamp = /52670A2A;
 Reference = R4;
 ValeurCmp = 1k;
@@ -330,6 +337,27 @@ IdModule  = REF_POINT_1MM;
 EndCmp
 
 BeginCmp
+TimeStamp = /52703029;
+Reference = SW1;
+ValeurCmp = BUTTON;
+IdModule  = BUTTON_IT1181A;
+EndCmp
+
+BeginCmp
+TimeStamp = /52703038;
+Reference = SW2;
+ValeurCmp = BUTTON;
+IdModule  = BUTTON_IT1181A;
+EndCmp
+
+BeginCmp
+TimeStamp = /52703047;
+Reference = SW3;
+ValeurCmp = BUTTON;
+IdModule  = BUTTON_IT1181A;
+EndCmp
+
+BeginCmp
 TimeStamp = /5265B41D;
 Reference = TP1;
 ValeurCmp = TESTPOINT;
@@ -355,6 +383,13 @@ TimeStamp = /526728AC;
 Reference = XL2;
 ValeurCmp = CONN_3;
 IdModule  = SIL-3;
+EndCmp
+
+BeginCmp
+TimeStamp = /52704267;
+Reference = XL3;
+ValeurCmp = CONN_NOKIA_LCD10;
+IdModule  = CONN_NOKIA_LCD;
 EndCmp
 
 BeginCmp
