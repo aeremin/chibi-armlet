@@ -8,7 +8,6 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
-#include "string.h"     // For memcpy
 #include "peripheral.h"
 
 #if 1 // =============================== Beep ==================================
