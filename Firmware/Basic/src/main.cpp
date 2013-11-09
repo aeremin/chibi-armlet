@@ -32,9 +32,11 @@ int main(void) {
     Init();
 //    if(ClkResult) Uart.Printf("Clock failure\r");
     while(1) {
-        chThdSleepMilliseconds(999);
+        //chThdSleepMilliseconds(999);
+        chSysLock();
+        chThdSleepS(TIME_INFINITE); // Forever
+        chSysUnlock();
 //        Led.StopBlink();
-        //Beeper.Beep(LongBeep);
     } // while
 }
 
@@ -43,6 +45,7 @@ void Init() {
     Led.Init();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
+
     App.Init();
 //    Led.StartBlink(ShortGreen);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
