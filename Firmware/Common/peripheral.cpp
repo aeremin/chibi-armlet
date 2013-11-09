@@ -12,7 +12,7 @@
 #include "peripheral.h"
 
 #if 1 // =============================== Beep ==================================
-#define BEEP_TOP_VALUE   270 // 100% volume means on/off ratio 1/1
+#define BEEP_TOP_VALUE   220 // 100% volume means on/off ratio 1/1
 Beeper_t Beeper;
 // Timer callback
 void BeeperTmrCallback(void *p) {
@@ -20,7 +20,7 @@ void BeeperTmrCallback(void *p) {
 }
 
 void Beeper_t::Init() {
-    //IPin.Init(GPIOD, 12, 4, 1, BEEP_TOP_VALUE);
+    IPin.Init(GPIOB, 3, TIM2, 2, BEEP_TOP_VALUE);
 }
 
 void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
@@ -29,24 +29,24 @@ void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
     // Process chunk
     int8_t Volume = PSequence->VolumePercent;
     if((Volume < 0) or (PSequence->Time_ms == 0)) {    // Nothing to play
-//        IPin.Off();
+        IPin.Off();
         return;
     }
     if(Volume > 100) Volume = 100;  // Normalize volume
-//    IPin.SetFreqHz(PSequence->Freq_Hz);
-//    IPin.On(Volume);
+    IPin.SetFreqHz(PSequence->Freq_Hz);
+    IPin.Set(Volume);
     // Start timer
     chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)(PSequence+1));
 }
 
 void BeeperTmrCallbackStop(void *p) {
-//    Beeper.IPin.Off();
+    Beeper.IPin.Off();
 }
 
 void Beeper_t::Beep(uint32_t ms) {
     chVTReset(&ITmr);
-//    IPin.SetFreqHz(2000);
-//    IPin.On(100);
+    IPin.SetFreqHz(2000);
+    IPin.Set(100);
     chVTSet(&ITmr, MS2ST(ms), BeeperTmrCallbackStop, NULL);
 }
 

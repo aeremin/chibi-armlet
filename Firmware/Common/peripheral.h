@@ -32,7 +32,7 @@ public:
     void Init();
     void Shutdown();
     // Inner use
-    //PwmPin_t IPin;
+    PwmPin_t IPin;
 };
 extern Beeper_t Beeper;
 #endif

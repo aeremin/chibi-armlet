@@ -188,17 +188,17 @@ static inline void PinSetupAlterFunc(
     PGpioPort->AFR[n] |= (uint32_t)AAlterFunc << Offset;
 }
 
-//class PwmPin_t {
-//private:
-//    uint32_t *PClk;
-//    TIM_TypeDef* Tim;
-//public:
-//    __IO uint16_t *PCCR;    // Made public to allow DMA
-//    void SetFreqHz(uint32_t FreqHz);
-//    void Init(GPIO_TypeDef *GPIO, uint16_t N, uint8_t TimN, uint8_t Chnl, uint16_t TopValue, bool Inverted=false);
-//    void Set(uint16_t Value) { *PCCR = Value; }
-//    void Off() { *PCCR = 0; }
-//};
+class PwmPin_t {
+private:
+    uint32_t *PClk;
+    TIM_TypeDef* Tim;
+public:
+    __IO uint32_t *PCCR;    // Made public to allow DMA
+    void SetFreqHz(uint32_t FreqHz);
+    void Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, bool Inverted=false);
+    void Set(uint16_t Value) { *PCCR = Value; }
+    void Off() { *PCCR = 0; }
+};
 
 // ==== External IRQ ====
 //enum ExtiTrigType_t {
