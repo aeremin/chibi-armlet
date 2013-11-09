@@ -72,6 +72,7 @@
 									<listOptionValue builtIn="false" value="../../Common/os/hal/include"/>
 									<listOptionValue builtIn="false" value="../../Common/os/kernel/include"/>
 									<listOptionValue builtIn="false" value="../../Common/os"/>
+									<listOptionValue builtIn="false" value="../../Common"/>
 								</option>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.packstruct.656188834" name="Pack structures (-fpack-struct)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.packstruct" value="false" valueType="boolean"/>
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.shortenums.1113447329" name="Short enumerations (-fshort-enums)" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.shortenums" value="false" valueType="boolean"/>

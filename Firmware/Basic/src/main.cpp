@@ -10,6 +10,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
+#include "led.h"
 
 static inline void Init();
 
@@ -33,5 +34,7 @@ int main(void) {
 
 void Init() {
     Uart.Init(115200);
+    Led.Init();
+    Led.SetColor(clCyan);
     Uart.Printf("\rChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
 }
