@@ -11,7 +11,7 @@
 #include "stm32l1xx.h"
 #include "ch.h"
 #include "hal.h"
-#include "clocking_L15x.h"
+#include "clocking_L1xx.h"
 
 extern "C" {
 void __attribute__ ((weak)) _init(void)  {}
