@@ -6,7 +6,7 @@
  */
 
 #include "pill.h"
-/*
+
 Pill_t Pill[PILL_CNT];
 bool PillsHaveChanged;
 
@@ -96,4 +96,3 @@ uint8_t Pill_t::Write(uint8_t *Ptr, uint8_t Length) {
     if(i2c.Error == true) PillReset();
     return Rslt;
 }
-*/

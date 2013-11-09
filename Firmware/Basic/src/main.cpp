@@ -45,7 +45,7 @@ void Init() {
     Led.Init();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
-
+    PillInit();
     App.Init();
 //    Led.StartBlink(ShortGreen);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);

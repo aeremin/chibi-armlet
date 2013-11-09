@@ -77,14 +77,15 @@ static inline void MemCopy(uint8_t *PDst, const uint8_t *PSrc, uint32_t Sz) {
 #define DMA_PRIORITY_HIGH       STM32_DMA_CR_PL(0b10)
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
 
-// ============================ Simple delay ===================================
+#if 1 // ========================== Simple delay ===============================
 static inline void DelayLoop(volatile uint32_t ACounter) { while(ACounter--); }
 static inline void Delay_ms(uint32_t Ams) {
     volatile uint32_t __ticks = (Clk.AHBFreqHz / 4000) * Ams;
     DelayLoop(__ticks);
 }
+#endif
 
-// ===================== Single pin manipulations ==============================
+#if 1 // ===================== Single pin manipulations ========================
 enum PinOutMode_t {
     omPushPull  = 0,
     omOpenDrain = 1
@@ -220,8 +221,9 @@ public:
 //uint8_t N = APinNumber / 4;    // Indx of EXTICR register
 //uint8_t Shift = (APinNumber & 0x03) * 4;
 //AFIO->EXTICR[N] &= ~((uint32_t)0b1111 << Shift);    // Clear bits
+#endif
 
-// ================================= Timers ====================================
+#if 1 // ============================== Timers =================================
 enum TmrTrigInput_t {tiITR0=0x00, tiITR1=0x10, tiITR2=0x20, tiITR3=0x30, tiTIED=0x40, tiTI1FP1=0x50, tiTI2FP2=0x60, tiETRF=0x70};
 enum TmrMasterMode_t {mmReset=0x00, mmEnable=0x10, mmUpdate=0x20, mmComparePulse=0x30, mmCompare1=0x40, mmCompare2=0x50, mmCompare3=0x60, mmCompare4=0x70};
 enum TmrSlaveMode_t {smDisable=0, smEncoder1=1, smEncoder2=2, smEncoder3=3, smReset=4, smGated=5, smTrigger=6, smExternal=7};
@@ -270,9 +272,9 @@ public:
     void PwmInit(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed = ps10MHz);
     void PwmSet(uint16_t Value) { *PCCR = Value; }
 };
+#endif
 
-
-// ================================= IWDG ======================================
+#if 1 // ============================== IWDG ===================================
 enum IwdgPre_t {
     iwdgPre4 = 0x00,
     iwdgPre8 = 0x01,
@@ -307,8 +309,9 @@ public:
         else return false;
     }
 };
+#endif
 
-// ================================= SPI =======================================
+#if 1 // ============================== SPI ====================================
 enum CPHA_t {cphaFirstEdge, cphaSecondEdge};
 enum CPOL_t {cpolIdleLow, cpolIdleHigh};
 enum SpiBaudrate_t {
@@ -345,47 +348,62 @@ static inline void SpiSetup(
 
 static inline void SpiEnable (SPI_TypeDef *Spi) { Spi->CR1 |=  SPI_CR1_SPE; }
 static inline void SpiDisable(SPI_TypeDef *Spi) { Spi->CR1 &= ~SPI_CR1_SPE; }
+#endif
 
+#if 1 // ============================== I2C ====================================
+#define I2C_DMATX_MODE  DMA_PRIORITY_LOW | \
+                        STM32_DMA_CR_MSIZE_BYTE | \
+                        STM32_DMA_CR_PSIZE_BYTE | \
+                        STM32_DMA_CR_MINC |     /* Memory pointer increase */ \
+                        STM32_DMA_CR_DIR_M2P |  /* Direction is memory to peripheral */ \
+                        STM32_DMA_CR_TCIE       /* Enable Transmission Complete IRQ */
 
-// =============================== I2C =========================================
-//class i2c_t {
-//private:
-//    I2C_TypeDef *ii2c;
-//    GPIO_TypeDef *IPGpio;
-//    uint16_t ISclPin, ISdaPin;
-//    uint32_t IBitrateHz;
-//    void SendStart()  { ii2c->CR1 |= I2C_CR1_START; }
-//    void SendStop()   { ii2c->CR1 |= I2C_CR1_STOP; }
-//    void AckEnable()  { ii2c->CR1 |= I2C_CR1_ACK; }
-//    void AckDisable() { ii2c->CR1 &= ~I2C_CR1_ACK; }
-//    bool RxIsNotEmpty()  { return (ii2c->SR1 & I2C_SR1_RXNE); }
-//    void ClearAddrFlag() { (void)ii2c->SR1; (void)ii2c->SR2; }
-//    void DmaLastTransferSet() { ii2c->CR2 |= I2C_CR2_LAST; }
-//    // Address and data
-//    void SendAddrWithWrite(uint8_t Addr) { ii2c->DR = (uint8_t)(Addr<<1); }
-//    void SendAddrWithRead (uint8_t Addr) { ii2c->DR = ((uint8_t)(Addr<<1)) | 0x01; }
-//    void SendData(uint8_t b) { ii2c->DR = b; }
-//    uint8_t ReceiveData() { return ii2c->DR; }
-//    // Flags operations
-//    uint8_t IBusyWait();
-//    uint8_t WaitEv5();
-//    uint8_t WaitEv6();
-//    uint8_t WaitEv8();
-//    uint8_t WaitAck();
-//    uint8_t WaitRx();
-//    uint8_t WaitStop();
-//public:
-//    bool Error;
-//    Thread *PRequestingThread;
-//    const stm32_dma_stream_t *PDmaTx, *PDmaRx;
-//    void Init(I2C_TypeDef *pi2c, uint32_t BitrateHz);
-//    void Standby();
-//    void Resume();
-//    void Reset();
-//    uint8_t CmdWriteRead(uint8_t Addr, uint8_t *WPtr, uint8_t WLength, uint8_t *RPtr, uint8_t RLength);
-//    uint8_t CmdWriteWrite(uint8_t Addr, uint8_t *WPtr1, uint8_t WLength1, uint8_t *WPtr2, uint8_t WLength2);
-//};
+#define I2C_DMARX_MODE  DMA_PRIORITY_LOW | \
+                        STM32_DMA_CR_MSIZE_BYTE | \
+                        STM32_DMA_CR_PSIZE_BYTE | \
+                        STM32_DMA_CR_MINC |         /* Memory pointer increase */ \
+                        STM32_DMA_CR_DIR_P2M |      /* Direction is peripheral to memory */ \
+                        STM32_DMA_CR_TCIE           /* Enable Transmission Complete IRQ */
 
-
+class i2c_t {
+private:
+    I2C_TypeDef *ii2c;
+    GPIO_TypeDef *IPGpio;
+    uint16_t ISclPin, ISdaPin;
+    uint32_t IBitrateHz;
+    void SendStart()     { ii2c->CR1 |= I2C_CR1_START; }
+    void SendStop()      { ii2c->CR1 |= I2C_CR1_STOP; }
+    void AckEnable()     { ii2c->CR1 |= I2C_CR1_ACK; }
+    void AckDisable()    { ii2c->CR1 &= ~I2C_CR1_ACK; }
+    bool RxIsNotEmpty()  { return (ii2c->SR1 & I2C_SR1_RXNE); }
+    void ClearAddrFlag() { (void)ii2c->SR1; (void)ii2c->SR2; }
+    void DmaLastTransferSet() { ii2c->CR2 |= I2C_CR2_LAST; }
+    // Address and data
+    void SendAddrWithWrite(uint8_t Addr) { ii2c->DR = (uint8_t)(Addr<<1); }
+    void SendAddrWithRead (uint8_t Addr) { ii2c->DR = ((uint8_t)(Addr<<1)) | 0x01; }
+    void SendData(uint8_t b) { ii2c->DR = b; }
+    uint8_t ReceiveData() { return ii2c->DR; }
+    // Flags operations
+    uint8_t IBusyWait();
+    uint8_t WaitEv5();
+    uint8_t WaitEv6();
+    uint8_t WaitEv8();
+    uint8_t WaitAck();
+    uint8_t WaitRx();
+    uint8_t WaitStop();
+    uint8_t WaitBTF();
+public:
+    bool Error;
+    Thread *PRequestingThread;
+    const stm32_dma_stream_t *PDmaTx, *PDmaRx;
+    void Init(I2C_TypeDef *pi2c, GPIO_TypeDef *PGpio, uint16_t SclPin, uint16_t SdaPin, uint32_t BitrateHz,
+            const stm32_dma_stream_t *APDmaTx, const stm32_dma_stream_t *APDmaRx);
+    void Standby();
+    void Resume();
+    void Reset();
+    uint8_t CmdWriteRead(uint8_t Addr, uint8_t *WPtr, uint8_t WLength, uint8_t *RPtr, uint8_t RLength);
+    uint8_t CmdWriteWrite(uint8_t Addr, uint8_t *WPtr1, uint8_t WLength1, uint8_t *WPtr2, uint8_t WLength2);
+};
+#endif
 
 #endif /* KL_LIB_F100_H_ */

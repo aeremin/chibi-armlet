@@ -28,7 +28,7 @@ const LedChunk_t ShortGreen[] = {
 #define BEEP_END    {-1, 0, 0}
 
 const BeepChunk_t ShortBeep[] = {
-        {100, 45, 2000},
+        {9, 45, 2000},
         BEEP_END
 };
 
