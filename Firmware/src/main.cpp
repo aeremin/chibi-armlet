@@ -9,21 +9,20 @@
 #include "kl_lib_L15x.h"
 #include "ch.h"
 #include "hal.h"
-#include "clocking_L100.h"
+#include "clocking_L1xx.h"
 
 static inline void Init();
 
 int main(void) {
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V8);
-    uint8_t ClkResult = 1;
-    Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
-    Clk.SetupPLLMulDiv(pllMul12, pllDiv4);
-    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
-    if((ClkResult = Clk.SwitchToPLL()) == 0) {
-        Clk.HSIDisable();
-        Clk.MSIDisable();
-    }
+//    SetupVCore(vcore1V8);
+    //uint8_t ClkResult = 1;
+    //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
+//    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
+//    if((ClkResult = Clk.SwitchToPLL()) == 0) {
+//        Clk.HSIDisable();
+//        Clk.MSIDisable();
+//    }
     Clk.UpdateFreqValues();
 
     // ==== Init OS ====
@@ -31,7 +30,7 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Init();
-    if(ClkResult) Uart.Printf("Clock failure\r");
+//    if(ClkResult) Uart.Printf("Clock failure\r");
 //    PinSetupOut(GPIOA, 1, omPushPull);
     while(1) {
         chThdSleepMilliseconds(999);

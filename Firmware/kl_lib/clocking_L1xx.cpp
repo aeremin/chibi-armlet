@@ -5,7 +5,7 @@
  *      Author: kreyl
  */
 
-#include "clocking_L15x.h"
+#include "clocking_L1xx.h"
 #include "stm32_rcc.h"
 
 Clk_t Clk;
@@ -203,15 +203,5 @@ void SetupVCore(VCore_t AVCore) {
     tmp |= ((uint32_t)AVCore) << 11;
     PWR->CR = tmp;
     while((PWR->CSR & PWR_CSR_VOSF) != 0); // Wait until regulator is stable
+    VCore = AVCore;
 }
-
-///*
-// * Early initialization code.
-// * This initialization must be performed just after stack setup and before
-// * any other initialization.
-// */
-//void __early_init(void) {
-//    // Enable HSI. It is enabled by default, but who knows.
-//    RCC->CR |= RCC_CR_HSION;
-//    while(!(RCC->CR & RCC_CR_HSIRDY));
-//}
