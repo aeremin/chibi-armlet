@@ -10,7 +10,8 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
-#include "led.h"
+#include "peripheral.h"
+#include "sequences.h"
 
 static inline void Init();
 
@@ -28,13 +29,14 @@ int main(void) {
     Init();
 //    if(ClkResult) Uart.Printf("Clock failure\r");
     while(1) {
-        chThdSleepMilliseconds(999);
+        chThdSleepMilliseconds(9999);
+        Led.StopBlink();
     } // while
 }
 
 void Init() {
     Uart.Init(115200);
     Led.Init();
-    Led.SetColor(clCyan);
+    Led.StartBlink(ShortGreen);
     Uart.Printf("\rChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
 }
