@@ -2,6 +2,7 @@
 #define TINY_SPRINTF_H
 
 #include <stdarg.h>
+#include <stdint.h>
 
 // Supported format specifiers:
 //   %s - string
@@ -15,7 +16,7 @@
 // *sprintf calls return number of characters printed (not counting trailing zero).
 // For the sake of simplicity no overflow checks are performed.
 
-int tiny_vsprintf(char *buf, const char *format, va_list args);
-int tiny_sprintf(char *buf, const char *format, ...);
+int tiny_vsprintf(char *buf, int32_t BufSz, const char *format, va_list args);
+//int tiny_sprintf(char *buf, const char *format, ...);
 
 #endif

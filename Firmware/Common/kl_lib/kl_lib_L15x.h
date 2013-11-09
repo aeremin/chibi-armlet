@@ -60,11 +60,16 @@ typedef void (*ftVoidVoid)(void);
 #define ANY_OF_4(a, b1, b2, b3, b4)     (((a)==(b1)) or ((a)==(b2)) or ((a)==(b3)) or ((a)==(b4)))
 #define ANY_OF_5(a, b1, b2, b3, b4, b5) (((a)==(b1)) or ((a)==(b2)) or ((a)==(b3)) or ((a)==(b4)) or ((a)==(b5)))
 
+// Memcpy
+static inline void MemCopy(uint8_t *PDst, const uint8_t *PSrc, uint32_t Sz) {
+    while(Sz--) *PDst++ = *PSrc++;
+}
+
 // IRQ priorities
 #define IRQ_PRIO_LOW            15  // Minimum
 #define IRQ_PRIO_MEDIUM         9
 #define IRQ_PRIO_HIGH           7
-#define IRQ_PRIO_VERYHIGH       4 // Higher than systick
+#define IRQ_PRIO_VERYHIGH       4   // Higher than systick
 
 // DMA
 #define DMA_PRIORITY_LOW        STM32_DMA_CR_PL(0b00)
@@ -302,51 +307,6 @@ public:
         else return false;
     }
 };
-
-
-// ============================== UART command =================================
-#define DBG_UART_ENABLED
-
-#ifdef DBG_UART_ENABLED
-#define UART_TXBUF_SIZE     504
-#define UART_SPRINTBUF_SZ   99
-#define UART                USART1
-#define UART_GPIO           GPIOA
-#define UART_TX_PIN         9
-#define UART_AF             AF7
-#define UART_DMA            STM32_DMA1_STREAM4
-#define UART_RCC_ENABLE()   rccEnableUSART1(FALSE)
-
-#define UART_DMA_MODE       DMA_PRIORITY_LOW | \
-                            STM32_DMA_CR_MSIZE_BYTE | \
-                            STM32_DMA_CR_PSIZE_BYTE | \
-                            STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
-                            STM32_DMA_CR_DIR_M2P |    /* Direction is memory to peripheral */ \
-                            STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */
-
-
-class DbgUart_t {
-private:
-    uint8_t TXBuf[UART_TXBUF_SIZE];
-    char SprintfBuf[UART_SPRINTBUF_SZ];
-    uint8_t *PWrite, *PRead;
-    bool IDmaIsIdle;
-    uint32_t IFullSlotsCount, ITransSize;
-public:
-    void Printf(const char *S, ...);
-    void PrintNow(const char *S) {
-        while(*S != 0) {
-            while(!(USART1->SR & USART_SR_TXE));
-            USART1->DR = *S++;
-        }
-    }
-    void FlushTx() { while(!IDmaIsIdle); }  // wait DMA
-    void Init(uint32_t ABaudrate);
-    void IRQDmaTxHandler();
-};
-
-extern DbgUart_t Uart;
-#endif
 
 // ================================= SPI =======================================
 enum CPHA_t {cphaFirstEdge, cphaSecondEdge};

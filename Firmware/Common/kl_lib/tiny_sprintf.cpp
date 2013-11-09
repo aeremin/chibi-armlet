@@ -10,10 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
-#else
-
-
 #endif
 
 
@@ -33,23 +29,22 @@ char *put_uint(char *p,
     } while (n > 0);
 
     for (int i = len; i < width; i++)
-        if (zero_padded)
-            *p++ = '0';
-        else
-            *p++ = ' ';
+        if (zero_padded) *p++ = '0';
+        else             *p++ = ' ';
 
-    while (len > 0)
-        *p++ = digits[--len];
+    while (len > 0) *p++ = digits[--len];
     return p;
 }
 
-int tiny_vsprintf(char *buf, const char *format, va_list args) {
+int tiny_vsprintf(char *buf, int32_t BufSz, const char *format, va_list args) {
+    BufSz--;    // leave last byte for '\0'
     const char *f = format;
     char *p = buf;
     char c;
     while ((c = *f++) != 0) {
         if (c != '%') {
             *p++ = c;
+            if(--BufSz <= 0) break;
             continue;
         }
 
@@ -58,23 +53,24 @@ int tiny_vsprintf(char *buf, const char *format, va_list args) {
         // instead of ' ' as a filler.
         int width = 0;
         bool zero_padded = false;
-        while (true) {
+        while(true) {
             c = *f++;
-            if (c < '0' || c > '9')
-                break;
-            if (width == 0 && c == '0')
-                zero_padded = true;
+            if (c < '0' || c > '9') break;
+            if (width == 0 && c == '0') zero_padded = true;
             width *= 10;
             width += c-'0';
         }
 
-        if (c == 's') {
+        if((c == 's') or (c == 'S')) {
             char *s = va_arg(args, char*);
-            while (*s != 0)
+            while (*s != 0) {
                 *p++ = *s++;
+                if(--BufSz <= 0) break;
+            }
         }
         else if (c == 'c') {
             *p++ = va_arg(args, int);
+            if(--BufSz <= 0) break;
         }
         else if (c == 'X') {
             unsigned int n = va_arg(args, unsigned int);
@@ -95,9 +91,9 @@ int tiny_vsprintf(char *buf, const char *format, va_list args) {
         else if (c == 'A') {
             uint8_t *arr = va_arg(args, uint8_t*);
             int n = va_arg(args, int);
-            for (int i = 0; i < n; i++) {
-                if (i > 0)
-                    *p++ = ' ';
+            unsigned int Delimiter = va_arg(args, unsigned int);
+            for(int i = 0; i < n; i++) {
+                if((i > 0) and (Delimiter != 0)) *p++ = (char)Delimiter;
                 p = put_uint(p, arr[i], 16, 2, true);
             }
         }
@@ -106,13 +102,13 @@ int tiny_vsprintf(char *buf, const char *format, va_list args) {
     return p-buf;
 }
 
-int tiny_sprintf(char *buf, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    int result = tiny_vsprintf(buf, format, args);
-    va_end(args);
-    return result;
-}
+//int tiny_sprintf(char *buf, const char *format, ...) {
+//    va_list args;
+//    va_start(args, format);
+//    int result = tiny_vsprintf(buf, format, args);
+//    va_end(args);
+//    return result;
+//}
 
 
 #ifdef TESTING
