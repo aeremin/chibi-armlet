@@ -21,12 +21,18 @@ struct BeepChunk_t {
 class Beeper_t {
 private:
     VirtualTimer ITmr;
+    const BeepChunk_t *IPFirstChunk;
 public:
     void BeepI(const BeepChunk_t *PSequence);
     void Beep(const BeepChunk_t *PSequence) {   // Beep with this function
+        IPFirstChunk = PSequence;
         chSysLock();
         BeepI(PSequence);
         chSysUnlock();
+    }
+    void Stop() {
+        if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+        IPin.Set(0);
     }
     void Beep(uint32_t ms);
     void Init();

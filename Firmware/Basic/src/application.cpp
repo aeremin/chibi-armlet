@@ -14,6 +14,69 @@
 App_t App;
 static uint8_t SBuf[252];
 
+#if 1 // =============================== Status ================================
+#define DOSE_RED_END        60
+#define DOSE_RED_FAST       50
+#define DOSE_RED_SLOW       40
+#define DOSE_YELLOW         20
+
+enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
+class Dose_t {
+private:
+    uint32_t IDose;
+    void ChangeIndication() {
+        Beeper.Stop();
+        Led.StopBlink();
+        switch(State) {
+            case hsDeath:
+                Led.SetColor(clRed);
+                Beeper.Beep(BeepDeath);
+                break;
+            case hsRedFast:
+                Led.StartBlink(LedRedFast);
+                Beeper.Beep(BeepRedFast);
+                break;
+            case hsRedSlow:
+                Led.StartBlink(LedRedSlow);
+                Beeper.Beep(BeepBeepLoud);
+                break;
+            case hsYellow:
+                Led.StartBlink(LedYellow);
+                Beeper.Beep(BeepBeepLoud);
+                break;
+            case hsGreen:
+                Led.StartBlink(LedGreen);
+                Beeper.Beep(BeepBeepLoud);
+                break;
+            default: break;
+        } // switch
+    }
+    void ConvertDoseToState() {
+        if     (IDose >= DOSE_RED_END)  State = hsDeath;
+        else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
+        else if(IDose >= DOSE_RED_SLOW) State = hsRedSlow;
+        else if(IDose >= DOSE_YELLOW)   State = hsYellow;
+        else                            State = hsGreen;
+    }
+public:
+    HealthState_t State;
+    void Set(uint32_t ADose) {
+        IDose = ADose;
+        HealthState_t OldState = State;
+        ConvertDoseToState();
+        if(State != OldState) ChangeIndication();
+    }
+    uint32_t Get() { return IDose; }
+    void Increase(uint32_t Amount) {
+        uint32_t Dz = IDose;
+        if((Dz + Amount) > DOSE_RED_END) Dz = DOSE_RED_END;
+        else Dz += Amount;
+        Set(Dz);
+    }
+};
+static Dose_t Dose;
+#endif
+
 #if 1 // ================================ Pill =================================
 struct Med_t {
     uint8_t CureID, Charges;
@@ -29,7 +92,7 @@ static void AppThread(void *arg) {
 
     while(1) {
         chThdSleepMilliseconds(999);
-        // Check pills
+        // ==== Check pills ====
         PillChecker();
         if(PillsHaveChanged) {  // Will be reset at PillChecker
             Beeper.Beep(ShortBeep);
@@ -39,6 +102,10 @@ static void AppThread(void *arg) {
                 Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charges);
             }
         } // if pill changed
+
+        // ==== Process dose ====
+        Dose.Increase(1);
+
 
     } // while 1
 }

@@ -43,6 +43,7 @@ int main(void) {
 void Init() {
     Uart.Init(115200);
     Led.Init();
+//    Led.SetColor(clGreen);
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     PillInit();

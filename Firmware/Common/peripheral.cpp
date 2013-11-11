@@ -27,10 +27,21 @@ void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
     // Process chunk
     int8_t Volume = PSequence->VolumePercent;
-    if((Volume < 0) or (PSequence->Time_ms == 0)) {    // Nothing to play
+    // Stop
+    if(Volume == -1) {
         IPin.Off();
         return;
     }
+    // Repeat
+    else if(Volume == -2) {
+        PSequence = IPFirstChunk;
+        Volume = PSequence->VolumePercent;
+        if(Volume < 0) {    // Nothing to play
+            IPin.Off();
+            return;
+        }
+    }
+
     if(Volume > 100) Volume = 100;  // Normalize volume
     IPin.SetFreqHz(PSequence->Freq_Hz);
     IPin.Set(Volume);
