@@ -140,11 +140,11 @@ void PwmPin_t::SetFreqHz(uint32_t FreqHz) {
 }
 #endif
 
-//// ================================= DEBUG =====================================
-//void chDbgPanic(const char *msg1) {
-//    Uart.PrintNow(msg1);
-//    (void)msg1;
-//}
+#if CH_DBG_ENABLED // ========================= DEBUG ==========================
+void chDbgPanic(const char *msg1) {
+    Uart.PrintNow(msg1);
+}
+#endif
 
 #if 1 // ============================= I2C =====================================
 void i2cDmaIrqHandler(void *p, uint32_t flags) {
@@ -389,4 +389,32 @@ uint8_t i2c_t::WaitBTF() {
         if(ii2c->SR1 & I2C_SR1_BTF) return OK;
     return TIMEOUT;
 }
+#endif
+
+#include "cmd_uart.h"
+#ifdef EEPROM_LIB_KL // ====================== EEPROM ==========================
+void Eeprom_t::Unlock() {
+    if(FLASH->PECR & FLASH_PECR_PELOCK) {
+        // Unlocking the Data memory and FLASH_PECR register access
+        chSysLock();
+        FLASH->PEKEYR = FLASH_PEKEY1;
+        FLASH->PEKEYR = FLASH_PEKEY2;
+        chSysUnlock();
+        FLASH->SR = FLASH_SR_WRPERR;        // Clear WriteProtectErr
+        FLASH->PECR &= ~FLASH_PECR_FTDW;    // Disable fixed time programming
+    }
+}
+
+// Here not-fast write is used. I.e. interface will erase the word if it is not the same.
+uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
+    Addr += EEPROM_BASE_ADDR;
+    // Wait for last operation to be completed
+    uint8_t status = Flash_t::WaitForLastOperation();
+    if(status == OK) {
+        *(volatile uint32_t*)Addr = W;
+        status = Flash_t::WaitForLastOperation();
+    }
+    return status;
+}
+
 #endif

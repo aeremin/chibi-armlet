@@ -14,7 +14,9 @@
 App_t App;
 static uint8_t SBuf[252];
 
-#if 1 // =============================== Status ================================
+//Eeprom_t EE;
+
+#if 1 // ================================ Dose =================================
 #define DOSE_RED_END        60
 #define DOSE_RED_FAST       50
 #define DOSE_RED_SLOW       40
@@ -74,7 +76,7 @@ public:
         Set(Dz);
     }
 };
-static Dose_t Dose;
+//static Dose_t Dose;
 #endif
 
 #if 1 // ================================ Pill =================================
@@ -89,7 +91,6 @@ static WORKING_AREA(waAppThread, 256);
 __attribute__((noreturn))
 static void AppThread(void *arg) {
     chRegSetThreadName("App");
-
     while(1) {
         chThdSleepMilliseconds(999);
         // ==== Check pills ====
@@ -104,13 +105,13 @@ static void AppThread(void *arg) {
         } // if pill changed
 
         // ==== Process dose ====
-        Dose.Increase(1);
-
+        //Dose.Increase(1);
 
     } // while 1
 }
 
 void App_t::Init() {
+
     chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
 }
 #endif

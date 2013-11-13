@@ -13,11 +13,7 @@
 #include "hal.h"
 #include "clocking_L1xx.h"
 
-extern "C" {
-void __attribute__ ((weak)) _init(void)  {}
-}
-
-// =============================== General =====================================
+#if 1 // ============================ General ==================================
 #define PACKED __attribute__ ((__packed__))
 #ifndef countof
 #define countof(A)  (sizeof(A)/sizeof(A[0]))
@@ -40,6 +36,7 @@ void __attribute__ ((weak)) _init(void)  {}
 #define IN_PROGRESS     5
 #define LAST            6
 #define CMD_ERROR       7
+#define WRITE_PROTECT   8
 
 // Binary semaphores
 #define NOT_TAKEN       false
@@ -77,7 +74,13 @@ static inline void MemCopy(uint8_t *PDst, const uint8_t *PSrc, uint32_t Sz) {
 #define DMA_PRIORITY_HIGH       STM32_DMA_CR_PL(0b10)
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
 
-#if 1 // ========================== Simple delay ===============================
+// Init, to calm compiler
+extern "C" {
+void __attribute__ ((weak)) _init(void)  {}
+}
+#endif
+
+#if 0 // ========================== Simple delay ===============================
 static inline void DelayLoop(volatile uint32_t ACounter) { while(ACounter--); }
 static inline void Delay_ms(uint32_t Ams) {
     volatile uint32_t __ticks = (Clk.AHBFreqHz / 4000) * Ams;
@@ -403,6 +406,59 @@ public:
     void Reset();
     uint8_t CmdWriteRead(uint8_t Addr, uint8_t *WPtr, uint8_t WLength, uint8_t *RPtr, uint8_t RLength);
     uint8_t CmdWriteWrite(uint8_t Addr, uint8_t *WPtr1, uint8_t WLength1, uint8_t *WPtr2, uint8_t WLength2);
+};
+#endif
+
+#if 1 // ============================= FLASH ===================================
+#define FLASH_WAIT_TIMEOUT  36000
+class Flash_t {
+public:
+    static uint8_t GetStatus() {
+        if(FLASH->SR & FLASH_SR_BSY) return BUSY;
+        else if(FLASH->SR & FLASH_SR_WRPERR) return WRITE_PROTECT;
+        else if(FLASH->SR & (uint32_t)0x1E00) return FAILURE;
+        else return OK;
+    }
+    static uint8_t WaitForLastOperation() {
+        uint32_t Timeout = FLASH_WAIT_TIMEOUT;
+        while(Timeout--) {
+            // Get status
+            uint8_t status = GetStatus();
+            if(status != BUSY) return status;
+        }
+        return TIMEOUT;
+    }
+};
+#endif
+
+#if 1 // ============================ EEPROM ===================================
+#define EEPROM_LIB_KL
+#define EEPROM_BASE_ADDR    ((uint32_t)0x08080000)
+// ==== Flash keys ====
+#define FLASH_PDKEY1    ((uint32_t)0x04152637) // Flash power down key1
+// Flash power down key2: used with FLASH_PDKEY1 to unlock the RUN_PD bit in FLASH_ACR
+#define FLASH_PDKEY2    ((uint32_t)0xFAFBFCFD)
+#define FLASH_PEKEY1    ((uint32_t)0x89ABCDEF) // Flash program erase key1
+// Flash program erase key: used with FLASH_PEKEY2 to unlock the write access
+// to the FLASH_PECR register and data EEPROM
+#define FLASH_PEKEY2    ((uint32_t)0x02030405)
+#define FLASH_PRGKEY1   ((uint32_t)0x8C9DAEBF) // Flash program memory key1
+// Flash program memory key2: used with FLASH_PRGKEY2 to unlock the program memory
+#define FLASH_PRGKEY2   ((uint32_t)0x13141516)
+#define FLASH_OPTKEY1   ((uint32_t)0xFBEAD9C8) // Flash option key1
+// Flash option key2: used with FLASH_OPTKEY1 to unlock the write access to the option byte block
+#define FLASH_OPTKEY2   ((uint32_t)0x24252627)
+
+
+
+class Eeprom_t {
+private:
+
+public:
+    void Unlock();
+    void Lock() { FLASH->PECR |= FLASH_PECR_PELOCK; }
+    uint32_t Read32(uint32_t Addr) { return *((uint32_t*)(Addr + EEPROM_BASE_ADDR)); }
+    uint8_t Write32(uint32_t Addr, uint32_t W);
 };
 #endif
 
