@@ -35,11 +35,11 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Init();
 //    if(ClkResult) Uart.Printf("Clock failure\r");
-
+    //EE.Remove();
     uint32_t ob = 0;
     uint8_t r;
     EEChunk32_t *P;
-    P = EE_PTR;
+    P = EE_PTR_FIRST;
     for(uint8_t i=0; i<4; i++) {
         Uart.Printf("  %u %X %u\r", P->Counter, P->Sign, P->Data);
         P++;
@@ -54,11 +54,16 @@ int main(void) {
     r = EE.Get(&ob);
     Uart.Printf("%u, %u\r", r, ob);
 
-    P = EE_PTR;
+    P = EE_PTR_FIRST;
     for(uint8_t i=0; i<4; i++) {
         Uart.Printf("  %u %X %u\r", P->Counter, P->Sign, P->Data);
         P++;
     }
+//    P = EE_PTR_FIRST;
+//    for(uint8_t i=0; i<4; i++) {
+//        Uart.Printf("  %u %X %u\r", P->Counter, P->Sign, P->Data);
+//        P++;
+//    }
 
     while(1) {
         //chThdSleepMilliseconds(999);

@@ -8,7 +8,7 @@
 #include "eestore.h"
 
 uint8_t EEStore_t::GetLastValuedPtr(EEChunk32_t** PPtr) {
-    EEChunk32_t *p = EE_PTR, *pprev = EE_PTR;
+    EEChunk32_t *p = EE_PTR_FIRST, *pprev = EE_PTR_FIRST;
     // Check if anything is stored
     if(p->Sign != EE_STORE_SIGN) return FAILURE;
     // Iterate through array
@@ -27,14 +27,14 @@ uint8_t EEStore_t::GetLastValuedPtr(EEChunk32_t** PPtr) {
 }
 
 uint8_t EEStore_t::Put(uint32_t *Ptr) {
-    EEChunk32_t *p = EE_PTR, Chunk;
+    EEChunk32_t *p = EE_PTR_FIRST, Chunk;
     Chunk.Data = *Ptr;
     Chunk.Sign = EE_STORE_SIGN;
     if(GetLastValuedPtr(&p) != OK) Chunk.Counter = 0;    // Nothing is written yet
     else {
         Chunk.Counter = p->Counter + 1;
         // Increase pointer
-        if(p == (EE_PTR + (EE_CNT * EE_CHUNK_SZ))) p = EE_PTR;  // Reset if last
+        if(p == EE_PTR_LAST) p = EE_PTR_FIRST;  // Reset if last
         else p++;
     }
     // Write data
@@ -56,29 +56,21 @@ uint8_t EEStore_t::Put(uint32_t *Ptr) {
 }
 
 uint8_t EEStore_t::Get(uint32_t *Ptr) {
-    EEChunk32_t *p = EE_PTR;
+    EEChunk32_t *p;
     if(GetLastValuedPtr(&p) == OK) {
         *Ptr = p->Data;
         return OK;
     }
     else return FAILURE;
 }
-/*
- *     EEChunk32_t *p = EE_PTR, *pprev = EE_PTR;
-    // Check if anything is stored
-    if(p->Sign != EE_STORE_SIGN) return FAILURE;
-    // Iterate through array
-    for(uint32_t i=1; i < EE_CNT; i++) {
-        p++;    // Next chunk
-        // Check if nothing or data tail
-        if((p->Sign != EE_STORE_SIGN) or ((pprev->Counter + 1) != p->Counter)) {
-            *Ptr = pprev->Data;
-            return OK;
-        }
-        pprev = p;
+
+// Just writes 0 at first position
+void EEStore_t::Remove() {
+    UnlockEE();
+    uint8_t r = WaitForLastOperation();
+    if(r == OK) {
+        *(volatile uint32_t*)(EEPROM_BASE_ADDR + EE_START_ADDR) = 0;
+        WaitForLastOperation();
     }
-    // Will be here if counter diff was 1 all the way. Return Last value.
-    *Ptr = pprev->Data;
-    return OK;
- *
- */
+    LockEE();
+}
