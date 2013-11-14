@@ -392,7 +392,7 @@ uint8_t i2c_t::WaitBTF() {
 #endif
 
 #include "cmd_uart.h"
-#ifdef EEPROM_LIB_KL // ====================== EEPROM ==========================
+#ifdef FLASH_LIB_KL // ==================== FLASH & EEPROM =====================
 void Eeprom_t::Unlock() {
     if(FLASH->PECR & FLASH_PECR_PELOCK) {
         // Unlocking the Data memory and FLASH_PECR register access
@@ -409,12 +409,40 @@ void Eeprom_t::Unlock() {
 uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
     Addr += EEPROM_BASE_ADDR;
     // Wait for last operation to be completed
-    uint8_t status = Flash_t::WaitForLastOperation();
+    uint8_t status = WaitForLastOperation();
     if(status == OK) {
         *(volatile uint32_t*)Addr = W;
-        status = Flash_t::WaitForLastOperation();
+        status = WaitForLastOperation();
     }
     return status;
 }
+
+void Eeprom_t::ReadBuf(void *PDst, uint32_t Sz, uint32_t Addr) {
+    Sz = (Sz + 3) / 4;  // Size in words32
+    while(Sz--) {
+        *((uint32_t*)PDst) = Read32(Addr);
+        Addr += 4;
+    }
+}
+
+// ==== EEStore ====
+uint8_t EEStore_t::Get(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt) {
+    uint8_t r = FAILURE;
+    uint32_t AddrPrev = ZeroAddr, AddrCurrent = ZeroAddr;
+    uint32_t CntPrev = 0, CntCurrent = 0;
+    // Read the storage until correct address found
+    uint32_t w = Read32(AddrCurrent);
+    // Check sign
+    if((w & 0xFFFF) != EE_STORE_SIGN) {
+        if(AddrPrev == AddrCurrent) return FAILURE;   // Nothing is stored
+        else {  // Read previous data
+            ReadBuf(Ptr, Sz, AddrPrev);
+            return OK;
+        }
+    }
+    CntCurrent = w >> 16;  // Get counter
+    if(
+}
+
 
 #endif

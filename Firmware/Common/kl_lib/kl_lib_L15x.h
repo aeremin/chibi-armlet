@@ -409,30 +409,8 @@ public:
 };
 #endif
 
-#if 1 // ============================= FLASH ===================================
-#define FLASH_WAIT_TIMEOUT  36000
-class Flash_t {
-public:
-    static uint8_t GetStatus() {
-        if(FLASH->SR & FLASH_SR_BSY) return BUSY;
-        else if(FLASH->SR & FLASH_SR_WRPERR) return WRITE_PROTECT;
-        else if(FLASH->SR & (uint32_t)0x1E00) return FAILURE;
-        else return OK;
-    }
-    static uint8_t WaitForLastOperation() {
-        uint32_t Timeout = FLASH_WAIT_TIMEOUT;
-        while(Timeout--) {
-            // Get status
-            uint8_t status = GetStatus();
-            if(status != BUSY) return status;
-        }
-        return TIMEOUT;
-    }
-};
-#endif
-
-#if 1 // ============================ EEPROM ===================================
-#define EEPROM_LIB_KL
+#if 1 // ====================== FLASH & EEPROM =================================
+#define FLASH_LIB_KL
 #define EEPROM_BASE_ADDR    ((uint32_t)0x08080000)
 // ==== Flash keys ====
 #define FLASH_PDKEY1    ((uint32_t)0x04152637) // Flash power down key1
@@ -449,16 +427,47 @@ public:
 // Flash option key2: used with FLASH_OPTKEY1 to unlock the write access to the option byte block
 #define FLASH_OPTKEY2   ((uint32_t)0x24252627)
 
+#define FLASH_WAIT_TIMEOUT  36000
+class Flash_t {
+protected:
+    static uint8_t GetStatus() {
+        if(FLASH->SR & FLASH_SR_BSY) return BUSY;
+        else if(FLASH->SR & FLASH_SR_WRPERR) return WRITE_PROTECT;
+        else if(FLASH->SR & (uint32_t)0x1E00) return FAILURE;
+        else return OK;
+    }
+    static uint8_t WaitForLastOperation() {
+        uint32_t Timeout = FLASH_WAIT_TIMEOUT;
+        while(Timeout--) {
+            // Get status
+            uint8_t status = GetStatus();
+            if(status != BUSY) return status;
+        }
+        return TIMEOUT;
+    }
+};
 
-
-class Eeprom_t {
-private:
-
+class Eeprom_t : private Flash_t {
 public:
     void Unlock();
     void Lock() { FLASH->PECR |= FLASH_PECR_PELOCK; }
     uint32_t Read32(uint32_t Addr) { return *((uint32_t*)(Addr + EEPROM_BASE_ADDR)); }
     uint8_t Write32(uint32_t Addr, uint32_t W);
+    void ReadBuf(void *PDst, uint32_t Sz, uint32_t Addr);
+};
+
+// ==== EE store ====
+/*
+ * Data is stored repeatedly, thus EEPROM wearing is distributed.
+ * Generally, data is stored as such: { Counter16, EE_Sign16, (Payload void) }
+ */
+#define EE_STORE_SIGN   0x157A  // == "ista", "know" on Quenya
+class EEStore_t : private Eeprom_t {
+private:
+
+public:
+    uint8_t Put(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt);
+    uint8_t Get(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt);
 };
 #endif
 

@@ -15,7 +15,11 @@
 #include "pill.h"
 #include "cmd_uart.h"
 #include "application.h"
-Eeprom_t EE;
+
+#define EE_STORE_CNT    4   // Count of stored objects
+#define EE_STORE_ADDR   0   // Start address of store
+EEStore_t EE;
+
 static inline void Init();
 
 int main(void) {
@@ -32,14 +36,16 @@ int main(void) {
     Init();
 //    if(ClkResult) Uart.Printf("Clock failure\r");
 
-    uint32_t w = EE.Read32(0);
-    Uart.Printf("%X\r", w);
-    EE.Unlock();
-    uint8_t r = EE.Write32(0, 0xDEADBEEF);
-    EE.Lock();
-    Uart.Printf("r: %u\r", r);
-    w = EE.Read32(0);
-    Uart.Printf("%X\r", w);
+    uint32_t ob = 0;
+    uint8_t r;
+    r = EE.Get(&ob, sizeof(ob), EE_STORE_ADDR, EE_STORE_CNT);
+    Uart.Printf("%u, %X\r", r, ob);
+//    EE.Unlock();
+//    uint8_t r = EE.Write32(0, 0xDEADBEEF);
+//    EE.Lock();
+//    Uart.Printf("r: %u\r", r);
+//    w = EE.Read32(0);
+//    Uart.Printf("%X\r", w);
 
     while(1) {
         //chThdSleepMilliseconds(999);
