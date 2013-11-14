@@ -445,30 +445,29 @@ protected:
         }
         return TIMEOUT;
     }
+    static void UnlockEE() {
+        if(FLASH->PECR & FLASH_PECR_PELOCK) {
+            // Unlocking the Data memory and FLASH_PECR register access
+            chSysLock();
+            FLASH->PEKEYR = FLASH_PEKEY1;
+            FLASH->PEKEYR = FLASH_PEKEY2;
+            chSysUnlock();
+            FLASH->SR = FLASH_SR_WRPERR;        // Clear WriteProtectErr
+            FLASH->PECR &= ~FLASH_PECR_FTDW;    // Disable fixed time programming
+        }
+    }
+    static void LockEE() { FLASH->PECR |= FLASH_PECR_PELOCK; }
 };
 
 class Eeprom_t : private Flash_t {
 public:
-    void Unlock();
-    void Lock() { FLASH->PECR |= FLASH_PECR_PELOCK; }
     uint32_t Read32(uint32_t Addr) { return *((uint32_t*)(Addr + EEPROM_BASE_ADDR)); }
     uint8_t Write32(uint32_t Addr, uint32_t W);
     void ReadBuf(void *PDst, uint32_t Sz, uint32_t Addr);
+    uint8_t WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr);
 };
 
-// ==== EE store ====
-/*
- * Data is stored repeatedly, thus EEPROM wearing is distributed.
- * Generally, data is stored as such: { Counter16, EE_Sign16, (Payload void) }
- */
-#define EE_STORE_SIGN   0x157A  // == "ista", "know" on Quenya
-class EEStore_t : private Eeprom_t {
-private:
 
-public:
-    uint8_t Put(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt);
-    uint8_t Get(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt);
-};
 #endif
 
 #endif /* KL_LIB_F100_H_ */

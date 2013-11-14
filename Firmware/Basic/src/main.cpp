@@ -16,8 +16,8 @@
 #include "cmd_uart.h"
 #include "application.h"
 
-#define EE_STORE_CNT    4   // Count of stored objects
-#define EE_STORE_ADDR   0   // Start address of store
+#include "eestore.h"
+
 EEStore_t EE;
 
 static inline void Init();
@@ -38,14 +38,27 @@ int main(void) {
 
     uint32_t ob = 0;
     uint8_t r;
-    r = EE.Get(&ob, sizeof(ob), EE_STORE_ADDR, EE_STORE_CNT);
-    Uart.Printf("%u, %X\r", r, ob);
-//    EE.Unlock();
-//    uint8_t r = EE.Write32(0, 0xDEADBEEF);
-//    EE.Lock();
-//    Uart.Printf("r: %u\r", r);
-//    w = EE.Read32(0);
-//    Uart.Printf("%X\r", w);
+    EEChunk32_t *P;
+    P = EE_PTR;
+    for(uint8_t i=0; i<4; i++) {
+        Uart.Printf("  %u %X %u\r", P->Counter, P->Sign, P->Data);
+        P++;
+    }
+
+    r = EE.Get(&ob);
+    Uart.Printf("%u, %u\r", r, ob);
+    ob+=9;
+    r = EE.Put(&ob);
+    Uart.Printf("%u\r", r);
+    ob = 0;
+    r = EE.Get(&ob);
+    Uart.Printf("%u, %u\r", r, ob);
+
+    P = EE_PTR;
+    for(uint8_t i=0; i<4; i++) {
+        Uart.Printf("  %u %X %u\r", P->Counter, P->Sign, P->Data);
+        P++;
+    }
 
     while(1) {
         //chThdSleepMilliseconds(999);
@@ -60,10 +73,10 @@ void Init() {
     Uart.Init(115200);
     Led.Init();
 //    Led.SetColor(clGreen);
-    Beeper.Init();
-    Beeper.Beep(BeepBeep);
-    PillInit();
-    App.Init();
+//    Beeper.Init();
+//    Beeper.Beep(BeepBeep);
+//    PillInit();
+//    App.Init();
 //    Led.StartBlink(ShortGreen);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
 }
