@@ -41,15 +41,15 @@ private:
                 break;
             case hsRedSlow:
                 Led.StartBlink(LedRedSlow);
-                Beeper.Beep(BeepBeepLoud);
+                Beeper.Beep(BeepBeep);
                 break;
             case hsYellow:
                 Led.StartBlink(LedYellow);
-                Beeper.Beep(BeepBeepLoud);
+                Beeper.Beep(BeepBeep);
                 break;
             case hsGreen:
                 Led.StartBlink(LedGreen);
-                Beeper.Beep(BeepBeepLoud);
+                Beeper.Beep(BeepBeep);
                 break;
             default: break;
         } // switch
@@ -92,7 +92,8 @@ static Dose_t Dose;
 
 #if 1 // ================================ Pill =================================
 struct Med_t {
-    uint8_t CureID, Charges;
+    uint16_t CureID;
+    uint16_t Charge;
 } __attribute__ ((__packed__));
 static Med_t Med;
 #endif
@@ -142,11 +143,11 @@ static void AppThread(void *arg) {
         if(EvtMsk & EVTMSK_PILL_CHECK) {
             PillChecker();
             if(PillsHaveChanged) {  // Will be reset at PillChecker
-                Beeper.Beep(ShortBeep);
+                Beeper.Beep(BeepPillBad);
                 // Read med
                 if(Pill[0].Connected) {
                     Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
-                    Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charges);
+                    Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charge);
                 }
             } // if pill changed
         }

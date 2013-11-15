@@ -11,11 +11,14 @@
 #include <stdint.h>
 #include "kl_lib_L15x.h"
 
+enum ChunkKind_t {ckNormal=0, ckStop=1, ckRepeat=2};
+
 #if 1 // ================================= Beep ================================
 struct BeepChunk_t {
-    int8_t VolumePercent;   // 0 means silence, 1...100 means volume, -1 means end
-    uint16_t Time_ms;
+    uint8_t Volume;   // 0 means silence, 10 means top
     uint16_t Freq_Hz;
+    uint16_t Time_ms;
+    ChunkKind_t ChunkKind;
 } PACKED;
 #define BEEP_CHUNK_SZ   sizeof(BeepChunk_t)
 class Beeper_t {
@@ -34,7 +37,6 @@ public:
         if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
         IPin.Set(0);
     }
-    void Beep(uint32_t ms);
     void Init();
     void Shutdown();
     // Inner use
@@ -72,7 +74,6 @@ struct Color_t {
 #define LED_P2          1   // }
 #define LED_P3          5   // } No need to diff between colors
 
-enum ChunkKind_t {ckNormal=0, ckLast=1};
 struct LedChunk_t {
     Color_t Color;
     uint16_t Time_ms;

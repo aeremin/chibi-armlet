@@ -11,7 +11,7 @@
 #include "peripheral.h"
 
 #if 1 // =============================== Beep ==================================
-#define BEEP_TOP_VALUE   220 // 100% volume means on/off ratio 1/1
+#define BEEP_TOP_VALUE   22
 Beeper_t Beeper;
 // Timer callback
 void BeeperTmrCallback(void *p) {
@@ -25,39 +25,22 @@ void Beeper_t::Init() {
 void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
     // Reset timer
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
-    // Process chunk
-    int8_t Volume = PSequence->VolumePercent;
-    // Stop
-    if(Volume == -1) {
+    if(PSequence == nullptr) {
         IPin.Off();
         return;
     }
-    // Repeat
-    else if(Volume == -2) {
-        PSequence = IPFirstChunk;
-        Volume = PSequence->VolumePercent;
-        if(Volume < 0) {    // Nothing to play
-            IPin.Off();
-            return;
-        }
-    }
-
-    if(Volume > 100) Volume = 100;  // Normalize volume
+    // Set sound
     IPin.SetFreqHz(PSequence->Freq_Hz);
-    IPin.Set(Volume);
+    IPin.Set(PSequence->Volume);
+    // Proceed sequence, stop it or restart
+    const BeepChunk_t *PCh = nullptr;
+    switch(PSequence->ChunkKind) {
+        case ckNormal: PCh = PSequence + 1; break;
+        case ckStop:                        break;
+        case ckRepeat: PCh = IPFirstChunk;  break;
+    }
     // Start timer
-    chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)(PSequence+1));
-}
-
-void BeeperTmrCallbackStop(void *p) {
-    Beeper.IPin.Off();
-}
-
-void Beeper_t::Beep(uint32_t ms) {
-    chVTReset(&ITmr);
-    IPin.SetFreqHz(2000);
-    IPin.Set(100);
-    chVTSet(&ITmr, MS2ST(ms), BeeperTmrCallbackStop, NULL);
+    chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)PCh);
 }
 
 void Beeper_t::Shutdown() {
@@ -96,10 +79,19 @@ void LedRGB_t::Init() {
 void LedRGB_t::IStartBlinkI(const LedChunk_t *PLedChunk) {
     // Reset timer
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+    if(PLedChunk == nullptr) {
+        SetColor(clBlack);
+        return;
+    }
     // Process chunk
     SetColor(PLedChunk->Color);
-    // Restart sequence or proceed
-    const LedChunk_t *PCh = (PLedChunk->ChunkKind == ckLast)? IPFirstChunk : (PLedChunk+1);
+    // Proceed sequence, stop it or restart
+    const LedChunk_t *PCh = nullptr;
+    switch(PLedChunk->ChunkKind) {
+        case ckNormal: PCh = PLedChunk + 1; break;
+        case ckStop:                        break;
+        case ckRepeat: PCh = IPFirstChunk;  break;
+    }
     chVTSetI(&ITmr, MS2ST(PLedChunk->Time_ms), LedTmrCallback, (void*)PCh); // Start timer
 }
 #endif
