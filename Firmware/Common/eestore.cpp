@@ -2,7 +2,7 @@
  * eestore.cpp
  *
  *  Created on: 14 но€б. 2013 г.
- *      Author: G.Kruglov
+ *      Author: Kreyl
  */
 
 #include "eestore.h"

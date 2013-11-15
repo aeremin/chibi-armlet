@@ -2,7 +2,7 @@
  * eestore.h
  *
  *  Created on: 14 но€б. 2013 г.
- *      Author: G.Kruglov
+ *      Author: Kreyl
  */
 
 #ifndef EESTORE_H_
