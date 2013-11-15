@@ -10,24 +10,33 @@
 
 #include "kl_lib_L15x.h"
 
-// Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
+# if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
 #define CMD_PING            0x01
-#define CMD_SET_GATE_NUM    0x10
-#define CMD_RTX             0x11
 #define CMD_PILL_STATE      0x30
 #define CMD_PILL_WRITE      0x31
 #define CMD_PILL_READ       0x32
-#define CMD_PIN             0x40
+#define CMD_DOSE_GET        0x60
+#define CMD_DOSE_SET        0x61
 
 #define RPL_ACK             0x90    // Acknowledge
-#define RPL_SET_GATE_NUM    0xA0
-#define RPL_RTX             0xA1    // TX completed
-#define RPL_RRX             0xA4    // RX completed
 #define RPL_PILL_STATE      0xC0
 #define RPL_PILL_WRITE      0xC1
 #define RPL_PILL_READ       0xC2
-#define RPL_PIN             0xD0
+#define RPL_DOSE_GET        0xE0
+#endif
 
+#if 1 // ==== Timings ====
+#define TM_DOSE_INCREASE_MS     999
+#define TM_DOSE_SAVE_MS         2007
+#define TM_PILL_CHECK_MS        504     // Check if pill connected every TM_PILL_CHECK
+#endif
+
+#if 1 // ==== Dose thresholds ====
+#define DOSE_RED_END            60  // Death; top value
+#define DOSE_RED_FAST           50  // Near death
+#define DOSE_RED_SLOW           40  // Yellow if lower
+#define DOSE_YELLOW             20  // Green if lower
+#endif
 
 class App_t {
 private:
@@ -35,6 +44,7 @@ private:
 public:
     uint16_t ID;
     void Init();
+    // Inner use
 };
 
 extern App_t App;

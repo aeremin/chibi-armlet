@@ -10,22 +10,23 @@
 #include "pill.h"
 #include "peripheral.h"
 #include "sequences.h"
+#include "evt_mask.h"
+#include "eestore.h"
 
 App_t App;
 static uint8_t SBuf[252];
+static Thread *PAppThd;
 
-//Eeprom_t EE;
+static void SignalError(const char* S) {
+    Uart.Printf(S);
+}
 
 #if 1 // ================================ Dose =================================
-#define DOSE_RED_END        60
-#define DOSE_RED_FAST       50
-#define DOSE_RED_SLOW       40
-#define DOSE_YELLOW         20
-
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 class Dose_t {
 private:
     uint32_t IDose;
+    EEStore_t EE;   // EEPROM storage for dose
     void ChangeIndication() {
         Beeper.Stop();
         Led.StopBlink();
@@ -75,8 +76,18 @@ public:
         else Dz += Amount;
         Set(Dz);
     }
+    // Save if changed
+    uint8_t Save() {
+        uint32_t OldDose = 0;
+        if(EE.Get(&OldDose) == OK) {
+            if(OldDose == IDose) return OK;
+        }
+        return EE.Put(&IDose);
+    }
+    // Try load from EEPROM, set 0 if failed
+    void Load() { if(EE.Get(&IDose) != OK) IDose = 0; }
 };
-//static Dose_t Dose;
+static Dose_t Dose;
 #endif
 
 #if 1 // ================================ Pill =================================
@@ -86,33 +97,72 @@ struct Med_t {
 static Med_t Med;
 #endif
 
+#if 1 // ============================ Timers ===================================
+static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck;
+void TmrDoseCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(PAppThd, EVTMSK_DOSE_INC);
+    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+void TmrDoseSaveCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(PAppThd, EVTMSK_DOSE_STORE);
+    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+void TmrPillCheckCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(PAppThd, EVTMSK_PILL_CHECK);
+    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+
+#endif
+
 #if 1 // ========================= Application =================================
 static WORKING_AREA(waAppThread, 256);
 __attribute__((noreturn))
 static void AppThread(void *arg) {
     chRegSetThreadName("App");
+    uint32_t EvtMsk;
     while(1) {
-        chThdSleepMilliseconds(999);
-        // ==== Check pills ====
-        PillChecker();
-        if(PillsHaveChanged) {  // Will be reset at PillChecker
-            Beeper.Beep(ShortBeep);
-            // Read med
-            if(Pill[0].Connected) {
-                Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
-                Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charges);
-            }
-        } // if pill changed
-
+        EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
-        //Dose.Increase(1);
+        if(EvtMsk & EVTMSK_DOSE_INC) {
+            Dose.Increase(1);
+        }
 
+        // ==== Store dose ====
+        if(EvtMsk & EVTMSK_DOSE_STORE) {
+            if(Dose.Save() != OK) SignalError("Save Fail\r");
+        }
+
+        // ==== Check pills ====
+        if(EvtMsk & EVTMSK_PILL_CHECK) {
+            PillChecker();
+            if(PillsHaveChanged) {  // Will be reset at PillChecker
+                Beeper.Beep(ShortBeep);
+                // Read med
+                if(Pill[0].Connected) {
+                    Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
+                    Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charges);
+                }
+            } // if pill changed
+        }
     } // while 1
 }
 
 void App_t::Init() {
-
-    chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
+    Dose.Load();
+    Uart.Printf("Dose = %u\r", Dose.Get());
+    PAppThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
+    // Timers init
+    chSysLock();
+    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+    chSysUnlock();
 }
 #endif
 
@@ -121,6 +171,7 @@ void Ack(uint8_t Result) { Uart.Cmd(0x90, &Result, 1); }
 
 void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
+    uint32_t w, *p;
     switch(CmdCode) {
         case CMD_PING: Ack(OK); break;
 
@@ -154,6 +205,21 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             SBuf[0] = b;
             if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
             else Uart.Cmd(RPL_PILL_READ, SBuf, 2);
+            break;
+
+        // ==== Dose ====
+        case CMD_DOSE_GET:
+            p = (uint32_t*)SBuf;
+            *p = Dose.Get();
+            Uart.Cmd(RPL_DOSE_GET, SBuf, 4);
+            break;
+        case CMD_DOSE_SET:
+            w = *((uint32_t*)PData);
+            if(w <= DOSE_RED_END) {
+                Dose.Set(w);
+                Ack(OK);
+            }
+            else Ack(FAILURE);
             break;
 
         default: break;

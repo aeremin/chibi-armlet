@@ -24,7 +24,7 @@ struct EEChunk32_t {
 #define EE_CHUNK_SZ     sizeof(EEChunk32_t)
 
 #define EE_START_ADDR   16  // Not 0 just in case
-#define EE_CNT          3
+#define EE_CNT          250
 #define EE_PTR_FIRST    ((EEChunk32_t*)(EEPROM_BASE_ADDR + EE_START_ADDR))
 #define EE_PTR_LAST     ((EEChunk32_t*)(EEPROM_BASE_ADDR + EE_START_ADDR + (EE_CNT - 1) * EE_CHUNK_SZ))
 
