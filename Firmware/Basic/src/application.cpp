@@ -29,7 +29,7 @@ private:
     uint32_t IDose;
     EEStore_t EE;   // EEPROM storage for dose
     void ConvertDoseToState() {
-        if     (IDose >= DOSE_RED_END)  State = hsDeath;
+        if     (IDose >= DOSE_TOP)      State = hsDeath;
         else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
         else if(IDose >= DOSE_RED_SLOW) State = hsRedSlow;
         else if(IDose >= DOSE_YELLOW)   State = hsYellow;
@@ -64,18 +64,24 @@ public:
             default: break;
         } // switch
     }
-    void Set(uint32_t ADose, DoIndication_t DoIndication = diUsual) {
+    void Set(uint32_t ADose, DoIndication_t DoIndication) {
         IDose = ADose;
         HealthState_t OldState = State;
         ConvertDoseToState();
         if((DoIndication == diAlwaysIndicate) or ((State != OldState) and (DoIndication == diUsual))) ChangeIndication();
     }
     uint32_t Get() { return IDose; }
-    void Increase(uint32_t Amount) {
+    void Increase(uint32_t Amount, DoIndication_t DoIndication) {
         uint32_t Dz = IDose;
-        if((Dz + Amount) > DOSE_RED_END) Dz = DOSE_RED_END;
+        if(((Dz + Amount) > DOSE_TOP) or (Amount == INFINITY32)) Dz = DOSE_TOP;
         else Dz += Amount;
-        Set(Dz);
+        Set(Dz, DoIndication);
+    }
+    void Decrease(uint32_t Amount, DoIndication_t DoIndication) {
+        uint32_t Dz = IDose;
+        if((Amount > Dz) or (Amount == INFINITY32)) Dz = 0;
+        else Dz -= Amount;
+        Set(Dz, DoIndication);
     }
     // Save if changed
     uint8_t Save() {
@@ -89,43 +95,50 @@ public:
     void Load() {
         uint32_t FDose = 0;
         EE.Get(&FDose);     // Try to read
-        Set(FDose);
+        Set(FDose, diUsual);
     }
 };
 static Dose_t Dose;
 #endif
 
 #if 1 // ================================ Pill =================================
-struct Med_t {
+struct Pill_t {
     uint16_t ID;
     uint16_t Charge;
+    uint32_t Value;
 } __attribute__ ((__packed__));
-static Med_t Med;
+static Pill_t Pill;
 
 void App_t::PillHandler() {
     PillChecker();
     if(PillsHaveChanged) {  // Will be reset at PillChecker
         // Read med
-        if(Pill[0].Connected) {
-            Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
+        if(PillIC[0].Connected) {
+            if(PillIC[0].Read((uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
             //Uart.Printf("Pill: %u, %u\r", Med.ID, Med.Charge);
-            switch(Med.ID) {
-                case PILL_ID_PANACEA:
+            if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
+                bool Rslt = OK;
+                // Lower charges if not infinity
+                if(Pill.Charge != INFINITY16) {
+                    Pill.Charge--;
+                    Rslt = PillIC[0].Write((uint8_t*)&Pill, sizeof(Pill_t));
+                }
+                if(Rslt == OK) {
                     Beeper.Beep(BeepPillOk);
                     Led.StartBlink(LedPillOk);
-                    Dose.Set(0, diNeverIndicate);
-                    chThdSleep(2007);    // Let indication to complete. Choose the time carefully: SetDose can overwhelm pill indication
+                    Dose.Decrease(Pill.Value, diNeverIndicate);
+                    chThdSleep(2007);    // Let indication to complete
                     Dose.ChangeIndication();
-                    break;
-
-                case PILL_ID_CURE:
-
-                    break;
-            } // switch
+                    return;
+                }
+            } // if Cure
+            // Will be here in case of any problem
+            Beeper.Beep(BeepPillBad);
+            Led.StartBlink(LedPillBad);
+            chThdSleep(2007);    // Let indication to complete
+            Dose.ChangeIndication();
         } // if connected
-
     } // if pill changed
-
 }
 
 #endif
@@ -163,7 +176,7 @@ static void AppThread(void *arg) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) {
-            Dose.Increase(1);
+            Dose.Increase(1, diUsual);
         }
 
         // ==== Store dose ====
@@ -212,13 +225,13 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
         // ==== Pills ====
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
-            if(b <= 7) SBuf[1] = Pill[b].CheckIfConnected();
+            if(b <= 7) SBuf[1] = PillIC[b].CheckIfConnected();
             SBuf[0] = b;
             Uart.Cmd(RPL_PILL_STATE, SBuf, 2);
             break;
         case CMD_PILL_WRITE:
             b = PData[0];
-            if(b <= 7) SBuf[1] = Pill[b].Write(&PData[1], Length-1);
+            if(b <= 7) SBuf[1] = PillIC[b].Write(&PData[1], Length-1);
             SBuf[0] = b;
             Uart.Cmd(RPL_PILL_WRITE, SBuf, 2);
             break;
@@ -226,7 +239,7 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             b = PData[0];           // Pill address
             b2 = PData[1];          // Data size to read
             if(b2 > 250) b2 = 250;  // Check data size
-            if(b <= 7) SBuf[1] = Pill[b].Read(&SBuf[2], b2);
+            if(b <= 7) SBuf[1] = PillIC[b].Read(&SBuf[2], b2);
             SBuf[0] = b;
             if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
             else Uart.Cmd(RPL_PILL_READ, SBuf, 2);
@@ -240,8 +253,8 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
         case CMD_DOSE_SET:
             w = *((uint32_t*)PData);
-            if(w <= DOSE_RED_END) {
-                Dose.Set(w);
+            if(w <= DOSE_TOP) {
+                Dose.Set(w, diAlwaysIndicate);
                 Ack(OK);
             }
             else Ack(FAILURE);

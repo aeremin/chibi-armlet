@@ -29,7 +29,7 @@
 #define PILL_DMATX          STM32_DMA1_STREAM6
 #define PILL_DMARX          STM32_DMA1_STREAM7
 
-class Pill_t {
+class PillIC_t {
 private:
     uint8_t IAddr;
 public:
@@ -45,7 +45,7 @@ void PillChecker();
 
 extern bool PillsHaveChanged;
 
-extern Pill_t Pill[PILL_CNT];
+extern PillIC_t PillIC[PILL_CNT];
 
 
 #endif /* PILL_H_ */

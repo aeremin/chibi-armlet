@@ -31,16 +31,18 @@
 #define TM_PILL_CHECK_MS        504     // Check if pill connected every TM_PILL_CHECK
 #endif
 
-#if 1 // ==== Dose thresholds ====
-#define DOSE_RED_END        1800  // Death; top value
-#define DOSE_RED_FAST       (DOSE_RED_END-7)  // Near death
+#if 1 // ==== Dose constants ====
+#define DOSE_TOP            1800  // Death; top value
+#define DOSE_RED_FAST       (DOSE_TOP-7)  // Near death
 #define DOSE_RED_SLOW       1200  // Yellow if lower
 #define DOSE_YELLOW         600  // Green if lower
 #endif
 
+#define INFINITY16          (uint16_t)0xFFFF
+#define INFINITY32          (uint16_t)0xFFFFFFFF
+
 #if 1 // ==== Pill IDs
 #define PILL_ID_CURE        0x09
-#define PILL_ID_PANACEA     0x33
 #endif
 
 class App_t {
