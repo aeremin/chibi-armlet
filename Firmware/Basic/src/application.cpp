@@ -7,7 +7,7 @@
 
 #include "application.h"
 #include "cmd_uart.h"
-#include "pill.h"
+#include "pill_mgr.h"
 #include "peripheral.h"
 #include "sequences.h"
 #include "evt_mask.h"
@@ -110,35 +110,30 @@ struct Pill_t {
 static Pill_t Pill;
 
 void App_t::PillHandler() {
-    PillChecker();
-    if(PillsHaveChanged) {  // Will be reset at PillChecker
-        // Read med
-        if(PillIC[0].Connected) {
-            if(PillIC[0].Read((uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
-            //Uart.Printf("Pill: %u, %u\r", Med.ID, Med.Charge);
-            if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
-                bool Rslt = OK;
-                // Lower charges if not infinity
-                if(Pill.Charge != INFINITY16) {
-                    Pill.Charge--;
-                    Rslt = PillIC[0].Write((uint8_t*)&Pill, sizeof(Pill_t));
-                }
-                if(Rslt == OK) {
-                    Beeper.Beep(BeepPillOk);
-                    Led.StartBlink(LedPillOk);
-                    Dose.Decrease(Pill.Value, diNeverIndicate);
-                    chThdSleep(2007);    // Let indication to complete
-                    Dose.ChangeIndication();
-                    return;
-                }
-            } // if Cure
-            // Will be here in case of any problem
-            Beeper.Beep(BeepPillBad);
-            Led.StartBlink(LedPillBad);
+    // Read med
+    if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
+    Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
+    if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
+        bool Rslt = OK;
+        // Lower charges if not infinity
+        if(Pill.Charge != INFINITY16) {
+            Pill.Charge--;
+            Rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
+        }
+        if(Rslt == OK) {
+            Beeper.Beep(BeepPillOk);
+            Led.StartBlink(LedPillOk);
+            Dose.Decrease(Pill.Value, diNeverIndicate);
             chThdSleep(2007);    // Let indication to complete
             Dose.ChangeIndication();
-        } // if connected
-    } // if pill changed
+            return;
+        }
+    } // if Cure
+    // Will be here in case of strange/discharged pill
+    Beeper.Beep(BeepPillBad);
+    Led.StartBlink(LedPillBad);
+    chThdSleep(2007);    // Let indication to complete
+    Dose.ChangeIndication();
 }
 
 #endif
@@ -172,7 +167,8 @@ __attribute__((noreturn))
 static void AppThread(void *arg) {
     chRegSetThreadName("App");
     uint32_t EvtMsk;
-    while(1) {
+    bool PillConnected = false;
+    while(true) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) {
@@ -184,8 +180,18 @@ static void AppThread(void *arg) {
             if(Dose.Save() != OK) SignalError("Save Fail\r");
         }
 
-        // ==== Check pills ====
-        if(EvtMsk & EVTMSK_PILL_CHECK) App.PillHandler();
+        // ==== Check pill ====
+        if(EvtMsk & EVTMSK_PILL_CHECK) {
+//            Uart.Printf("c");
+            // Check if new connection occured
+            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
+                if(!PillConnected) {
+                    PillConnected = true;
+                    App.PillHandler();
+                }
+            }
+            else PillConnected = false;
+        } // if EVTMSK_PILL_CHECK
 
 
     } // while 1
@@ -225,13 +231,13 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
         // ==== Pills ====
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
-            if(b <= 7) SBuf[1] = PillIC[b].CheckIfConnected();
+            if(b <= 7) SBuf[1] = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
             SBuf[0] = b;
             Uart.Cmd(RPL_PILL_STATE, SBuf, 2);
             break;
         case CMD_PILL_WRITE:
             b = PData[0];
-            if(b <= 7) SBuf[1] = PillIC[b].Write(&PData[1], Length-1);
+            if(b <= 7) SBuf[1] = PillMgr.Write(PILL_I2C_ADDR, &PData[1], Length-1);
             SBuf[0] = b;
             Uart.Cmd(RPL_PILL_WRITE, SBuf, 2);
             break;
@@ -239,7 +245,7 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             b = PData[0];           // Pill address
             b2 = PData[1];          // Data size to read
             if(b2 > 250) b2 = 250;  // Check data size
-            if(b <= 7) SBuf[1] = PillIC[b].Read(&SBuf[2], b2);
+            if(b <= 7) SBuf[1] = PillMgr.Read(PILL_I2C_ADDR, &SBuf[2], b2);
             SBuf[0] = b;
             if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
             else Uart.Cmd(RPL_PILL_READ, SBuf, 2);

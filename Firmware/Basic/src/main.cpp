@@ -12,7 +12,7 @@
 #include "clocking_L1xx.h"
 #include "peripheral.h"
 #include "sequences.h"
-#include "pill.h"
+#include "pill_mgr.h"
 #include "cmd_uart.h"
 #include "application.h"
 
@@ -43,10 +43,10 @@ int main(void) {
 
 void Init() {
     Uart.Init(115200);
+    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
-    PillInit();
+    PillMgr.Init();
     App.Init();
-    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
 }

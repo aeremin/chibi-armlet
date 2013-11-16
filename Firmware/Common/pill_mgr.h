@@ -11,9 +11,9 @@
 #include "cmd_uart.h"
 #include "ch.h"
 
-#define EEADDR              0x50    // Standard address start of EEPROM - 0x01010aaa
-#define PILL_START_ADDR     0x00    // Address of data, common for all
-#define PILL_CNT            1       // Number of simultaneously connected pills
+#define PILL_I2C_STD_ADDR   0x50    // Standard address start of EEPROM - 0x01010aaa
+#define PILL_I2C_ADDR       (PILL_I2C_STD_ADDR | 0) // Only Zero supported
+#define PILL_START_ADDR     0x00    // Address of data
 // Number of bytes to be written simultaneously. IC dependant, see datasheet.
 #define PILL_PAGE_SZ        8
 
@@ -29,23 +29,19 @@
 #define PILL_DMATX          STM32_DMA1_STREAM6
 #define PILL_DMARX          STM32_DMA1_STREAM7
 
-class PillIC_t {
+class PillMgr_t {
 private:
-    uint8_t IAddr;
+    Semaphore Sem;
+    i2c_t i2c;
+    void Deinit();
+    void ResetBus();
 public:
-    bool Connected;
-    void Init(uint8_t IcAddr);
-    uint8_t CheckIfConnected();
-    uint8_t Read(uint8_t *Ptr, uint8_t Length);
-    uint8_t Write(uint8_t *Ptr, uint8_t Length);
+    void Init();
+    uint8_t CheckIfConnected(uint8_t i2cAddr);
+    uint8_t Read (uint8_t i2cAddr, uint8_t *Ptr, uint32_t Length);
+    uint8_t Write(uint8_t i2cAddr, uint8_t *Ptr, uint32_t Length);
 };
 
-void PillInit();
-void PillChecker();
-
-extern bool PillsHaveChanged;
-
-extern PillIC_t PillIC[PILL_CNT];
-
+extern PillMgr_t PillMgr;
 
 #endif /* PILL_H_ */

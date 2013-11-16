@@ -148,7 +148,7 @@ void CmdUart_t::Init(uint32_t ABaudrate) {
 
     // ==== DMA ====
     // Here only unchanged parameters of the DMA are configured.
-    dmaStreamAllocate     (UART_DMA, IRQ_PRIO_MEDIUM, CmdUartTxIrq, NULL);
+    dmaStreamAllocate     (UART_DMA, IRQ_PRIO_HIGH, CmdUartTxIrq, NULL);
     dmaStreamSetPeripheral(UART_DMA, &UART->DR);
     dmaStreamSetMode      (UART_DMA, UART_DMA_MODE);
 
@@ -187,6 +187,7 @@ extern "C" {
 CH_IRQ_HANDLER(UART_RX_IRQ) {
     CH_IRQ_PROLOGUE();
     chSysLockFromIsr();
+    (void)UART->SR; //  Read status register to clear OverrunError flag. Otherwise it will trigger IRQ eternally.
     uint8_t b = UART_RX_REG;
     // Put byte to queue
     chIQPutI(&Uart.iqueue, b);

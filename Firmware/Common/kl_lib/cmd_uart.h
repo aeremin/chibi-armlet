@@ -35,7 +35,7 @@
 #if UART_RX_ENABLED
 #define UART_RX_PIN         10
 #define UART_RX_REG         UART->DR
-#define UART_RX_IRQ_ENABLE() nvicEnableVector(USART1_IRQn, CORTEX_PRIORITY_MASK(STM32_SERIAL_USART1_PRIORITY))
+#define UART_RX_IRQ_ENABLE() nvicEnableVector(USART1_IRQn, CORTEX_PRIORITY_MASK(IRQ_PRIO_MEDIUM))
 #define UART_RX_IRQ         USART1_IRQHandler
 
 #define UART_RXBUF_SZ       180 // unprocessed bytes
