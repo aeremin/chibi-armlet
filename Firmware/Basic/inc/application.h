@@ -38,6 +38,11 @@
 #define DOSE_YELLOW         600  // Green if lower
 #endif
 
+#if 1 // ==== Pill IDs
+#define PILL_ID_CURE        0x09
+#define PILL_ID_PANACEA     0x33
+#endif
+
 class App_t {
 private:
 
@@ -45,6 +50,7 @@ public:
     uint16_t ID;
     void Init();
     // Inner use
+    void PillHandler();
 };
 
 extern App_t App;

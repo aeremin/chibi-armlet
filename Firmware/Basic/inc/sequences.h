@@ -17,21 +17,30 @@
  */
 
 #if 1 // ============================ LED RGB ==================================
+// Pill
+const LedChunk_t LedPillOk[] = {
+        {clBlue,  540, ckStop},
+};
+const LedChunk_t LedPillBad[] = {
+        {clRed,  540, ckStop},
+};
+
+// Health states
 const LedChunk_t LedRedFast[] = {
         {clRed,   36, ckNormal},
         {clBlack, 36, ckRepeat},
 };
 const LedChunk_t LedRedSlow[] = {
         {clRed,   36, ckNormal},
-        {clBlack, 999, ckRepeat},
+        {clBlack, 1008, ckRepeat},
 };
 const LedChunk_t LedYellow[] = {
         {clYellow, 36, ckNormal},
-        {clBlack,  999, ckRepeat},
+        {clBlack,  3006, ckRepeat},
 };
 const LedChunk_t LedGreen[] = {
         {clGreen, 36, ckNormal},
-        {clBlack, 999, ckRepeat},
+        {clBlack, 3006, ckRepeat},
 };
 
 #endif
@@ -69,11 +78,11 @@ const BeepChunk_t BeepPillBad[] = {
 
 // Health states
 const BeepChunk_t BeepDeath[] = {
-        {BEEP_VOLUME, 2000, 2000, ckNormal},
+        {BEEP_VOLUME, 1975, 2000, ckNormal},
         {0, 0, 10000, ckRepeat},
 };
 const BeepChunk_t BeepRedFast[] = {
-        {BEEP_VOLUME, 2000, 54, ckNormal},
+        {BEEP_VOLUME, 1975, 54, ckNormal},
         {0, 0, 54, ckRepeat},
 };
 #endif

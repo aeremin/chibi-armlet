@@ -23,10 +23,20 @@ static void SignalError(const char* S) {
 
 #if 1 // ================================ Dose =================================
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
+enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 class Dose_t {
 private:
     uint32_t IDose;
     EEStore_t EE;   // EEPROM storage for dose
+    void ConvertDoseToState() {
+        if     (IDose >= DOSE_RED_END)  State = hsDeath;
+        else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
+        else if(IDose >= DOSE_RED_SLOW) State = hsRedSlow;
+        else if(IDose >= DOSE_YELLOW)   State = hsYellow;
+        else                            State = hsGreen;
+    }
+public:
+    HealthState_t State;
     void ChangeIndication() {
         Beeper.Stop();
         Led.StopBlink();
@@ -54,20 +64,11 @@ private:
             default: break;
         } // switch
     }
-    void ConvertDoseToState() {
-        if     (IDose >= DOSE_RED_END)  State = hsDeath;
-        else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
-        else if(IDose >= DOSE_RED_SLOW) State = hsRedSlow;
-        else if(IDose >= DOSE_YELLOW)   State = hsYellow;
-        else                            State = hsGreen;
-    }
-public:
-    HealthState_t State;
-    void Set(uint32_t ADose) {
+    void Set(uint32_t ADose, DoIndication_t DoIndication = diUsual) {
         IDose = ADose;
         HealthState_t OldState = State;
         ConvertDoseToState();
-        if(State != OldState) ChangeIndication();
+        if((DoIndication == diAlwaysIndicate) or ((State != OldState) and (DoIndication == diUsual))) ChangeIndication();
     }
     uint32_t Get() { return IDose; }
     void Increase(uint32_t Amount) {
@@ -96,10 +97,37 @@ static Dose_t Dose;
 
 #if 1 // ================================ Pill =================================
 struct Med_t {
-    uint16_t CureID;
+    uint16_t ID;
     uint16_t Charge;
 } __attribute__ ((__packed__));
 static Med_t Med;
+
+void App_t::PillHandler() {
+    PillChecker();
+    if(PillsHaveChanged) {  // Will be reset at PillChecker
+        // Read med
+        if(Pill[0].Connected) {
+            Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
+            //Uart.Printf("Pill: %u, %u\r", Med.ID, Med.Charge);
+            switch(Med.ID) {
+                case PILL_ID_PANACEA:
+                    Beeper.Beep(BeepPillOk);
+                    Led.StartBlink(LedPillOk);
+                    Dose.Set(0, diNeverIndicate);
+                    chThdSleep(2007);    // Let indication to complete. Choose the time carefully: SetDose can overwhelm pill indication
+                    Dose.ChangeIndication();
+                    break;
+
+                case PILL_ID_CURE:
+
+                    break;
+            } // switch
+        } // if connected
+
+    } // if pill changed
+
+}
+
 #endif
 
 #if 1 // ============================ Timers ===================================
@@ -144,17 +172,9 @@ static void AppThread(void *arg) {
         }
 
         // ==== Check pills ====
-        if(EvtMsk & EVTMSK_PILL_CHECK) {
-            PillChecker();
-            if(PillsHaveChanged) {  // Will be reset at PillChecker
-                Beeper.Beep(BeepPillBad);
-                // Read med
-                if(Pill[0].Connected) {
-                    Pill[0].Read((uint8_t*)&Med, sizeof(Med_t));
-                    Uart.Printf("Pill: %u, %u\r", Med.CureID, Med.Charge);
-                }
-            } // if pill changed
-        }
+        if(EvtMsk & EVTMSK_PILL_CHECK) App.PillHandler();
+
+
     } // while 1
 }
 

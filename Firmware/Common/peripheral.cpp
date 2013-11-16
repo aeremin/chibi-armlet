@@ -9,6 +9,7 @@
 #include "hal.h"
 #include "clocking_L1xx.h"
 #include "peripheral.h"
+#include "cmd_uart.h"
 
 #if 1 // =============================== Beep ==================================
 #define BEEP_TOP_VALUE   22
