@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "tiny_sprintf.h"
+#include "cmd_uart.h"
 
 #if 1 // ============================= Timer ===================================
 void Timer_t::Init(TIM_TypeDef* Tmr) {

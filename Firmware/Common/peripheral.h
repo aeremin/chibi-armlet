@@ -34,7 +34,9 @@ public:
         chSysUnlock();
     }
     void Stop() {
+        chSysLock();
         if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+        chSysUnlock();
         IPin.Set(0);
     }
     void Init();

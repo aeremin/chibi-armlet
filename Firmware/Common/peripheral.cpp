@@ -15,7 +15,9 @@
 Beeper_t Beeper;
 // Timer callback
 void BeeperTmrCallback(void *p) {
+    chSysLockFromIsr();
     Beeper.BeepI((const BeepChunk_t*)p);
+    chSysUnlockFromIsr();
 }
 
 void Beeper_t::Init() {
@@ -52,7 +54,9 @@ void Beeper_t::Shutdown() {
 LedRGB_t Led;
 // Timer callback
 static void LedTmrCallback(void *p) {
+    chSysLockFromIsr();
     Led.IStartBlinkI((const LedChunk_t*)p);
+    chSysUnlockFromIsr();
 }
 
 void LedRGB_t::Init() {

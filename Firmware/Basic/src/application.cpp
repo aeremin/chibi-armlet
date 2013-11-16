@@ -85,7 +85,11 @@ public:
         return EE.Put(&IDose);
     }
     // Try load from EEPROM, set 0 if failed
-    void Load() { if(EE.Get(&IDose) != OK) IDose = 0; }
+    void Load() {
+        uint32_t FDose = 0;
+        EE.Get(&FDose);     // Try to read
+        Set(FDose);
+    }
 };
 static Dose_t Dose;
 #endif

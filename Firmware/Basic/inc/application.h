@@ -32,10 +32,10 @@
 #endif
 
 #if 1 // ==== Dose thresholds ====
-#define DOSE_RED_END        300  // Death; top value
+#define DOSE_RED_END        1800  // Death; top value
 #define DOSE_RED_FAST       (DOSE_RED_END-7)  // Near death
-#define DOSE_RED_SLOW       200  // Yellow if lower
-#define DOSE_YELLOW         100  // Green if lower
+#define DOSE_RED_SLOW       1200  // Yellow if lower
+#define DOSE_YELLOW         600  // Green if lower
 #endif
 
 class App_t {

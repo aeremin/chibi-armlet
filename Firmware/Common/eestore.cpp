@@ -40,8 +40,8 @@ uint8_t EEStore_t::Put(uint32_t *Ptr) {
     // Write data
     volatile uint32_t *PDst32 = (uint32_t*)p;
     uint32_t *PSrc32 = (uint32_t*)&Chunk;
-    chSysLock();
     UnlockEE();
+    chSysLock();
     // Wait for last operation to be completed
     uint8_t r = WaitForLastOperation();
     if(r == OK) {
