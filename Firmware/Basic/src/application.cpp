@@ -14,8 +14,8 @@
 #include "eestore.h"
 
 App_t App;
-static uint8_t SBuf[252];
-static Thread *PAppThd;
+#define UART_RPL_BUF_SZ     36
+static uint8_t SBuf[UART_RPL_BUF_SZ];
 
 static void SignalError(const char* S) {
     Uart.Printf(S);
@@ -143,23 +143,22 @@ void App_t::PillHandler() {
 static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck;
 void TmrDoseCallback(void *p) {
     chSysLockFromIsr();
-    chEvtSignalI(PAppThd, EVTMSK_DOSE_INC);
+    chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
     chSysUnlockFromIsr();
 }
 void TmrDoseSaveCallback(void *p) {
     chSysLockFromIsr();
-    chEvtSignalI(PAppThd, EVTMSK_DOSE_STORE);
+    chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
     chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chSysUnlockFromIsr();
 }
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
-    chEvtSignalI(PAppThd, EVTMSK_PILL_CHECK);
+    chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlockFromIsr();
 }
-
 #endif
 
 #if 1 // ========================= Application =================================
@@ -201,7 +200,7 @@ static void AppThread(void *arg) {
 void App_t::Init() {
     Dose.Load();
     Uart.Printf("Dose = %u\r", Dose.Get());
-    PAppThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
+    PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
@@ -220,15 +219,6 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     switch(CmdCode) {
         case CMD_PING: Ack(OK); break;
 
-        case 0x51:  // GetID
-            Uart.Printf("ID=%u\r", App.ID);
-            break;
-
-        case 0x52:  // SetID
-            App.ID = *((uint16_t*)PData);
-            Uart.Printf("New ID=%u\r", App.ID);
-            break;
-
         // ==== Pills ====
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
@@ -245,7 +235,7 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
         case CMD_PILL_READ:
             b = PData[0];           // Pill address
             b2 = PData[1];          // Data size to read
-            if(b2 > 250) b2 = 250;  // Check data size
+            if(b2 > (UART_RPL_BUF_SZ-2)) b2 = (UART_RPL_BUF_SZ-2);  // Check data size
             if(b <= 7) SBuf[1] = PillMgr.Read(PILL_I2C_ADDR, &SBuf[2], b2);
             SBuf[0] = b;
             if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);

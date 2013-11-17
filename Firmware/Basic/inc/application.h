@@ -38,19 +38,16 @@
 #define DOSE_YELLOW         600     // Green if lower
 #endif
 
+#if 1 // ==== Pill ====
+#define PILL_ID_CURE        0x09
 // Pill infinity values
 #define INFINITY16          (uint16_t)0xFFFF
 #define INFINITY32          (uint16_t)0xFFFFFFFF
-
-#if 1 // ==== Pill IDs
-#define PILL_ID_CURE        0x09
 #endif
 
 class App_t {
-private:
-
 public:
-    uint16_t ID;
+    Thread *PThd;
     void Init();
     // Inner use
     void PillHandler();
