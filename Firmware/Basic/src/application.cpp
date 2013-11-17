@@ -109,7 +109,7 @@ struct Pill_t {
 } __attribute__ ((__packed__));
 static Pill_t Pill;
 
-void App_t::PillHandler() {
+void App_t::IPillHandler() {
     // Read med
     if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
     //Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
@@ -182,12 +182,11 @@ static void AppThread(void *arg) {
 
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
-//            Uart.Printf("c");
             // Check if new connection occured
             if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
                 if(!PillConnected) {
                     PillConnected = true;
-                    App.PillHandler();
+                    App.IPillHandler();
                 }
             }
             else PillConnected = false;

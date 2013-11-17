@@ -15,6 +15,7 @@
 #include "pill_mgr.h"
 #include "cmd_uart.h"
 #include "application.h"
+#include "radio_lvl1.h"
 
 static inline void Init();
 
@@ -47,5 +48,6 @@ void Init() {
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     PillMgr.Init();
+    Radio.Init();
     App.Init();
 }

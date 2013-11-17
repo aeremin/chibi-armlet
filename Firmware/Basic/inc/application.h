@@ -50,7 +50,7 @@ public:
     Thread *PThd;
     void Init();
     // Inner use
-    void PillHandler();
+    void IPillHandler();
 };
 
 extern App_t App;
