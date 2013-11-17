@@ -37,7 +37,6 @@ int main(void) {
         chSysLock();
         chThdSleepS(TIME_INFINITE); // Forever
         chSysUnlock();
-//        Led.StopBlink();
     } // while
 }
 
@@ -48,5 +47,5 @@ void Init() {
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     PillMgr.Init();
-    //App.Init();
+    App.Init();
 }

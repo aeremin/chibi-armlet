@@ -31,7 +31,7 @@ private:
     void ConvertDoseToState() {
         if     (IDose >= DOSE_TOP)      State = hsDeath;
         else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
-        else if(IDose >= DOSE_RED_SLOW) State = hsRedSlow;
+        else if(IDose >= DOSE_RED)      State = hsRedSlow;
         else if(IDose >= DOSE_YELLOW)   State = hsYellow;
         else                            State = hsGreen;
     }
@@ -112,7 +112,7 @@ static Pill_t Pill;
 void App_t::PillHandler() {
     // Read med
     if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
-    Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
+    //Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
     if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
         bool Rslt = OK;
         // Lower charges if not infinity
@@ -123,7 +123,8 @@ void App_t::PillHandler() {
         if(Rslt == OK) {
             Beeper.Beep(BeepPillOk);
             Led.StartBlink(LedPillOk);
-            Dose.Decrease(Pill.Value, diNeverIndicate);
+            // Decrease dose if not dead, or if this is panacea
+            if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
             chThdSleep(2007);    // Let indication to complete
             Dose.ChangeIndication();
             return;

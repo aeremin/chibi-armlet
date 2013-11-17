@@ -32,12 +32,13 @@
 #endif
 
 #if 1 // ==== Dose constants ====
-#define DOSE_TOP            1800  // Death; top value
+#define DOSE_TOP            1800    // Death; top value
 #define DOSE_RED_FAST       (DOSE_TOP-7)  // Near death
-#define DOSE_RED_SLOW       1200  // Yellow if lower
-#define DOSE_YELLOW         600  // Green if lower
+#define DOSE_RED            1200    // Yellow if lower
+#define DOSE_YELLOW         600     // Green if lower
 #endif
 
+// Pill infinity values
 #define INFINITY16          (uint16_t)0xFFFF
 #define INFINITY32          (uint16_t)0xFFFFFFFF
 
