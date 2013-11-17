@@ -22,25 +22,31 @@
 #define UART_GPIO           GPIOA
 #define UART_TX_PIN         9
 #define UART_AF             AF7 // for all uarts
-#define UART_DMA            STM32_DMA1_STREAM4
 #define UART_RCC_ENABLE()   rccEnableUSART1(FALSE)
 
-#define UART_DMA_MODE       DMA_PRIORITY_LOW | \
+#define UART_DMA_TX         STM32_DMA1_STREAM4
+#define UART_DMA_TX_MODE    DMA_PRIORITY_LOW | \
                             STM32_DMA_CR_MSIZE_BYTE | \
                             STM32_DMA_CR_PSIZE_BYTE | \
                             STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
                             STM32_DMA_CR_DIR_M2P |    /* Direction is memory to peripheral */ \
                             STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */
 
-#if UART_RX_ENABLED
+#if UART_RX_ENABLED // ==== RX ====
+#define UART_RXBUF_SZ       36 // unprocessed bytes
+#define UART_CMDDATA_SZ     16 // payload bytes
 #define UART_RX_PIN         10
 #define UART_RX_REG         UART->DR
-#define UART_RX_IRQ_ENABLE() nvicEnableVector(USART1_IRQn, CORTEX_PRIORITY_MASK(IRQ_PRIO_MEDIUM))
-#define UART_RX_IRQ         USART1_IRQHandler
 
-#define UART_RXBUF_SZ       180 // unprocessed bytes
-#define UART_CMDDATA_SZ     54  // payload bytes
-
+#define UART_RX_POLLING_MS  99
+#define UART_DMA_RX         STM32_DMA1_STREAM5
+#define UART_DMA_RX_MODE    DMA_PRIORITY_LOW | \
+                            STM32_DMA_CR_MSIZE_BYTE | \
+                            STM32_DMA_CR_PSIZE_BYTE | \
+                            STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
+                            STM32_DMA_CR_DIR_P2M |    /* Direction is peripheral to memory */ \
+                            STM32_DMA_CR_CIRC         /* Circular buffer enable */
+// Cmd decode states
 enum RcvState_t {rsStart, rsCmdCode1, rsCmdCode2, rsData1, rsData2};
 #endif
 
@@ -52,6 +58,7 @@ private:
     bool IDmaIsIdle;
     uint32_t IFullSlotsCount, ITransSize;
 #if UART_RX_ENABLED
+    int32_t SzOld=0, RIndx=0;
     RcvState_t RxState;
     uint8_t IRxBuf[UART_RXBUF_SZ];
     uint8_t CmdCode;
@@ -72,7 +79,7 @@ public:
     void IRQDmaTxHandler();
 #if UART_RX_ENABLED
     // Inner use
-    InputQueue iqueue;
+    void IRxTask();
     void IProcessByte(uint8_t b);
     void IResetCmd() { RxState = rsStart; PCmdWrite = CmdData; }
 #endif

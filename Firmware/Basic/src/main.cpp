@@ -48,5 +48,5 @@ void Init() {
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     PillMgr.Init();
-    App.Init();
+    //App.Init();
 }

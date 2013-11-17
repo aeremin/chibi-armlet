@@ -33,12 +33,12 @@ void CmdUart_t::Printf(const char *format, ...) {
     // Start transmission if Idle
     if(IDmaIsIdle) {
         IDmaIsIdle = false;
-        dmaStreamSetMemory0(UART_DMA, PRead);
+        dmaStreamSetMemory0(UART_DMA_TX, PRead);
         PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;
         ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;
-        dmaStreamSetTransactionSize(UART_DMA, ITransSize);
-        dmaStreamSetMode(UART_DMA, UART_DMA_MODE);
-        dmaStreamEnable(UART_DMA);
+        dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
+        dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
+        dmaStreamEnable(UART_DMA_TX);
     }
 }
 
@@ -61,12 +61,21 @@ static WORKING_AREA(waUartRxThread, 256);
 __attribute__ ((__noreturn__))
 static void UartRxThread(void *arg) {
     chRegSetThreadName("UartRx");
-    msg_t Msg;
-    while(1) {
-        // Fetch byte from queue
-        Msg = chIQGetTimeout(&Uart.iqueue, TIME_INFINITE);
-        if(Msg >= Q_OK) Uart.IProcessByte((uint8_t)Msg);
-    } // while 1
+    while(true) Uart.IRxTask();
+}
+
+void CmdUart_t::IRxTask() {
+    chThdSleepMilliseconds(UART_RX_POLLING_MS);
+    int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart
+    if(Sz != SzOld) {
+        int32_t ByteCnt = Sz - SzOld;
+        if(ByteCnt < 0) ByteCnt += UART_RXBUF_SZ;   // Handle buffer circulation
+        SzOld = Sz;
+        for(int32_t i=0; i<ByteCnt; i++) {          // Iterate received bytes
+            IProcessByte(IRxBuf[RIndx++]);
+            if(RIndx >= UART_RXBUF_SZ) RIndx = 0;
+        }
+    }
 }
 
 void CmdUart_t::IProcessByte(uint8_t b) {
@@ -117,7 +126,7 @@ void CmdUart_t::IProcessByte(uint8_t b) {
 #endif
 
 // ==== Init & DMA ====
-// Wrapper for IRQ
+// Wrapper for TX IRQ
 extern "C" {
 void CmdUartTxIrq(void *p, uint32_t flags) { Uart.IRQDmaTxHandler(); }
 }
@@ -135,64 +144,48 @@ void CmdUart_t::Init(uint32_t ABaudrate) {
     if(UART == USART1) UART->BRR = Clk.APB2FreqHz / ABaudrate;
     else               UART->BRR = Clk.APB1FreqHz / ABaudrate;
     UART->CR2 = 0;
-    UART->CR3 = USART_CR3_DMAT;   // Enable DMA at transmitter
-#if UART_RX_ENABLED
-    UART->CR1 =
-            USART_CR1_TE          // Transmitter enable
-            | USART_CR1_RE        // Receiver enable
-            | USART_CR1_RXNEIE;   // RX Irq enable
-    UART_RX_IRQ_ENABLE();         // Enable irq vector
-#else
-    UART->CR1 = USART_CR1_TE;     // Transmitter enabled
-#endif
-
     // ==== DMA ====
     // Here only unchanged parameters of the DMA are configured.
-    dmaStreamAllocate     (UART_DMA, IRQ_PRIO_HIGH, CmdUartTxIrq, NULL);
-    dmaStreamSetPeripheral(UART_DMA, &UART->DR);
-    dmaStreamSetMode      (UART_DMA, UART_DMA_MODE);
+    dmaStreamAllocate     (UART_DMA_TX, IRQ_PRIO_HIGH, CmdUartTxIrq, NULL);
+    dmaStreamSetPeripheral(UART_DMA_TX, &UART->DR);
+    dmaStreamSetMode      (UART_DMA_TX, UART_DMA_TX_MODE);
 
 #if UART_RX_ENABLED
-    chIQInit(&iqueue, IRxBuf, UART_RXBUF_SZ, NULL, NULL);
+    UART->CR1 = USART_CR1_TE | USART_CR1_RE;        // TX & RX enable
+    UART->CR3 = USART_CR3_DMAT | USART_CR3_DMAR;    // Enable DMA at TX & RX
+
     IResetCmd();
     PinSetupAlterFunc(UART_GPIO, UART_RX_PIN,  omOpenDrain, pudPullUp, UART_AF);
 
+    dmaStreamAllocate     (UART_DMA_RX, IRQ_PRIO_LOW, nullptr, NULL);
+    dmaStreamSetPeripheral(UART_DMA_RX, &UART->DR);
+    dmaStreamSetMemory0   (UART_DMA_RX, IRxBuf);
+    dmaStreamSetTransactionSize(UART_DMA_RX, UART_RXBUF_SZ);
+    dmaStreamSetMode      (UART_DMA_RX, UART_DMA_RX_MODE);
+    dmaStreamEnable       (UART_DMA_RX);
     // Create and start thread
     chThdCreateStatic(waUartRxThread, sizeof(waUartRxThread), NORMALPRIO, (tfunc_t)UartRxThread, NULL);
+#else
+    UART->CR1 = USART_CR1_TE;     // Transmitter enabled
+    UART->CR3 = USART_CR3_DMAT;   // Enable DMA at transmitter
 #endif
-    UART->CR1 |= USART_CR1_UE;       // Enable USART
+    UART->CR1 |= USART_CR1_UE;    // Enable USART
 }
 
-// ==== IRQs ====
+// ==== TX DMA IRQ ====
 void CmdUart_t::IRQDmaTxHandler() {
-    dmaStreamDisable(UART_DMA);    // Registers may be changed only when stream is disabled
+    dmaStreamDisable(UART_DMA_TX);    // Registers may be changed only when stream is disabled
     IFullSlotsCount -= ITransSize;
     PRead += ITransSize;
     if(PRead >= (TXBuf + UART_TXBUF_SIZE)) PRead = TXBuf; // Circulate pointer
 
     if(IFullSlotsCount == 0) IDmaIsIdle = true; // Nothing left to send
     else {  // There is something to transmit more
-        dmaStreamSetMemory0(UART_DMA, PRead);
+        dmaStreamSetMemory0(UART_DMA_TX, PRead);
         uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;
         ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;
-        dmaStreamSetTransactionSize(UART_DMA, ITransSize);
-        dmaStreamSetMode(UART_DMA, UART_DMA_MODE);
-        dmaStreamEnable(UART_DMA);    // Restart DMA
+        dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
+        dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
+        dmaStreamEnable(UART_DMA_TX);    // Restart DMA
     }
 }
-
-#if UART_RX_ENABLED
-// UART RX irq
-extern "C" {
-CH_IRQ_HANDLER(UART_RX_IRQ) {
-    CH_IRQ_PROLOGUE();
-    chSysLockFromIsr();
-    (void)UART->SR; //  Read status register to clear OverrunError flag. Otherwise it will trigger IRQ eternally.
-    uint8_t b = UART_RX_REG;
-    // Put byte to queue
-    chIQPutI(&Uart.iqueue, b);
-    chSysUnlockFromIsr();
-    CH_IRQ_EPILOGUE();
-}
-} // extern C
-#endif
