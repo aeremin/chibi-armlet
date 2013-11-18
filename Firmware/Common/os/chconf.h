@@ -229,7 +229,7 @@
  * @note    Requires @p CH_USE_EVENTS.
  */
 #if !defined(CH_USE_EVENTS_TIMEOUT) || defined(__DOXYGEN__)
-#define CH_USE_EVENTS_TIMEOUT           TRUE
+#define CH_USE_EVENTS_TIMEOUT           FALSE
 #endif
 
 /**
@@ -240,7 +240,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MESSAGES) || defined(__DOXYGEN__)
-#define CH_USE_MESSAGES                 TRUE
+#define CH_USE_MESSAGES                 FALSE
 #endif
 
 /**
@@ -264,7 +264,7 @@
  * @note    Requires @p CH_USE_SEMAPHORES.
  */
 #if !defined(CH_USE_MAILBOXES) || defined(__DOXYGEN__)
-#define CH_USE_MAILBOXES                TRUE
+#define CH_USE_MAILBOXES                FALSE
 #endif
 
 /**
@@ -274,7 +274,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_QUEUES) || defined(__DOXYGEN__)
-#define CH_USE_QUEUES                   TRUE
+#define CH_USE_QUEUES                   FALSE
 #endif
 
 /**

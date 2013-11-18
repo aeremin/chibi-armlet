@@ -9,42 +9,42 @@
 #include "ch.h"
 
 cc1101_t CC;
-static Thread *PWaitingThread = NULL;
 
 void cc1101_t::Init() {
     // ==== GPIO ====
-    PinSetupOut(GPIOA, CC_CS,   omPushPull);
-    PinSetupAlterFuncOutput(GPIOA, CC_SCK,  omPushPull);
-    PinSetupAlterFuncOutput(GPIOA, CC_MISO, omPushPull);
-    PinSetupAlterFuncOutput(GPIOA, CC_MOSI, omPushPull);
-    PinSetupIn(GPIOA, CC_GDO0, pudNone);
-    PinSetupIn(GPIOA, CC_GDO2, pudNone);
+    PinSetupOut      (GPIOA, CC_CS,   omPushPull);
+    PinSetupAlterFunc(GPIOA, CC_SCK,  omPushPull, pudNone, AF5);
+    PinSetupAlterFunc(GPIOA, CC_MISO, omPushPull, pudNone, AF5);
+    PinSetupAlterFunc(GPIOA, CC_MOSI, omPushPull, pudNone, AF5);
+    PinSetupIn       (GPIOA, CC_GDO0, pudNone);
+    PinSetupIn       (GPIOA, CC_GDO2, pudNone);
     CsHi();
 
     // ==== SPI ====    MSB first, master, ClkLowIdle, FirstEdge, Baudrate=f/2
-    SpiSetup(CC_SPI, boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2);
-    SpiEnable(CC_SPI);
+    Spi_t::Setup(CC_SPI, boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2);
+    Spi_t::Enable(CC_SPI);
 
     // ==== Init CC ====
     CReset();
     FlushRxFIFO();
     RfConfig();
-    chEvtInit(&IEvtSrcRx);
-    chEvtInit(&IEvtSrcTx);
+    PWaitingThread = nullptr;
     State = ccIdle;
 
     // ==== IRQ ====
-    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN; // Enable AFIO clock
-    uint8_t tmp = CC_GDO0 / 4;          // Indx of EXTICR register
-    uint8_t Shift = (CC_GDO0 & 0x03) * 4;
-    AFIO->EXTICR[tmp] &= ~((uint32_t)0b1111 << Shift);    // Clear bits and leave clear to select GPIOA
-    tmp = 1<<CC_GDO0;   // IRQ mask
-    // Configure EXTI line
-    EXTI->IMR  |=  tmp;      // Interrupt mode enabled
-    EXTI->EMR  &= ~tmp;      // Event mode disabled
-    EXTI->RTSR &= ~tmp;      // Rising trigger disabled
-    EXTI->FTSR |=  tmp;      // Falling trigger enabled
-    EXTI->PR    =  tmp;      // Clean irq flag
+    rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, FALSE); // Enable sys cfg controller
+    SYSCFG->EXTICR[1] &= 0xFFFFFFF0;    // EXTI4 is connected to PortA
+
+//    uint8_t tmp = CC_GDO0 / 4;          // Indx of EXTICR register
+//    uint8_t Shift = (CC_GDO0 & 0x03) * 4;
+//    AFIO->EXTICR[tmp] &= ~((uint32_t)0b1111 << Shift);    // Clear bits and leave clear to select GPIOA
+//    tmp = 1<<CC_GDO0;   // IRQ mask
+//    // Configure EXTI line
+//    EXTI->IMR  |=  tmp;      // Interrupt mode enabled
+//    EXTI->EMR  &= ~tmp;      // Event mode disabled
+//    EXTI->RTSR &= ~tmp;      // Rising trigger disabled
+//    EXTI->FTSR |=  tmp;      // Falling trigger enabled
+//    EXTI->PR    =  tmp;      // Clean irq flag
     nvicEnableVector(EXTI4_IRQn, CORTEX_PRIORITY_MASK(IRQ_PRIO_MEDIUM));
 }
 
@@ -69,7 +69,7 @@ void cc1101_t::SetChannel(uint8_t AChannel) {
 void cc1101_t::TransmitSync(rPkt_t *pPkt) {
     // WaitUntilChannelIsBusy();   // If this is not done, time after time FIFO is destroyed
     while(IState != CC_STB_IDLE) EnterIdle();
-    WriteTX((uint8_t*)pPkt, RPKT_LEN);
+//    WriteTX((uint8_t*)pPkt, RPKT_LEN);
     EnterTX();
     // Waiting for the IRQ to happen
     chSysLock();
@@ -83,7 +83,7 @@ void cc1101_t::TransmitAsync(rPkt_t *pPkt) {
     PWaitingThread = NULL;
     State = ccTransmitting;
     while(IState != CC_STB_IDLE) EnterIdle();
-    WriteTX((uint8_t*)pPkt, RPKT_LEN);
+//    WriteTX((uint8_t*)pPkt, RPKT_LEN);
     EnterTX();
 }
 
@@ -132,11 +132,11 @@ uint8_t cc1101_t::ReadFIFO(rPkt_t *pPkt) {
          CsLo();                                            // Start transmission
          BusyWait();                                        // Wait for chip to become ready
          ReadWriteByte(CC_FIFO|CC_READ_FLAG|CC_BURST_FLAG); // Address with read & burst flags
-         for(uint8_t i=0; i<RPKT_LEN; i++) {                // Read bytes
-             b = ReadWriteByte(0);
-             *p++ = b;
-       //      Uart.Printf(" %X", b);
-         }
+//         for(uint8_t i=0; i<RPKT_LEN; i++) {                // Read bytes
+//             b = ReadWriteByte(0);
+//             *p++ = b;
+//       //      Uart.Printf(" %X", b);
+//         }
          // Receive two additional info bytes
          b = ReadWriteByte(0);   // RSSI
          ReadWriteByte(0);       // LQI
@@ -226,7 +226,7 @@ void cc1101_t::RfConfig() {
     WriteRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
     WriteRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
     WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
-    WriteRegister(CC_PKTLEN,   RPKT_LEN);            // Packet length, dummy
+//    WriteRegister(CC_PKTLEN,   RPKT_LEN);            // Packet length, dummy
 
     WriteRegister(CC_PATABLE, CC_PATABLE_INITIAL);
 

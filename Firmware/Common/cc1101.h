@@ -17,16 +17,18 @@
 #include "kl_lib_L15x.h"
 #include "cc1101defins.h"
 #include "cc1101_rf_settings.h"
-
+#include "radio_lvl1.h"
 
 // Pins
 #define CC_GPIO     GPIOA
-#define CC_GDO2     3
-#define CC_GDO0     4
+#define CC_GDO2     2
+#define CC_GDO0     3
 #define CC_SCK      5
 #define CC_MISO     6
 #define CC_MOSI     7
-#define CC_CS       2
+#define CC_CS       4
+
+#define GDO0_IRQ_MASK  ((uint32_t)(1<<CC_GDO0))
 
 // SPI
 #define CC_SPI      SPI1
@@ -36,7 +38,6 @@ enum CCState_t {ccIdle, ccSleeping, ccReceiving, ccTransmitting};
 class cc1101_t {
 private:
     uint8_t IState; // Inner CC state, returned as first byte
-    EventSource IEvtSrcTx, IEvtSrcRx;
     // Pins
     void CsHi() { PinSet(CC_GPIO, CC_CS); }
     void CsLo() { PinClear(CC_GPIO, CC_CS); }
@@ -69,9 +70,6 @@ public:
     void Init();
     void SetChannel(uint8_t AChannel);
     void SetTxPower(uint8_t APwr) { WriteRegister(CC_PATABLE, APwr); }
-    // Events
-    void RegisterEvtRx(EventListener *PEvtLstnr, uint8_t EvtMask) { chEvtRegisterMask(&IEvtSrcRx, PEvtLstnr, EvtMask); }
-    void RegisterEvtTx(EventListener *PEvtLstnr, uint8_t EvtMask) { chEvtRegisterMask(&IEvtSrcTx, PEvtLstnr, EvtMask); }
     // State change
     void TransmitSync(rPkt_t *pPkt);
     uint8_t ReceiveSync(uint32_t Timeout_ms, rPkt_t *pPkt);
@@ -82,6 +80,7 @@ public:
     uint8_t ReadFIFO(rPkt_t *pPkt);
     // Inner use
     void IHandleAsync();
+    Thread *PWaitingThread;
 };
 
 extern cc1101_t CC;

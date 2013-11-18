@@ -328,29 +328,27 @@ enum SpiBaudrate_t {
     sbFdiv256 = 0b111,
 };
 
-static inline void SpiSetup(
-        SPI_TypeDef *Spi,
-        BitOrder_t BitOrder,
-        CPOL_t CPOL,
-        CPHA_t CPHA,
-        SpiBaudrate_t Baudrate
-        ) {
-    // Clocking
-    if      (Spi == SPI1) { rccEnableSPI1(FALSE); }
-#ifndef STM32F10X_LD_VL
-    else if (Spi == SPI2) { rccEnableSPI2(FALSE); }
-#endif
-    // Mode: Master, NSS software controlled and is 1, 8bit, NoCRC, FullDuplex
-    Spi->CR1 = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_MSTR;
-    if(BitOrder == boLSB) Spi->CR1 |= SPI_CR1_LSBFIRST;     // MSB/LSB
-    if(CPOL == cpolIdleHigh) Spi->CR1 |= SPI_CR1_CPOL;      // CPOL
-    if(CPHA == cphaSecondEdge) Spi->CR1 |= SPI_CR1_CPHA;    // CPHA
-    Spi->CR1 |= ((uint16_t)Baudrate) << 3;                  // Baudrate
-    Spi->CR2 = 0;
-}
-
-static inline void SpiEnable (SPI_TypeDef *Spi) { Spi->CR1 |=  SPI_CR1_SPE; }
-static inline void SpiDisable(SPI_TypeDef *Spi) { Spi->CR1 &= ~SPI_CR1_SPE; }
+class Spi_t {
+public:
+    static inline void Setup(SPI_TypeDef *Spi, BitOrder_t BitOrder,
+            CPOL_t CPOL, CPHA_t CPHA, SpiBaudrate_t Baudrate) {
+        // Clocking
+        if      (Spi == SPI1) { rccEnableSPI1(FALSE); }
+        else if (Spi == SPI2) { rccEnableSPI2(FALSE); }
+        // Mode: Master, NSS software controlled and is 1, 8bit, NoCRC, FullDuplex
+        Spi->CR1 = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_MSTR;
+        if(BitOrder == boLSB) Spi->CR1 |= SPI_CR1_LSBFIRST;     // MSB/LSB
+        if(CPOL == cpolIdleHigh) Spi->CR1 |= SPI_CR1_CPOL;      // CPOL
+        if(CPHA == cphaSecondEdge) Spi->CR1 |= SPI_CR1_CPHA;    // CPHA
+        Spi->CR1 |= ((uint16_t)Baudrate) << 3;                  // Baudrate
+        Spi->CR2 = 0;
+        Spi->I2SCFGR &= ~((uint16_t)SPI_I2SCFGR_I2SMOD);        // Disable I2S
+    }
+    static inline void Enable (SPI_TypeDef *Spi) { Spi->CR1 |=  SPI_CR1_SPE; }
+    static inline void Disable(SPI_TypeDef *Spi) { Spi->CR1 &= ~SPI_CR1_SPE; }
+    static inline void EnableTxDma(SPI_TypeDef *Spi) { Spi->CR2 |= SPI_CR2_TXDMAEN; }
+    static inline void WaitBsyHi2Lo(SPI_TypeDef *Spi) { while(Spi->SR & SPI_SR_BSY); }
+};
 #endif
 
 #if 1 // ============================== I2C ====================================

@@ -9,6 +9,7 @@
 #include "evt_mask.h"
 #include "application.h"
 #include "cc1101.h"
+#include "cmd_uart.h"
 
 rLevel1_t Radio;
 
