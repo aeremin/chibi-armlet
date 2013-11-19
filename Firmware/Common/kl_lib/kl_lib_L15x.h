@@ -209,21 +209,62 @@ public:
     void Off() { *PCCR = 0; }
 };
 
-// ==== External IRQ ====
-//enum ExtiTrigType_t {
-//static inline void PinIrqSetup(GPIO_TypeDef *PGpioPort, const uint8_t APinNumber, EXTITrigger_TypeDef ATriggerType) {
-//    // Get IRQ channel
-//    uint8_t IChannel;
-//    if      ((APinNumber >= 0)  and (APinNumber <= 4))  IChannel = EXTI0_IRQn + APinNumber;
-//    else if ((APinNumber >= 5)  and (APinNumber <= 9))  IChannel = EXTI9_5_IRQn;
-//    else if ((APinNumber >= 10) and (APinNumber <= 15)) IChannel = EXTI15_10_IRQn;
-//
-//}
-//
-//
-//uint8_t N = APinNumber / 4;    // Indx of EXTICR register
-//uint8_t Shift = (APinNumber & 0x03) * 4;
-//AFIO->EXTICR[N] &= ~((uint32_t)0b1111 << Shift);    // Clear bits
+#if 1 // ==== External IRQ ====
+enum ExtiTrigType_t {ttRising, ttFalling, ttRisingFalling};
+
+class PinIrq_t {
+private:
+    uint32_t IIrqChnl;
+    GPIO_TypeDef *IGPIO;
+    uint8_t IPinNumber;
+public:
+    void SetTriggerType(ExtiTrigType_t ATriggerType) {
+        uint32_t IrqMsk = 1 << IPinNumber;
+        switch(ATriggerType) {
+            case ttRising:
+                EXTI->RTSR |=  IrqMsk;  // Rising trigger enabled
+                EXTI->FTSR &= ~IrqMsk;  // Falling trigger disabled
+                break;
+            case ttFalling:
+                EXTI->RTSR &= ~IrqMsk;  // Rising trigger disabled
+                EXTI->FTSR |=  IrqMsk;  // Falling trigger enabled
+                break;
+            case ttRisingFalling:
+                EXTI->RTSR |=  IrqMsk;  // Rising trigger enabled
+                EXTI->FTSR |=  IrqMsk;  // Falling trigger enabled
+                break;
+        } // switch
+    }
+
+    void Setup(GPIO_TypeDef *GPIO, const uint8_t APinNumber, ExtiTrigType_t ATriggerType) {
+        IGPIO = GPIO;
+        IPinNumber = APinNumber;
+        rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, FALSE); // Enable sys cfg controller
+        // Connect EXTI line to the pin of the port
+        uint8_t Indx   = APinNumber / 4;            // Indx of EXTICR register
+        uint8_t Offset = (APinNumber & 0x03) * 4;   // Offset in EXTICR register
+        SYSCFG->EXTICR[Indx] &= ~((uint32_t)0b1111 << Offset);  // Clear port-related bits
+        // GPIOA requires all zeroes => nothing to do in this case
+        if     (GPIO == GPIOB) SYSCFG->EXTICR[Indx] |= (uint32_t)0b0001 << Offset;
+        else if(GPIO == GPIOC) SYSCFG->EXTICR[Indx] |= (uint32_t)0b0010 << Offset;
+        // Configure EXTI line
+        uint32_t IrqMsk = 1 << APinNumber;
+        EXTI->IMR  |=  IrqMsk;      // Interrupt mode enabled
+        EXTI->EMR  &= ~IrqMsk;      // Event mode disabled
+        SetTriggerType(ATriggerType);
+        EXTI->PR    =  IrqMsk;      // Clean irq flag
+        // Get IRQ channel
+        if      ((APinNumber >= 0)  and (APinNumber <= 4))  IIrqChnl = EXTI0_IRQn + APinNumber;
+        else if ((APinNumber >= 5)  and (APinNumber <= 9))  IIrqChnl = EXTI9_5_IRQn;
+        else if ((APinNumber >= 10) and (APinNumber <= 15)) IIrqChnl = EXTI15_10_IRQn;
+    }
+    void EnableIRQ(const uint32_t Priority) { nvicEnableVector(IIrqChnl, CORTEX_PRIORITY_MASK(Priority)); }
+    void DisableIrq() { nvicDisableVector(IIrqChnl); }
+    void CleanIrqFlag() { EXTI->PR = (1 << IPinNumber); }
+};
+
+
+#endif // EXTI
 #endif
 
 #if 1 // ============================== Timers =================================

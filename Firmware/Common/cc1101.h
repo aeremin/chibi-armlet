@@ -28,7 +28,7 @@
 #define CC_MOSI     7
 #define CC_CS       4
 
-#define GDO0_IRQ_MASK  ((uint32_t)(1<<CC_GDO0))
+#define GDO0_IRQ_HANLER     EXTI3_IRQHandler    // Same number as pin
 
 // SPI
 #define CC_SPI      SPI1
@@ -38,13 +38,16 @@ enum CCState_t {ccIdle, ccSleeping, ccReceiving, ccTransmitting};
 class cc1101_t {
 private:
     uint8_t IState; // Inner CC state, returned as first byte
+    Thread *PWaitingThread;
     // Pins
+    PinIrq_t IGdo0;
     void CsHi() { PinSet(CC_GPIO, CC_CS); }
     void CsLo() { PinClear(CC_GPIO, CC_CS); }
     bool GDO0IsHi() { return PinIsSet(CC_GPIO, CC_GDO0); }
     bool GDO2IsHi() { return PinIsSet(CC_GPIO, CC_GDO2); }
     void BusyWait() { while(PinIsSet(CC_GPIO, CC_MISO)); }
     // General
+    void IHandleAsync();
     uint8_t ReadWriteByte(uint8_t AByte);
     void RfConfig();
     int8_t RSSI_dBm(uint8_t ARawRSSI);
@@ -79,8 +82,7 @@ public:
     void Sleep() { WriteStrobe(CC_SPWD); State = ccSleeping; }
     uint8_t ReadFIFO(rPkt_t *pPkt);
     // Inner use
-    void IHandleAsync();
-    Thread *PWaitingThread;
+    void IGdo0IrqHandler();
 };
 
 extern cc1101_t CC;
