@@ -86,6 +86,11 @@
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Common</locationURI>
 		</link>
+		<link>
+			<name>Radio</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Radio</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

@@ -58,8 +58,8 @@ void cc1101_t::TransmitSync(rPkt_t *pPkt) {
     WriteTX((uint8_t*)pPkt, RPKT_LEN);
     // Enter TX and wait IRQ
     chSysLock();
-    EnterTX();
     PWaitingThread = chThdSelf();
+    EnterTX();
     chSchGoSleepS(THD_STATE_SUSPENDED);
     chSysUnlock();  // Will be here when IRQ fires
 }
@@ -79,8 +79,8 @@ void cc1101_t::TransmitAsync(rPkt_t *pPkt) {
 uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, rPkt_t *pPkt) {
     FlushRxFIFO();
     chSysLock();
-    EnterRX();      // After that, some time will be wasted to recalibrate if enabled
     PWaitingThread = chThdSelf();
+    EnterRX();      // After that, some time will be wasted to recalibrate if enabled
     msg_t Rslt = chSchGoSleepTimeoutS(THD_STATE_SUSPENDED, MS2ST(Timeout_ms));
     chSysUnlock();  // Will be here when IRQ will fire, or timeout occur - with appropriate message
 

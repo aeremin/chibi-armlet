@@ -36,7 +36,7 @@ struct rPkt_t {
 class rLevel1_t {
 private:
     rPkt_t PktRx;       // Local rPkt to receive
-
+    rPkt_t PktTx;
 public:
 
     void Init();
