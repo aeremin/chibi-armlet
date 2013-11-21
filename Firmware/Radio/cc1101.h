@@ -17,7 +17,7 @@
 #include "kl_lib_L15x.h"
 #include "cc1101defins.h"
 #include "cc1101_rf_settings.h"
-#include "radio_lvl1.h"
+#include "rlvl1_defins.h"
 
 // Pins
 #define CC_GPIO     GPIOA
