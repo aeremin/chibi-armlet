@@ -10,8 +10,8 @@
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint8_t MinLvl;
-    uint8_t MaxLvl;
+    int8_t MinLvlDb;
+    int8_t MaxLvlDb;
     uint8_t ConstDmg;
     uint8_t VarDmgMin;
     uint8_t VarDmgMax;
@@ -26,7 +26,7 @@ struct rPkt_t {
 #define FAST_EMANATOR_CNT   0
 
 #if 1 // =========================== Timings ===================================
-#define RX_DURATION_SLOW_MS 99  // How long to listen
+#define RX_DURATION_SLOW_MS 270  // How long to listen
 
 
 #endif

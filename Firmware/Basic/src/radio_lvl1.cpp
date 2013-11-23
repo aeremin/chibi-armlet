@@ -32,12 +32,40 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::ITask() {
-    DBG1_SET();
-    CC.TransmitSync(&PktTx);
-    DBG1_CLR();
+    uint8_t RxRslt = OK;
+    uint32_t StartTime;
+    int32_t Remainder;
 
-    // Slow cycle begins
-    // TODO: calibrate CC
+    while(true) {
+        // New cycle begins
+        CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
+        // Transmit
+        DBG1_SET();
+        CC.TransmitSync(&PktTx);
+        DBG1_CLR();
+
+        // Listen
+        StartTime = chTimeNow();
+        Remainder = 270;
+        while(Remainder > 0) {
+            RxRslt = CC.ReceiveSync(Remainder, &PktRx);
+            switch(RxRslt) {
+                case TIMEOUT:
+                    //Uart.Printf("TO\r");
+                    break;
+                case FAILURE:
+                    Uart.Printf("Fl\r");
+                    break;
+                case OK:
+                    //Uart.Printf("%d  %A\r", PktRx.RSSI, (uint8_t*)&PktRx, RPKT_LEN, ' ');
+                    Uart.Printf("%d\r", PktRx.RSSI);
+                    break;
+                default: break;
+            } // switch
+            Remainder = (StartTime + 270) - chTimeNow();
+        } // while remainder
+    } // while true
+
 //    uint32_t Dmg = 0;
     // Iterate channels
 //    for(uint32_t n = CHANNEL_ZERO; n < (CHANNEL_ZERO + SLOW_EMANATOR_CNT - 1); n++) {
@@ -61,6 +89,6 @@ void rLevel1_t::Init() {
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
     // Thread
-    chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
+    chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

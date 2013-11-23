@@ -17,10 +17,6 @@ App_t App;
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
 
-static void SignalError(const char* S) {
-    Uart.Printf(S);
-}
-
 #if 1 // ================================ Dose =================================
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
@@ -172,12 +168,12 @@ static void AppThread(void *arg) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) {
-            Dose.Increase(1, diUsual);
+            //Dose.Increase(1, diUsual);
         }
 
         // ==== Store dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) {
-            if(Dose.Save() != OK) SignalError("Save Fail\r");
+            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");
         }
 
         // ==== Check pill ====

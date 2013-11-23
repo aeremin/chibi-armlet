@@ -63,11 +63,6 @@ private:
     void GetState()    { WriteStrobe(CC_SNOP); }
     void EnterRX()     { WriteStrobe(CC_SRX);  }
     void FlushRxFIFO() { WriteStrobe(CC_SFRX); }
-    void Recalibrate() {
-        while(IState != CC_STB_IDLE) EnterIdle();
-        WriteStrobe(CC_SCAL);
-        BusyWait();
-    }
 public:
     CCState_t State;
     void Init();
@@ -80,6 +75,11 @@ public:
     void ReceiveAsync();
     void EnterIdle()  { WriteStrobe(CC_SIDLE); State = ccIdle; }
     void Sleep() { WriteStrobe(CC_SPWD); State = ccSleeping; }
+    void Recalibrate() {
+        while(IState != CC_STB_IDLE) EnterIdle();
+        WriteStrobe(CC_SCAL);
+        BusyWait();
+    }
     uint8_t ReadFIFO(rPkt_t *pPkt);
     // Inner use
     void IGdo0IrqHandler();
