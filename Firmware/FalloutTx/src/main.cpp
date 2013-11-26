@@ -10,8 +10,8 @@
 #include "ch.h"
 #include "hal.h"
 #include "pwr.h"
-//#include "lvl1_lckt.h"
-//#include "cc1101_rf_settings.h"
+#include "radio_lvl1.h"
+#include "cc1101_rf_settings.h"
 
 static inline void Init();
 
@@ -62,9 +62,9 @@ void Init() {
     Pwr.Init();
     // Get ID
     uint8_t id = GetID();
-////    rLevel1.Init(id, Pwr0dBm);
+    Radio.Init(id, Pwr0dBm);
     // LED
     PinSetupOut(GPIOB, 0, omPushPull);
-    Uart.Printf("\rTx id=%u\r", id);
+    Uart.Printf("\rTxFallout id=%u\r", id);
     //Uart.Printf("AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
 }
