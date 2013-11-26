@@ -318,7 +318,7 @@ public:
 };
 #endif
 
-#if 1 // ============================== IWDG ===================================
+#if 0 // ============================== IWDG ===================================
 enum IwdgPre_t {
     iwdgPre4 = 0x00,
     iwdgPre8 = 0x01,
@@ -370,25 +370,33 @@ enum SpiBaudrate_t {
 };
 
 class Spi_t {
+private:
+    SPI_TypeDef *PSpi;
 public:
-    static inline void Setup(SPI_TypeDef *Spi, BitOrder_t BitOrder,
+    void Setup(SPI_TypeDef *Spi, BitOrder_t BitOrder,
             CPOL_t CPOL, CPHA_t CPHA, SpiBaudrate_t Baudrate) {
+        PSpi = Spi;
         // Clocking
-        if      (Spi == SPI1) { rccEnableSPI1(FALSE); }
-        else if (Spi == SPI2) { rccEnableSPI2(FALSE); }
+        if      (PSpi == SPI1) { rccEnableSPI1(FALSE); }
+        else if (PSpi == SPI2) { rccEnableSPI2(FALSE); }
         // Mode: Master, NSS software controlled and is 1, 8bit, NoCRC, FullDuplex
-        Spi->CR1 = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_MSTR;
-        if(BitOrder == boLSB) Spi->CR1 |= SPI_CR1_LSBFIRST;     // MSB/LSB
-        if(CPOL == cpolIdleHigh) Spi->CR1 |= SPI_CR1_CPOL;      // CPOL
-        if(CPHA == cphaSecondEdge) Spi->CR1 |= SPI_CR1_CPHA;    // CPHA
-        Spi->CR1 |= ((uint16_t)Baudrate) << 3;                  // Baudrate
-        Spi->CR2 = 0;
-        Spi->I2SCFGR &= ~((uint16_t)SPI_I2SCFGR_I2SMOD);        // Disable I2S
+        PSpi->CR1 = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_MSTR;
+        if(BitOrder == boLSB) PSpi->CR1 |= SPI_CR1_LSBFIRST;    // MSB/LSB
+        if(CPOL == cpolIdleHigh) PSpi->CR1 |= SPI_CR1_CPOL;     // CPOL
+        if(CPHA == cphaSecondEdge) PSpi->CR1 |= SPI_CR1_CPHA;   // CPHA
+        PSpi->CR1 |= ((uint16_t)Baudrate) << 3;                 // Baudrate
+        PSpi->CR2 = 0;
+        PSpi->I2SCFGR &= ~((uint16_t)SPI_I2SCFGR_I2SMOD);       // Disable I2S
     }
-    static inline void Enable (SPI_TypeDef *Spi) { Spi->CR1 |=  SPI_CR1_SPE; }
-    static inline void Disable(SPI_TypeDef *Spi) { Spi->CR1 &= ~SPI_CR1_SPE; }
-    static inline void EnableTxDma(SPI_TypeDef *Spi) { Spi->CR2 |= SPI_CR2_TXDMAEN; }
-    static inline void WaitBsyHi2Lo(SPI_TypeDef *Spi) { while(Spi->SR & SPI_SR_BSY); }
+    void Enable () { PSpi->CR1 |=  SPI_CR1_SPE; }
+    void Disable() { PSpi->CR1 &= ~SPI_CR1_SPE; }
+    void EnableTxDma() { PSpi->CR2 |= SPI_CR2_TXDMAEN; }
+    void WaitBsyHi2Lo() { while(PSpi->SR & SPI_SR_BSY); }
+    uint8_t ReadWriteByte(uint8_t AByte) {
+        PSpi->DR = AByte;
+        while(!(PSpi->SR & SPI_SR_RXNE));  // Wait for SPI transmission to complete
+        return PSpi->DR;
+    }
 };
 #endif
 

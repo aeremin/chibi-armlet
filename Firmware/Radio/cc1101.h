@@ -39,6 +39,7 @@ class cc1101_t {
 private:
     uint8_t IState; // Inner CC state, returned as first byte
     Thread *PWaitingThread;
+    Spi_t ISpi;
     // Pins
     PinIrq_t IGdo0;
     void CsHi() { PinSet(CC_GPIO, CC_CS); }
@@ -48,7 +49,6 @@ private:
     void BusyWait() { while(PinIsSet(CC_GPIO, CC_MISO)); }
     // General
     void IHandleAsync();
-    uint8_t ReadWriteByte(uint8_t AByte);
     void RfConfig();
     int8_t RSSI_dBm(uint8_t ARawRSSI);
     // Registers and buffers

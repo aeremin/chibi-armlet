@@ -21,8 +21,8 @@ void cc1101_t::Init() {
     CsHi();
 
     // ==== SPI ====    MSB first, master, ClkLowIdle, FirstEdge, Baudrate=f/2
-    Spi_t::Setup(CC_SPI, boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2);
-    Spi_t::Enable(CC_SPI);
+    ISpi.Setup(CC_SPI, boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2);
+    ISpi.Enable();
 
     // ==== Init CC ====
     CReset();
@@ -117,16 +117,16 @@ uint8_t cc1101_t::ReadFIFO(rPkt_t *pPkt) {
          // Read FIFO
          CsLo();                                            // Start transmission
          BusyWait();                                        // Wait for chip to become ready
-         ReadWriteByte(CC_FIFO|CC_READ_FLAG|CC_BURST_FLAG); // Address with read & burst flags
+         ISpi.ReadWriteByte(CC_FIFO|CC_READ_FLAG|CC_BURST_FLAG); // Address with read & burst flags
          for(uint8_t i=0; i<RPKT_LEN; i++) {                // Read bytes
-             b = ReadWriteByte(0);
+             b = ISpi.ReadWriteByte(0);
              *p++ = b;
              // Uart.Printf(" %X", b);
          }
          // Receive two additional info bytes
-         b = ReadWriteByte(0);   // RSSI
-         ReadWriteByte(0);       // LQI
-         CsHi();                 // End transmission
+         b = ISpi.ReadWriteByte(0); // RSSI
+         ISpi.ReadWriteByte(0);     // LQI
+         CsHi();                    // End transmission
          pPkt->RSSI = RSSI_dBm(b);
          return OK;
      }
@@ -134,44 +134,38 @@ uint8_t cc1101_t::ReadFIFO(rPkt_t *pPkt) {
 }
 
 // =========================== Registers & Strobes =============================
-uint8_t cc1101_t::ReadWriteByte(uint8_t AByte) {
-    CC_SPI->DR = AByte;
-    while(!(CC_SPI->SR & SPI_SR_RXNE));  // Wait for SPI transmission to complete
-    return CC_SPI->DR;
-}
-
 uint8_t cc1101_t::ReadRegister (uint8_t ARegAddr){
     CsLo();                                 // Start transmission
     BusyWait();                             // Wait for chip to become ready
-    ReadWriteByte(ARegAddr | CC_READ_FLAG); // Transmit header byte
-    uint8_t FReply = ReadWriteByte(0);      // Read reply
+    ISpi.ReadWriteByte(ARegAddr | CC_READ_FLAG); // Transmit header byte
+    uint8_t FReply = ISpi.ReadWriteByte(0); // Read reply
     CsHi();                                 // End transmission
     return FReply;
 }
 void cc1101_t::WriteRegister (uint8_t ARegAddr, uint8_t AData){
-    CsLo();                     // Start transmission
-    BusyWait();                 // Wait for chip to become ready
-    ReadWriteByte(ARegAddr);    // Transmit header byte
-    ReadWriteByte(AData);       // Write data
-    CsHi();                     // End transmission
+    CsLo();                         // Start transmission
+    BusyWait();                     // Wait for chip to become ready
+    ISpi.ReadWriteByte(ARegAddr);   // Transmit header byte
+    ISpi.ReadWriteByte(AData);      // Write data
+    CsHi();                         // End transmission
 }
 void cc1101_t::WriteStrobe (uint8_t AStrobe){
-    CsLo();                             // Start transmission
-    BusyWait();                         // Wait for chip to become ready
-    IState = ReadWriteByte(AStrobe);    // Write strobe
-    CsHi();                             // End transmission
-    IState &= 0b01110000;               // Mask needed bits
+    CsLo();                                 // Start transmission
+    BusyWait();                             // Wait for chip to become ready
+    IState = ISpi.ReadWriteByte(AStrobe);   // Write strobe
+    CsHi();                                 // End transmission
+    IState &= 0b01110000;                   // Mask needed bits
 }
 
 void cc1101_t::WriteTX(uint8_t* Ptr, uint8_t Length) {
     CsLo();                                                 // Start transmission
     BusyWait();                                             // Wait for chip to become ready
-    ReadWriteByte(CC_FIFO|CC_WRITE_FLAG|CC_BURST_FLAG);     // Address with write & burst flags
+    ISpi.ReadWriteByte(CC_FIFO|CC_WRITE_FLAG|CC_BURST_FLAG);// Address with write & burst flags
     uint8_t b;
     //Uart.Printf("TX: ");
     for (uint8_t i=0; i<Length; i++) {
         b = *Ptr++;
-        ReadWriteByte(b);  // Write bytes
+        ISpi.ReadWriteByte(b);  // Write bytes
       //  Uart.Printf("%X ", b);
     }
     CsHi();    // End transmission
