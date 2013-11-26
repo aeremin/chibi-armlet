@@ -50,14 +50,27 @@
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1464891062" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1373156148" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.795014487" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1137610306" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32L1xx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/kernel/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/include"/>
+								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1849376783" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1318310713" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.843947614" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.216288418" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../os"/>
-									<listOptionValue builtIn="false" value="../os/hal"/>
-									<listOptionValue builtIn="false" value="../os/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os"/>
+									<listOptionValue builtIn="false" value="../../Common/os/kernel/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32L1xx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/common/ARMCMx/CMSIS/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/GCC/ARMCMx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/GCC/ARMCMx/STM32L1xx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/common/ARMCMx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal"/>
+									<listOptionValue builtIn="false" value="../../Common/os/include"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.225323495" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.2037454377" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
@@ -67,11 +80,20 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.349287459" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.gnucpp0x" valueType="enumerated"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.1518407025" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="../inc"/>
-									<listOptionValue builtIn="false" value="../os"/>
-									<listOptionValue builtIn="false" value="../os/hal"/>
-									<listOptionValue builtIn="false" value="../os/include"/>
-									<listOptionValue builtIn="false" value="../kl_lib"/>
 									<listOptionValue builtIn="false" value="../../Radio"/>
+									<listOptionValue builtIn="false" value="../../Common"/>
+									<listOptionValue builtIn="false" value="../../Common/os"/>
+									<listOptionValue builtIn="false" value="../../Common/os/kernel/include"/>
+									<listOptionValue builtIn="false" value="../../Common/kl_lib"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32L1xx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/common/ARMCMx/CMSIS/include"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/GCC/ARMCMx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/GCC/ARMCMx/STM32L1xx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/common/ARMCMx"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32"/>
+									<listOptionValue builtIn="false" value="../../Common/os/hal"/>
+									<listOptionValue builtIn="false" value="../../Common/os/include"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs.767712687" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.defs"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1413607778" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" value="true" valueType="boolean"/>
@@ -84,7 +106,7 @@
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.20001066" name="Cross ARM C++ Linker" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections.2081850957" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.gcsections" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.scriptfile.821927209" name="Script files (-T)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.scriptfile" valueType="stringList">
-									<listOptionValue builtIn="false" value="../os/hal/STM32F100x4.ld"/>
+									<listOptionValue builtIn="false" value="../../Common/os/ports/GCC/ARMCMx/STM32L1xx/ld/STM32L151C6.ld"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart.320604857" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nostart" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs.699184925" name="Do not use default libraries (-nodefaultlibs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.nodeflibs" value="true" valueType="boolean"/>

@@ -6,65 +6,39 @@
  * Created on Feb 05, 2013, 20:27
  */
 
-#include "kl_lib_f100.h"
+#include "kl_lib_L15x.h"
 #include "ch.h"
 #include "hal.h"
-#include "pwr.h"
+#include "clocking_L1xx.h"
+#include "cmd_uart.h"
 #include "radio_lvl1.h"
-#include "cc1101_rf_settings.h"
 
 static inline void Init();
 
-#define LED_ON()    PinSet(GPIOB, 0)
-#define LED_OFF()   PinClear(GPIOB, 0)
-
 int main(void) {
-    // ==== Init clock system ====
-    Clk.SetupBusDividers(ahbDiv8, apbDiv1, apbDiv1);
+    // ==== Init Vcore & clock system ====
+    SetupVCore(vcore1V8);
+    //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
+//    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
+
     // ==== Init OS ====
     halInit();
     chSysInit();
     // ==== Init Hard & Soft ====
     Init();
+//    if(ClkResult) Uart.Printf("Clock failure\r");
 
-    bool IsOn = false;
-    while(true) {
-        chThdSleepMilliseconds(1008);
-        if(!IsOn) {
-            IsOn = true;
-            LED_ON();
-        }
-        else {
-            if(Pwr.BatteryDischarged) {
-                IsOn = false;
-                LED_OFF();
-            }
-        }
+    while(1) {
+        //chThdSleepMilliseconds(999);
+        chSysLock();
+        chThdSleepS(TIME_INFINITE); // Forever
+        chSysUnlock();
     } // while
 }
 
-static inline uint8_t GetID() {
-    uint8_t id = 0;
-    for(uint8_t i=3; i<=9; i++) {
-        id <<= 1;
-        PinSetupIn(GPIOB, i, pudPullUp);
-        Delay_ms(1);
-        if(!PinIsSet(GPIOB, i)) id |= 1;    // Fuse detected
-        PinSetupAnalog(GPIOB, i);
-    }
-    return id;
-}
-
 void Init() {
-    JtagDisable();
-    Uart.Init(57600);
-    Pwr.Init();
-    // Get ID
-    uint8_t id = GetID();
-    Radio.Init(id, Pwr0dBm);
-    // LED
-    PinSetupOut(GPIOB, 0, omPushPull);
-    Uart.Printf("\rTxFallout id=%u\r", id);
-    //Uart.Printf("AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    Uart.Init(115200);
+    Uart.Printf("FalloutTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+//    Radio.Init();
 }

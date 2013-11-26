@@ -7,7 +7,6 @@
 
 #include "radio_lvl1.h"
 #include "evt_mask.h"
-#include "application.h"
 #include "cc1101.h"
 #include "cmd_uart.h"
 
@@ -31,49 +30,15 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::ITask() {
-    uint8_t RxRslt = OK;
-    uint32_t StartTime;
-    int32_t Remainder;
-
     while(true) {
+        chThdSleepMilliseconds(360);
         // New cycle begins
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
         // Transmit
         DBG1_SET();
         CC.TransmitSync(&PktTx);
         DBG1_CLR();
-
-        // Listen
-        StartTime = chTimeNow();
-        Remainder = 270;
-        while(Remainder > 0) {
-            RxRslt = CC.ReceiveSync(Remainder, &PktRx);
-            switch(RxRslt) {
-                case TIMEOUT:
-                    //Uart.Printf("TO\r");
-                    break;
-                case FAILURE:
-                    Uart.Printf("Fl\r");
-                    break;
-                case OK:
-                    //Uart.Printf("%d  %A\r", PktRx.RSSI, (uint8_t*)&PktRx, RPKT_LEN, ' ');
-                    Uart.Printf("%d\r", PktRx.RSSI);
-                    break;
-                default: break;
-            } // switch
-            Remainder = (StartTime + 270) - chTimeNow();
-        } // while remainder
     } // while true
-
-//    uint32_t Dmg = 0;
-    // Iterate channels
-//    for(uint32_t n = CHANNEL_ZERO; n < (CHANNEL_ZERO + SLOW_EMANATOR_CNT - 1); n++) {
-//        CC.SetChannel(n);
-//        uint8_t Result = CC.ReceiveSync(RX_DURATION_SLOW_MS, &PktRx);
-//        if(Result == OK) {
-//            Uart.Printf("%A; Lvl=%d\r", (uint8_t*)&PktRx, RPKT_LEN, ' ', PktRx.RSSI);
-//        } // id rslt ok
-//    } // for
 }
 #endif
 
