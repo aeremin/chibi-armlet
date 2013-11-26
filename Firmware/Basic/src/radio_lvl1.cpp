@@ -11,6 +11,8 @@
 #include "cc1101.h"
 #include "cmd_uart.h"
 
+#include "peripheral.h"
+
 #define DBG_PINS
 
 #ifdef DBG_PINS
@@ -31,39 +33,55 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-void rLevel1_t::ITask() {
-    uint8_t RxRslt = OK;
-    uint32_t StartTime;
-    int32_t Remainder;
+//#define TX
 
+void rLevel1_t::ITask() {
     while(true) {
         // New cycle begins
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
+
+#ifdef TX
         // Transmit
         DBG1_SET();
         CC.TransmitSync(&PktTx);
         DBG1_CLR();
+        chThdSleepMilliseconds(99);
+#else
+        Color_t Clr;
+        uint8_t RxRslt = CC.ReceiveSync(306, &PktRx);
+        if(RxRslt == OK) {
+            Uart.Printf("%d\r", PktRx.RSSI);
+            Clr = clWhite;
+            if     (PktRx.RSSI < -100) Clr = clRed;
+            else if(PktRx.RSSI < -90) Clr = clYellow;
+            else if(PktRx.RSSI < -80) Clr = clGreen;
+            else if(PktRx.RSSI < -70) Clr = clCyan;
+            else if(PktRx.RSSI < -60) Clr = clBlue;
+            else if(PktRx.RSSI < -50) Clr = clMagenta;
+        }
+        else Clr = clBlack;
+        Led.SetColor(Clr);
 
-        // Listen
-        StartTime = chTimeNow();
-        Remainder = 270;
-        while(Remainder > 0) {
-            RxRslt = CC.ReceiveSync(Remainder, &PktRx);
-            switch(RxRslt) {
-                case TIMEOUT:
-                    //Uart.Printf("TO\r");
-                    break;
-                case FAILURE:
-                    Uart.Printf("Fl\r");
-                    break;
-                case OK:
-                    //Uart.Printf("%d  %A\r", PktRx.RSSI, (uint8_t*)&PktRx, RPKT_LEN, ' ');
-                    Uart.Printf("%d\r", PktRx.RSSI);
-                    break;
-                default: break;
-            } // switch
-            Remainder = (StartTime + 270) - chTimeNow();
-        } // while remainder
+#endif
+//        StartTime = chTimeNow();
+//        Remainder = 270;
+//        while(Remainder > 0) {
+//            RxRslt = CC.ReceiveSync(Remainder, &PktRx);
+//            switch(RxRslt) {
+//                case TIMEOUT:
+//                    //Uart.Printf("TO\r");
+//                    break;
+//                case FAILURE:
+//                    Uart.Printf("Fl\r");
+//                    break;
+//                case OK:
+//                    //Uart.Printf("%d  %A\r", PktRx.RSSI, (uint8_t*)&PktRx, RPKT_LEN, ' ');
+//                    Uart.Printf("%d\r", PktRx.RSSI);
+//                    break;
+//                default: break;
+//            } // switch
+//            Remainder = (StartTime + 270) - chTimeNow();
+//        } // while remainder
     } // while true
 
 //    uint32_t Dmg = 0;

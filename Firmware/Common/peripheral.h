@@ -59,7 +59,7 @@ struct Color_t {
 #define clGreen     ((Color_t){0,   255, 0})
 #define clBlue      ((Color_t){0,   0,   255})
 #define clYellow    ((Color_t){255, 255, 0})
-#define clViolet    ((Color_t){255, 0, 255})
+#define clMagenta   ((Color_t){255, 0, 255})
 #define clCyan      ((Color_t){0, 255, 255})
 #define clWhite     ((Color_t){255, 255, 255})
 
