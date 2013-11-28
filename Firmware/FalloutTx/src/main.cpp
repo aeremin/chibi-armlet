@@ -12,6 +12,7 @@
 #include "clocking_L1xx.h"
 #include "cmd_uart.h"
 #include "radio_lvl1.h"
+#include "application.h"
 
 static inline void Init();
 
@@ -40,5 +41,5 @@ int main(void) {
 void Init() {
     Uart.Init(115200);
     Uart.Printf("FalloutTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-//    Radio.Init();
+    Radio.Init(0);  // FIXME: read ID somehow
 }

@@ -13,8 +13,8 @@
 #define DBG_PINS
 
 #ifdef DBG_PINS
-#define DBG_GPIO1   GPIOB
-#define DBG_PIN1    14
+#define DBG_GPIO1   GPIOA
+#define DBG_PIN1    15
 #define DBG1_SET()  PinSet(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinClear(DBG_GPIO1, DBG_PIN1)
 #endif
@@ -31,8 +31,7 @@ static void rLvl1Thread(void *arg) {
 
 void rLevel1_t::ITask() {
     while(true) {
-        chThdSleepMilliseconds(360);
-        // New cycle begins
+        chThdSleepMilliseconds(99);
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
         // Transmit
         DBG1_SET();
@@ -43,7 +42,7 @@ void rLevel1_t::ITask() {
 #endif
 
 #if 1 // ============================
-void rLevel1_t::Init(uint16_t ASelfID, uint8_t TxPwr) {
+void rLevel1_t::Init(uint16_t ASelfID) {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif

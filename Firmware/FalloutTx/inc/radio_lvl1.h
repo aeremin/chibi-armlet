@@ -15,7 +15,7 @@ class rLevel1_t {
 private:
     rPkt_t PktTx;
 public:
-    void Init(uint16_t ASelfID, uint8_t TxPwr);
+    void Init(uint16_t ASelfID);
     // Inner use
     void ITask();
 };

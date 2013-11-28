@@ -18,20 +18,7 @@
 #include "cc1101defins.h"
 #include "cc1101_rf_settings.h"
 #include "rlvl1_defins.h"
-
-// Pins
-#define CC_GPIO     GPIOA
-#define CC_GDO2     2
-#define CC_GDO0     3
-#define CC_SCK      5
-#define CC_MISO     6
-#define CC_MOSI     7
-#define CC_CS       4
-
-#define GDO0_IRQ_HANLER     EXTI3_IRQHandler    // Same number as pin
-
-// SPI
-#define CC_SPI      SPI1
+#include "cc_gpio.h"
 
 enum CCState_t {ccIdle, ccSleeping, ccReceiving, ccTransmitting};
 
