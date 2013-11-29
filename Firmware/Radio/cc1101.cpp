@@ -208,7 +208,7 @@ void cc1101_t::RfConfig() {
     WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
     WriteRegister(CC_PKTLEN,   RPKT_LEN);            // Packet length, dummy
 
-    WriteRegister(CC_PATABLE, CC_PATABLE_INITIAL);
+    WriteRegister(CC_PATABLE, CC_Pwr0dBm);
 
     WriteRegister(CC_MCSM2, CC_MCSM2_VALUE);
     WriteRegister(CC_MCSM1, CC_MCSM1_VALUE);

@@ -20,22 +20,6 @@
 #define CC_TX_FIFO_SIZE     33
 #define CC_RX_FIFO_SIZE     32
 
-// =================================== Power ===================================
-#define PwrMinus30dBm       0x03
-#define PwrMinus27dBm       0x08
-#define PwrMinus25dBm       0x0D
-#define PwrMinus20dBm       0x17
-#define PwrMinus15dBm       0x1D
-#define PwrMinus10dBm       0x26
-#define PwrMinus6dBm        0x37
-#define Pwr0dBm             0x50
-#define PwrPlus5dBm         0x86
-#define PwrPlus7dBm         0xCD
-#define PwrPlus10dBm        0xC5
-#define PwrPlus12dBm        0xC0
-
-#define CC_PATABLE_INITIAL  Pwr0dBm
-
 // ===================== Frequency 868 MHz: RF Studio ==========================
 #define CC_FREQ2_VALUE      0x20        // Frequency control word, high byte.
 #define CC_FREQ1_VALUE      0x25        // Frequency control word, middle byte.

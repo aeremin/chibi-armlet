@@ -48,7 +48,7 @@ void rLevel1_t::Init(uint16_t ASelfID) {
 #endif
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(Pwr0dBm);
+    CC.SetTxPower(CC_Pwr0dBm);
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
     // Thread
