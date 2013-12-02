@@ -30,14 +30,12 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::ITask() {
-    while(true) {
-        chThdSleepMilliseconds(99);
-        CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-        // Transmit
-        DBG1_SET();
-        CC.TransmitSync(&PktTx);
-        DBG1_CLR();
-    } // while true
+    chThdSleepMilliseconds(99);
+    CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
+    // Transmit
+    DBG1_SET();
+    CC.TransmitSync(&PktTx);
+    DBG1_CLR();
 }
 #endif
 
@@ -46,6 +44,13 @@ void rLevel1_t::Init(uint16_t ASelfID) {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
+    // Init RadioPkt
+    PktTx.MinLvlDb = -127;
+    PktTx.MaxLvlDb = 0;
+    PktTx.ConstDmg = 5;
+    PktTx.VarDmgMin = 0;
+    PktTx.VarDmgMax = 0;
+
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
