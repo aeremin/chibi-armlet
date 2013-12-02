@@ -12,6 +12,7 @@
 #include "sequences.h"
 #include "evt_mask.h"
 #include "eestore.h"
+#include "radio_lvl1.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -69,8 +70,15 @@ public:
     uint32_t Get() { return IDose; }
     void Increase(uint32_t Amount, DoIndication_t DoIndication) {
         uint32_t Dz = IDose;
-        if(((Dz + Amount) > DOSE_TOP) or (Amount == INFINITY32)) Dz = DOSE_TOP;
-        else Dz += Amount;
+        // Increase no more than up to near death
+        if(Dz < DOSE_RED_FAST) {
+            if(((Dz + Amount) > DOSE_RED_FAST) or (Amount == INFINITY32)) Dz = DOSE_RED_FAST;
+            else Dz += Amount;
+        }
+        // Near death, increase no more than 1 at a time
+        else if(Dz < DOSE_TOP) Dz++;
+        // After death, no need to increase
+        Uart.Printf("Dz=%u\r", Dz);
         Set(Dz, DoIndication);
     }
     void Decrease(uint32_t Amount, DoIndication_t DoIndication) {
@@ -95,6 +103,22 @@ public:
     }
 };
 static Dose_t Dose;
+
+void App_t::IDoseIncHandler() {
+    uint32_t FDamage;
+    // Check if radio damage modifier occured
+    chSysLock();
+    if(Radio.NewDamageReady) {
+        Radio.NewDamageReady = false;
+        FDamage = Radio.Damage;
+        Radio.Damage = 0;
+    }
+    else FDamage = 1;   // Standard value
+    chSysUnlock();
+    Uart.Printf("Dmg=%u\r", FDamage);
+    Dose.Increase(FDamage, diUsual);
+}
+
 #endif
 
 #if 1 // ================================ Pill =================================
@@ -167,9 +191,7 @@ static void AppThread(void *arg) {
     while(true) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
-        if(EvtMsk & EVTMSK_DOSE_INC) {
-            //Dose.Increase(1, diUsual);
-        }
+        if(EvtMsk & EVTMSK_DOSE_INC) App.IDoseIncHandler();
 
         // ==== Store dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) {
@@ -187,13 +209,11 @@ static void AppThread(void *arg) {
             }
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
-
-
     } // while 1
 }
 
 void App_t::Init() {
-    Dose.Load();
+    //Dose.Load();
     Uart.Printf("Dose = %u\r", Dose.Get());
     PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
     // Timers init

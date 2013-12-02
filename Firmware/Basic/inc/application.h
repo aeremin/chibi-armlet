@@ -32,10 +32,10 @@
 #endif
 
 #if 1 // ==== Dose constants ====
-#define DOSE_TOP            1800    // Death; top value
+#define DOSE_TOP            300    // Death; top value
 #define DOSE_RED_FAST       (DOSE_TOP-7)  // Near death
-#define DOSE_RED            1200    // Yellow if lower
-#define DOSE_YELLOW         600     // Green if lower
+#define DOSE_RED            200    // Yellow if lower
+#define DOSE_YELLOW         100     // Green if lower
 #endif
 
 #if 1 // ==== Pill ====
@@ -51,6 +51,7 @@ public:
     void Init();
     // Inner use
     void IPillHandler();
+    void IDoseIncHandler();
 };
 
 extern App_t App;

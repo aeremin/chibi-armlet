@@ -44,7 +44,7 @@ void Init() {
     Led.Init();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
-//    PillMgr.Init();
+    PillMgr.Init();
     Radio.Init();
-//    App.Init();
+    App.Init();
 }

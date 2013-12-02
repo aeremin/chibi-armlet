@@ -34,6 +34,7 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TX
+//#define LED_RX
 
 void rLevel1_t::ITask() {
     while(true) {
@@ -46,7 +47,7 @@ void rLevel1_t::ITask() {
         CC.TransmitSync(&PktTx);
         DBG1_CLR();
         chThdSleepMilliseconds(99);
-#else
+#elif defined LED_RX
         Color_t Clr;
         uint8_t RxRslt = CC.ReceiveSync(306, &PktRx);
         if(RxRslt == OK) {
@@ -61,7 +62,14 @@ void rLevel1_t::ITask() {
         }
         else Clr = clBlack;
         Led.SetColor(Clr);
-
+#else
+        uint8_t RxRslt = CC.ReceiveSync(306, &PktRx);
+        if(RxRslt == OK) {
+//            Uart.Printf("%d\r", PktRx.ConstDmg);
+            // Calculate new damage
+            if(Damage < PktRx.ConstDmg) Damage = PktRx.ConstDmg;
+            NewDamageReady = true;  // Set to true if any pkt is received
+        }
 #endif
 //        StartTime = chTimeNow();
 //        Remainder = 270;
@@ -94,6 +102,7 @@ void rLevel1_t::ITask() {
 //        } // id rslt ok
 //    } // for
 }
+
 #endif
 
 #if 1 // ============================
@@ -106,6 +115,8 @@ void rLevel1_t::Init() {
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
+    Damage = 0;
+    NewDamageReady = false;
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
