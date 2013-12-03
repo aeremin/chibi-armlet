@@ -51,7 +51,7 @@
                                         // In RX, the pin will also deassert when a packet is discarded due to address or maximum length filtering
 
 //#define CC_PKTCTRL1_VALUE   0b00001110  // PQT=0, CRC autoflush=1, Append=1, Address check = 10 (check, 0 is broadcast)
-#define CC_PKTCTRL1_VALUE   0b00001100  // PQT=0, CRC autoflush=1, Append status=1, Address check = 00 (no check)
+#define CC_PKTCTRL1_VALUE   0b00001100  // PQT=0, CRC autoflush=1, Append=1, Address check = 00 (no check)
 #define CC_PKTCTRL0_VALUE   0b01000100  // WhiteData=1, PKTFormat=normal, CRC enabled, Fixed Length
 //#define CC_PKTCTRL0_VALUE   0b00000100  // WhiteData=0, PKTFormat=normal, CRC enabled, Fixed Length
 //#define CC_PKTCTRL0_VALUE   0b00000000  // WhiteData=0, PKTFormat=normal, CRC disabled, Fixed Length

@@ -15,10 +15,12 @@ class rLevel1_t {
 private:
     rPkt_t PktRx;       // Local rPkt to receive
     rPkt_t PktTx;       // FIXME: remove if not needed
-public:
-    bool NewDamageReady;
+    Thread *PThread;
     uint32_t Damage;
+    bool NewDamageReady;
+public:
     void Init();
+    uint32_t GetDamage();
     // Inner use
     void ITask();
     void IDamageTmrCallback();

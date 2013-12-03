@@ -78,7 +78,7 @@ public:
         // Near death, increase no more than 1 at a time
         else if(Dz < DOSE_TOP) Dz++;
         // After death, no need to increase
-        Uart.Printf("Dz=%u\r", Dz);
+//        Uart.Printf("Dz=%u\r", Dz);
         Set(Dz, DoIndication);
     }
     void Decrease(uint32_t Amount, DoIndication_t DoIndication) {
@@ -103,21 +103,6 @@ public:
     }
 };
 static Dose_t Dose;
-
-void App_t::IDoseIncHandler() {
-    uint32_t FDamage;
-    // Check if radio damage modifier occured
-    chSysLock();
-    if(Radio.NewDamageReady) {
-        Radio.NewDamageReady = false;
-        FDamage = Radio.Damage;
-        Radio.Damage = 0;
-    }
-    else FDamage = 1;   // Standard value
-    chSysUnlock();
-    Uart.Printf("Dmg=%u\r", FDamage);
-    Dose.Increase(FDamage, diUsual);
-}
 
 #endif
 
@@ -191,7 +176,12 @@ static void AppThread(void *arg) {
     while(true) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
-        if(EvtMsk & EVTMSK_DOSE_INC) App.IDoseIncHandler();
+        if(EvtMsk & EVTMSK_DOSE_INC) {
+            // Check if radio damage occured. Will return 1 if no.
+            uint32_t FDamage = Radio.GetDamage();
+            if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
+            Dose.Increase(FDamage, diUsual);
+        }
 
         // ==== Store dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) {

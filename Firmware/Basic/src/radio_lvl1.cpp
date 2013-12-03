@@ -63,46 +63,49 @@ void rLevel1_t::ITask() {
         else Clr = clBlack;
         Led.SetColor(Clr);
 #else
-        uint8_t RxRslt = CC.ReceiveSync(306, &PktRx);
-        if(RxRslt == OK) {
-//            Uart.Printf("%d\r", PktRx.ConstDmg);
-            // Calculate new damage
-            if(Damage < PktRx.ConstDmg) Damage = PktRx.ConstDmg;
-            NewDamageReady = true;  // Set to true if any pkt is received
-        }
-#endif
-//        StartTime = chTimeNow();
-//        Remainder = 270;
-//        while(Remainder > 0) {
-//            RxRslt = CC.ReceiveSync(Remainder, &PktRx);
-//            switch(RxRslt) {
-//                case TIMEOUT:
-//                    //Uart.Printf("TO\r");
-//                    break;
-//                case FAILURE:
-//                    Uart.Printf("Fl\r");
-//                    break;
-//                case OK:
-//                    //Uart.Printf("%d  %A\r", PktRx.RSSI, (uint8_t*)&PktRx, RPKT_LEN, ' ');
-//                    Uart.Printf("%d\r", PktRx.RSSI);
-//                    break;
-//                default: break;
-//            } // switch
-//            Remainder = (StartTime + 270) - chTimeNow();
-//        } // while remainder
-    } // while true
+        NewDamageReady = false;
+        Damage = 1;
+        // Iterate slow emanators
+        for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
+            CC.SetChannel(CHANNEL_ZERO + i);
+            uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
+            if(RxRslt == OK) {
+//                Uart.Printf("%d\r", PktRx.ConstDmg);
+                // "Clean zone" emanator
+                if((PktRx.ConstDmg == 0) and (PktRx.VarDmgMax == 0) and (PktRx.VarDmgMin == 0)) {
+                    if(Damage > 0) Damage--;
+                }
+                else {
+                    Damage += PktRx.ConstDmg;
+                }
 
-//    uint32_t Dmg = 0;
-    // Iterate channels
-//    for(uint32_t n = CHANNEL_ZERO; n < (CHANNEL_ZERO + SLOW_EMANATOR_CNT - 1); n++) {
-//        CC.SetChannel(n);
-//        uint8_t Result = CC.ReceiveSync(RX_DURATION_SLOW_MS, &PktRx);
-//        if(Result == OK) {
-//            Uart.Printf("%A; Lvl=%d\r", (uint8_t*)&PktRx, RPKT_LEN, ' ', PktRx.RSSI);
-//        } // id rslt ok
-//    } // for
+                if(Damage < PktRx.ConstDmg) Damage = PktRx.ConstDmg;
+                NewDamageReady = true;  // Set to true if any pkt is received
+            } // if ok
+        } // for
+        // Sleep until asked
+        CC.Sleep();
+        if(NewDamageReady) {    // Wait until read
+            chSysLock();
+            chSchGoSleepS(THD_STATE_SUSPENDED);
+            chSysUnlock();
+        }
+        else chThdSleepMilliseconds(27);
+#endif
+    } // while true
 }
 
+uint32_t rLevel1_t::GetDamage() {
+    if(!NewDamageReady) return 1;
+    uint32_t FDmg = Damage;
+    chSysLock();
+    if(PThread->p_state == THD_STATE_SUSPENDED) {
+        PThread->p_u.rdymsg = RDY_OK;    // Signal that IRQ fired
+        chSchReadyI(PThread);
+    }
+    chSysUnlock();
+    return FDmg;    // Otherwise Damage can be changed right after high-prio thread wakeup
+}
 #endif
 
 #if 1 // ============================
@@ -115,9 +118,9 @@ void rLevel1_t::Init() {
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
-    Damage = 0;
+    Damage = 1;
     NewDamageReady = false;
     // Thread
-    chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+    PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

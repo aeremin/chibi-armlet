@@ -21,7 +21,7 @@ struct rPkt_t {
 #endif
 
 // Emanators
-#define CHANNEL_ZERO        10
+#define CHANNEL_ZERO        0
 #define SLOW_EMANATOR_CNT   1
 #define FAST_EMANATOR_CNT   0
 

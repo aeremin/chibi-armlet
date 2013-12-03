@@ -42,7 +42,7 @@
 #define PILL_ID_CURE        0x09
 // Pill infinity values
 #define INFINITY16          (uint16_t)0xFFFF
-#define INFINITY32          (uint16_t)0xFFFFFFFF
+#define INFINITY32          (uint32_t)0xFFFFFFFF
 #endif
 
 class App_t {
@@ -51,7 +51,6 @@ public:
     void Init();
     // Inner use
     void IPillHandler();
-    void IDoseIncHandler();
 };
 
 extern App_t App;
