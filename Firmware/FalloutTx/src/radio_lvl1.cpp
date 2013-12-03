@@ -30,7 +30,7 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::ITask() {
-    chThdSleepMilliseconds(99);
+//    chThdSleepMilliseconds(99);
     CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
     // Transmit
     DBG1_SET();
@@ -47,7 +47,7 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     // Init RadioPkt
     PktTx.MinLvlDb = -127;
     PktTx.MaxLvlDb = 0;
-    PktTx.ConstDmg = 5;
+    PktTx.ConstDmg = 4;
     PktTx.VarDmgMin = 0;
     PktTx.VarDmgMax = 0;
 
