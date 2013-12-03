@@ -64,28 +64,29 @@ void rLevel1_t::ITask() {
         Led.SetColor(Clr);
 #else
         NewDamageReady = false;
-        Damage = 1;
+        uint32_t NaturalDmg = 1, RadioDmg = 0;
         // Iterate slow emanators
         for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
             CC.SetChannel(CHANNEL_ZERO + i);
             uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
             if(RxRslt == OK) {
 //                Uart.Printf("%d\r", PktRx.ConstDmg);
+                NewDamageReady = true;  // Set to true if any pkt received
                 // "Clean zone" emanator
                 if((PktRx.ConstDmg == 0) and (PktRx.VarDmgMax == 0) and (PktRx.VarDmgMin == 0)) {
-                    if(Damage > 0) Damage--;
+                    NaturalDmg = 0;
                 }
+                // Ordinal emanator
                 else {
-                    Damage += PktRx.ConstDmg;
+                    RadioDmg += PktRx.ConstDmg;
                 }
-
-                if(Damage < PktRx.ConstDmg) Damage = PktRx.ConstDmg;
-                NewDamageReady = true;  // Set to true if any pkt is received
             } // if ok
         } // for
         // Sleep until asked
         CC.Sleep();
-        if(NewDamageReady) {    // Wait until read
+        if(NewDamageReady) {    // Wait reading
+            // Calculate sum
+            Damage = NaturalDmg + RadioDmg;
             chSysLock();
             chSchGoSleepS(THD_STATE_SUSPENDED);
             chSysUnlock();

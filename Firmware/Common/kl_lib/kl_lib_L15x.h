@@ -27,6 +27,11 @@
 #define FALSE 0
 #endif
 
+// Infinity values
+#define INFINITY8           (uint8_t)0xFF
+#define INFINITY16          (uint16_t)0xFFFF
+#define INFINITY32          (uint32_t)0xFFFFFFFF
+
 // Return values
 #define OK              0
 #define FAILURE         1
