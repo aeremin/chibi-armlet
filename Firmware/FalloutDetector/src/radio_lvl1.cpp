@@ -48,14 +48,21 @@ void rLevel1_t::ITask() {
             CC.SetChannel(CHANNEL_ZERO + i);
             uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
             if(RxRslt == OK) {
-//                Uart.Printf("%d\r", PktRx.ConstDmg);
+                Uart.Printf("%u\r", PktRx.ID);
                 // "Clean zone" emanator
-                if((PktRx.ConstDmg == 0) and (PktRx.VarDmgMax == 0) and (PktRx.VarDmgMin == 0)) {
-                    NaturalDmg = 0;
-                }
+                if((PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0;
                 // Ordinal emanator
                 else {
-                    RadioDmg += PktRx.ConstDmg;
+                    int32_t prc = RSSI_DB2PERCENT(PktRx.RSSI);
+//                    Uart.Printf("%d; %d\r", PktRx.RSSI, prc);
+                    if(prc >= PktRx.MaxLvl) RadioDmg += PktRx.DmgMax;
+                    else if(prc >= PktRx.MinLvl) {
+                        int32_t DifDmg = PktRx.DmgMax - PktRx.DmgMin;
+                        int32_t DifLvl = PktRx.MaxLvl - PktRx.MinLvl;
+                        int32_t EmDmg = (prc * DifDmg + PktRx.DmgMax * DifLvl - PktRx.MaxLvl * DifDmg) / DifLvl;
+                        Uart.Printf("%d; %d; %d\r", PktRx.RSSI, prc, EmDmg);
+                        if(EmDmg > 0) RadioDmg += EmDmg;
+                    }
                 }
             } // if ok
         } // for

@@ -35,7 +35,7 @@ static void AppThread(void *arg) {
     chRegSetThreadName("App");
     while(true) {
         chThdSleepMilliseconds(18);
-        uint32_t Dmg = Radio.Damage;
+        uint32_t Dmg = 1;//Radio.Damage;
         // Decide if click
         int32_t r = rand() % (DMG_SND_MAX - 1);
         int32_t DmgSnd = DMG_SND_A * Dmg + DMG_SND_B;
