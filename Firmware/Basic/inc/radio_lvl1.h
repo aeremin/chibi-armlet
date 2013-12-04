@@ -17,7 +17,7 @@ private:
     rPkt_t PktTx;       // FIXME: remove if not needed
     Thread *PThread;
     uint32_t Damage;
-    bool NewDamageReady;
+    bool Rcvd, NewDamageReady;
 public:
     void Init();
     uint32_t GetDamage();

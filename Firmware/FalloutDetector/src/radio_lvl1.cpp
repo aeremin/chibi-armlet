@@ -7,17 +7,21 @@
 
 #include "radio_lvl1.h"
 #include "evt_mask.h"
+#include "application.h"
 #include "cc1101.h"
 #include "cmd_uart.h"
+
+#include "peripheral.h"
 
 #define DBG_PINS
 
 #ifdef DBG_PINS
-#define DBG_GPIO1   GPIOA
-#define DBG_PIN1    15
+#define DBG_GPIO1   GPIOB
+#define DBG_PIN1    14
 #define DBG1_SET()  PinSet(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinClear(DBG_GPIO1, DBG_PIN1)
 #endif
+
 
 rLevel1_t Radio;
 
@@ -29,34 +33,53 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
+//#define TX
+//#define LED_RX
+
 void rLevel1_t::ITask() {
-//    chThdSleepMilliseconds(99);
-    CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-    // Transmit
-    DBG1_SET();
-    CC.TransmitSync(&PktTx);
-    DBG1_CLR();
+    while(true) {
+//        Uart.Printf("c");
+        // New cycle begins
+        CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
+
+        uint32_t NaturalDmg = 1, RadioDmg = 0;
+        // Iterate slow emanators
+        for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
+            CC.SetChannel(CHANNEL_ZERO + i);
+            uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
+            if(RxRslt == OK) {
+//                Uart.Printf("%d\r", PktRx.ConstDmg);
+                // "Clean zone" emanator
+                if((PktRx.ConstDmg == 0) and (PktRx.VarDmgMax == 0) and (PktRx.VarDmgMin == 0)) {
+                    NaturalDmg = 0;
+                }
+                // Ordinal emanator
+                else {
+                    RadioDmg += PktRx.ConstDmg;
+                }
+            } // if ok
+        } // for
+        // Sleep until asked
+        CC.Sleep();
+        Damage = NaturalDmg + RadioDmg;
+//        Uart.Printf("%d\r", Damage);
+        chThdSleepMilliseconds(45);
+    } // while true
 }
 #endif
 
 #if 1 // ============================
-void rLevel1_t::Init(uint16_t ASelfID) {
+void rLevel1_t::Init() {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
-    // Init RadioPkt
-    PktTx.MinLvlDb = -127;
-    PktTx.MaxLvlDb = 0;
-    PktTx.ConstDmg = 4;
-    PktTx.VarDmgMin = 0;
-    PktTx.VarDmgMax = 0;
-
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
+    Damage = 1;
     // Thread
-    chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+    PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

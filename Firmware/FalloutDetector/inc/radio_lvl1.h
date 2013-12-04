@@ -13,9 +13,11 @@
 
 class rLevel1_t {
 private:
-    rPkt_t PktTx;
+    rPkt_t PktRx;
+    Thread *PThread;
 public:
-    void Init(uint16_t ASelfID);
+    uint32_t Damage;
+    void Init();
     // Inner use
     void ITask();
 };

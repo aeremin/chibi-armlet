@@ -8,6 +8,7 @@
 #include "application.h"
 #include "cmd_uart.h"
 #include <stdlib.h>
+#include "radio_lvl1.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -32,9 +33,9 @@ static WORKING_AREA(waAppThread, 256);
 __attribute__((noreturn))
 static void AppThread(void *arg) {
     chRegSetThreadName("App");
-    uint32_t Dmg = 1;
     while(true) {
         chThdSleepMilliseconds(18);
+        uint32_t Dmg = Radio.Damage;
         // Decide if click
         int32_t r = rand() % (DMG_SND_MAX - 1);
         int32_t DmgSnd = DMG_SND_A * Dmg + DMG_SND_B;
@@ -58,7 +59,7 @@ void App_t::Init() {
     TIM2->PSC = (uint16_t)FPrescaler;
     TIM2->CCR2 = 20;
 
-    PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), HIGHPRIO, (tfunc_t)AppThread, NULL);
+    PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
 }
 #endif
 
