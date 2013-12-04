@@ -45,15 +45,15 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
     // Init RadioPkt
-    PktTx.MinLvlDb = -127;
-    PktTx.MaxLvlDb = 0;
-    PktTx.ConstDmg = 4;
-    PktTx.VarDmgMin = 0;
-    PktTx.VarDmgMax = 0;
+    PktTx.ID = ASelfID;
+    PktTx.MinLvl = 0;
+    PktTx.MaxLvl = 90;
+    PktTx.DmgMin = 0;
+    PktTx.DmgMax = 10;
 
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(CC_Pwr0dBm);
+    CC.SetTxPower(CC_PwrMinus30dBm);
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
     // Thread

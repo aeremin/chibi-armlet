@@ -22,9 +22,8 @@ App_t App;
 // Snd coeffs
 #define DMG_SND_MAX     1000
 #define DMG_SND_BCKGND  40
-#define DMG_MAX         20      // Maximum radiation value
-#define DMG_SND_A       (960/(DMG_MAX - 1))
-#define DMG_SND_B       (DMG_SND_BCKGND - DMG_SND_A)
+#define DMG_MAX         10      // Maximum radiation value
+#define DMG2SNDDMG(dmg) ((((DMG_SND_MAX - DMG_SND_BCKGND) * ((dmg) - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND)
 // Just for example
 #define DMG_SND_MID     220
 #define DMG_SND_HEAVY   700
@@ -35,11 +34,11 @@ static void AppThread(void *arg) {
     chRegSetThreadName("App");
     while(true) {
         chThdSleepMilliseconds(18);
-        uint32_t Dmg = 1;//Radio.Damage;
+        uint32_t Dmg = Radio.Damage;
         // Decide if click
         int32_t r = rand() % (DMG_SND_MAX - 1);
-        int32_t DmgSnd = DMG_SND_A * Dmg + DMG_SND_B;
-//        Uart.Printf("%d\r", DmgSnd);
+        int32_t DmgSnd = DMG2SNDDMG(Dmg);
+//        Uart.Printf("%d; %d\r", Dmg, DmgSnd);
         if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
     } // while 1
 }
