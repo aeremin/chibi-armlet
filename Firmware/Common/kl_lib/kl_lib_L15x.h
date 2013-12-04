@@ -267,8 +267,6 @@ public:
     void DisableIrq() { nvicDisableVector(IIrqChnl); }
     void CleanIrqFlag() { EXTI->PR = (1 << IPinNumber); }
 };
-
-
 #endif // EXTI
 #endif
 

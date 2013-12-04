@@ -29,6 +29,7 @@
 #endif
 
 class App_t {
+private:
 public:
     Thread *PThd;
     void Init();

@@ -1,9 +1,9 @@
 /*
  * File:   main.cpp
  * Author: Kreyl
- * Project: Armlet2South
+ * Project: Fallout Detector
  *
- * Created on Feb 05, 2013, 20:27
+ * Created on Dec 04, 2013, 20:27
  */
 
 #include "kl_lib_L15x.h"
@@ -15,9 +15,6 @@
 #include "application.h"
 
 static inline void Init();
-
-#define LED_ON()    PinSet(GPIOB, 0)
-#define LED_OFF()   PinClear(GPIOB, 0)
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -43,9 +40,7 @@ int main(void) {
 
 void Init() {
     Uart.Init(115200);
-    Uart.Printf("FalloutTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-    PinSetupOut(GPIOB, 0, omPushPull);
-    LED_ON();
-
-    Radio.Init(0);  // FIXME: read ID somehow
+    Uart.Printf("Detector AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    App.Init();
+//    Radio.Init(0);  // FIXME: read ID somehow
 }
