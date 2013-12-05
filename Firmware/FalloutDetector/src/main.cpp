@@ -42,5 +42,5 @@ void Init() {
     Uart.Init(115200);
     Uart.Printf("Detector AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     App.Init();
-    Radio.Init();
+    Radio.Init(0);
 }

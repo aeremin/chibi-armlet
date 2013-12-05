@@ -46,7 +46,7 @@ void rLevel1_t::Init(uint16_t ASelfID) {
 #endif
     // Init RadioPkt
     PktTx.ID = ASelfID;
-    PktTx.MinLvl = 0;
+    PktTx.MinLvl = 10;
     PktTx.MaxLvl = 90;
     PktTx.DmgMin = 0;
     PktTx.DmgMax = 10;

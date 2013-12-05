@@ -8,10 +8,7 @@
 #include "radio_lvl1.h"
 #include "evt_mask.h"
 #include "application.h"
-#include "cc1101.h"
 #include "cmd_uart.h"
-
-#include "peripheral.h"
 
 #define DBG_PINS
 
@@ -33,44 +30,21 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-//#define TX
-//#define LED_RX
 
 void rLevel1_t::ITask() {
     while(true) {
 //        Uart.Printf("c");
         // New cycle begins
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-
-        uint32_t NaturalDmg = 1, RadioDmg = 0;
-        // Iterate slow emanators
-        for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
-            CC.SetChannel(CHANNEL_ZERO + i);
-            uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
-            if(RxRslt == OK) {
-                int32_t prc = RSSI_DB2PERCENT(PktRx.RSSI);
-//                Uart.Printf("%u\r", PktRx.ID);
-                if(prc >= PktRx.MinLvl) {   // Only if signal level is enough
-                    // "Clean zone" emanator
-                    if((PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0;
-                    // Ordinal emanator
-                    else RadioDmg += GetRadioDmg(&PktRx);
-                }
-//                if(RadioDmg != 0) Uart.Printf("%d; %d\r", prc, RadioDmg);
-            } // if ok
-        } // for
-        // Sleep until asked
-        CC.Sleep();
-        Damage = NaturalDmg + RadioDmg;
-//        if(RadioDmg != 0) Uart.Printf("%d\r", RadioDmg);
-//        Uart.Printf("%d\r", Damage);
+        IterateEmanators();
+        Uart.Printf("%d\r", Damage);
         chThdSleepMilliseconds(45);
     } // while true
 }
 #endif
 
 #if 1 // ============================
-void rLevel1_t::Init() {
+void rLevel1_t::Init(uint16_t ASelfID) {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif

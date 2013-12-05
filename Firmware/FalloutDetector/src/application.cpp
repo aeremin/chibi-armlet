@@ -38,7 +38,7 @@ static void AppThread(void *arg) {
         // Decide if click
         int32_t r = rand() % (DMG_SND_MAX - 1);
         int32_t DmgSnd = DMG2SNDDMG(Dmg);
-//        Uart.Printf("%d; %d\r", Dmg, DmgSnd);
+        //Uart.Printf("%d; %d\r", Dmg, DmgSnd);
         if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
     } // while 1
 }
