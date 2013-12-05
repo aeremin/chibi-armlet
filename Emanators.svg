@@ -1,0 +1,1136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="Emanators.svg">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path3853"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-8"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-6"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-9"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-0"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-4"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-4"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-6"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-5"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-6-5"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-5-4"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-1"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3853-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5122"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path5124"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5126"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path5128"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="298.75485"
+     inkscape:cy="517.71597"
+     inkscape:document-units="px"
+     inkscape:current-layer="g3829-7"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1680"
+     inkscape:window-height="988"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:3, 3;stroke-dashoffset:0"
+       id="path2985"
+       sodipodi:cx="419.21332"
+       sodipodi:cy="360.40768"
+       sodipodi:rx="71.720833"
+       sodipodi:ry="71.720833"
+       d="m 490.93415,360.40768 a 71.720833,71.720833 0 1 1 -143.44166,0 71.720833,71.720833 0 1 1 143.44166,0 z"
+       transform="matrix(1.3164896,0,0,1.3164896,-294.83659,-336.43222)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff0000;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+       id="path3761"
+       sodipodi:cx="317.1879"
+       sodipodi:cy="429.60315"
+       sodipodi:rx="32.829956"
+       sodipodi:ry="32.829956"
+       d="m 350.01785,429.60315 a 32.829956,32.829956 0 1 1 -65.65991,0 32.829956,32.829956 0 1 1 65.65991,0 z"
+       transform="matrix(1.7653612,0,0,1.7653612,-302.89783,-620.36398)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#000000;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+       id="path3771"
+       sodipodi:cx="237.63838"
+       sodipodi:cy="389.44958"
+       sodipodi:rx="4.2931485"
+       sodipodi:ry="4.2931485"
+       d="m 241.93153,389.44958 a 4.2931485,4.2931485 0 1 1 -8.5863,0 4.2931485,4.2931485 0 1 1 8.5863,0 z"
+       transform="matrix(1.3164896,0,0,1.3164896,-55.795079,-374.66558)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3822"
+       transform="matrix(1.3164896,0,0,1.3164896,-395.17048,-269.3724)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1"
+         y="254.19647"
+         x="368.54785"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"><tspan
+           style="font-size:11px"
+           y="254.19647"
+           x="368.54785"
+           id="tspan3783-7"
+           sodipodi:role="line">Зона</tspan><tspan
+           id="tspan3806"
+           style="font-size:11px"
+           y="267.94647"
+           x="368.54785"
+           sodipodi:role="line">приема </tspan><tspan
+           id="tspan3808"
+           style="font-size:11px"
+           y="281.69647"
+           x="368.54785"
+           sodipodi:role="line">сигнала</tspan></text>
+      <rect
+         y="244.86218"
+         x="364.28574"
+         height="39.999996"
+         width="43.214222"
+         id="rect3816"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <g
+       id="g3829"
+       transform="matrix(1.3164896,0,0,1.3164896,-310.10458,-46.341088)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781"
+         y="249.50505"
+         x="469.28574"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"><tspan
+           style="font-size:11px"
+           y="249.50505"
+           x="469.28574"
+           id="tspan3783"
+           sodipodi:role="line">Зона </tspan><tspan
+           id="tspan3810"
+           style="font-size:11px"
+           y="263.25507"
+           x="469.28574"
+           sodipodi:role="line">действия </tspan><tspan
+           id="tspan3812"
+           style="font-size:11px"
+           y="277.00507"
+           x="469.28574"
+           sodipodi:role="line">радиации</tspan></text>
+      <rect
+         y="240.57646"
+         x="466.07144"
+         height="41.07143"
+         width="49.285713"
+         id="rect3818"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.31648958px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 141.7692,80.256256 32.91224,8.463146"
+       id="path3836"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.63536298px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 369.10037,307.95973 43.10332,32.6694"
+       id="path3838"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 496.07143,271.64789 0,106.42857"
+       id="path4501"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.7229979px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 261.07418,378.07646 235.13575,0"
+       id="path4503"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:2, 2;stroke-dashoffset:0"
+       d="m 282.14286,333.07646 0,44.28572"
+       id="path4507"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:#ff0000;stroke:none"
+       id="rect4509"
+       width="142.85715"
+       height="35"
+       x="352.5"
+       y="342.71933"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3822-0"
+       transform="matrix(1.3164896,0,0,1.3164896,-290.18809,-0.61184241)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2"
+         y="215.74268"
+         x="366.16138"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6"
+           style="font-size:11px"
+           y="215.74268"
+           x="366.16138"
+           sodipodi:role="line">Зона приема </tspan><tspan
+           style="font-size:11px"
+           y="229.49268"
+           x="366.16138"
+           sodipodi:role="line"
+           id="tspan4849">сигнала</tspan><tspan
+           style="font-size:11px"
+           y="243.24266"
+           x="366.16138"
+           sodipodi:role="line"
+           id="tspan4681" /></text>
+      <rect
+         y="206.47806"
+         x="362.28677"
+         height="26.319016"
+         width="66.693932"
+         id="rect3816-5"
+         style="fill:none;stroke:#000000;stroke-width:1.00770783;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9"
+         y="297.79459"
+         x="427.5658"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6"
+           style="font-size:11px"
+           y="297.79459"
+           x="427.5658"
+           sodipodi:role="line">0%</tspan><tspan
+           style="font-size:11px"
+           y="311.54459"
+           x="427.5658"
+           sodipodi:role="line"
+           id="tspan4681-3" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-7"
+         y="298.82047"
+         x="482.74258"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-8"
+           style="font-size:11px"
+           y="298.82047"
+           x="482.74258"
+           sodipodi:role="line">40%</tspan><tspan
+           style="font-size:11px"
+           y="312.57047"
+           x="482.74258"
+           sodipodi:role="line"
+           id="tspan4681-3-8" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-2"
+         y="297.73532"
+         x="586.91571"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-9"
+           style="font-size:11px"
+           y="297.73532"
+           x="586.91571"
+           sodipodi:role="line">100%</tspan><tspan
+           style="font-size:11px"
+           y="311.48532"
+           x="586.91571"
+           sodipodi:role="line"
+           id="tspan4681-3-1" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-7-3"
+         y="296.65021"
+         x="697.13275"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-8-5"
+           style="font-size:11px"
+           y="296.65021"
+           x="697.13275"
+           sodipodi:role="line">40%</tspan><tspan
+           style="font-size:11px"
+           y="310.40021"
+           x="697.13275"
+           sodipodi:role="line"
+           id="tspan4681-3-8-9" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-8"
+         y="297.73532"
+         x="752.94165"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-4"
+           style="font-size:11px"
+           y="297.73532"
+           x="752.94165"
+           sodipodi:role="line">0%</tspan><tspan
+           style="font-size:11px"
+           y="311.48532"
+           x="752.94165"
+           sodipodi:role="line"
+           id="tspan4681-3-0" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-76"
+         y="262.01892"
+         x="476.58817"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-3"
+           style="font-size:11px"
+           y="262.01892"
+           x="476.58817"
+           sodipodi:role="line">+5</tspan><tspan
+           style="font-size:11px"
+           y="275.76892"
+           x="476.58817"
+           sodipodi:role="line"
+           id="tspan4681-3-6" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-76-1"
+         y="263.22723"
+         x="705.14392"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-3-5"
+           style="font-size:11px"
+           y="263.22723"
+           x="705.14392"
+           sodipodi:role="line">+5</tspan><tspan
+           style="font-size:11px"
+           y="276.97723"
+           x="705.14392"
+           sodipodi:role="line"
+           id="tspan4681-3-6-4" /></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-1-2-9-76-2"
+         y="259.77435"
+         x="584.29297"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3808-6-6-3-0"
+           style="font-size:11px"
+           y="259.77435"
+           x="584.29297"
+           sodipodi:role="line">+5</tspan><tspan
+           style="font-size:11px"
+           y="273.52435"
+           x="584.29297"
+           sodipodi:role="line"
+           id="tspan4681-3-6-9" /></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.80735958px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 261.13916,304.81554 18.65113,28.14743"
+       id="path3836-0"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4585"
+       d="m 730.95739,378.03313 -235.13575,0"
+       style="fill:none;stroke:#000000;stroke-width:0.7229979px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4587"
+       d="m 709.88871,333.03313 0,44.28572"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:2, 2;stroke-dashoffset:0"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       y="342.67599"
+       x="-639.53162"
+       height="35"
+       width="142.85715"
+       id="rect4589"
+       style="fill:#ff0000;stroke:none"
+       transform="scale(-1,1)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3829-0"
+       transform="matrix(1.3164896,0,0,1.3164896,-531.0894,-187.77443)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-6"
+         y="249.50505"
+         x="469.28574"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"><tspan
+           style="font-size:11px"
+           y="249.50505"
+           x="469.28574"
+           id="tspan3783-1"
+           sodipodi:role="line">Зона </tspan><tspan
+           id="tspan3810-3"
+           style="font-size:11px"
+           y="263.25507"
+           x="469.28574"
+           sodipodi:role="line">действия </tspan><tspan
+           id="tspan3812-8"
+           style="font-size:11px"
+           y="277.00507"
+           x="469.28574"
+           sodipodi:role="line">радиации</tspan></text>
+      <rect
+         y="240.57646"
+         x="466.07144"
+         height="41.07143"
+         width="49.285713"
+         id="rect3818-9"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1.04766607px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 147.82166,171.2458 54.17695,-10.66732"
+       id="path3838-3"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3829-6"
+       transform="matrix(1.3164896,0,0,1.3164896,-85.526393,-43.962746)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-0"
+         y="249.50505"
+         x="469.28574"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"><tspan
+           style="font-size:11px"
+           y="249.50505"
+           x="469.28574"
+           id="tspan3783-6"
+           sodipodi:role="line">Центр зоны </tspan><tspan
+           id="tspan3812-1"
+           style="font-size:11px"
+           y="263.25507"
+           x="469.28574"
+           sodipodi:role="line">(тут люстра)</tspan></text>
+      <rect
+         y="240.57355"
+         x="466.06854"
+         height="30.768448"
+         width="65.026016"
+         id="rect3818-8"
+         style="fill:none;stroke:#000000;stroke-width:0.99418211;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.99537003px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 527.71448,287.44938 -30.61626,17.03887"
+       id="path3838-4"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png" />
+    <g
+       id="g3829-7"
+       transform="matrix(1.3164896,0,0,1.3164896,-541.46948,-1.0214462)"
+       inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-3"
+         y="284.60141"
+         x="555.4743"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3812-0"
+           style="font-size:11px"
+           y="284.60141"
+           x="555.4743"
+           sodipodi:role="line">Уровень </tspan><tspan
+           style="font-size:11px"
+           y="298.35141"
+           x="555.4743"
+           sodipodi:role="line"
+           id="tspan5104">сигнала</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.75959581"
+         id="rect5106"
+         width="44.887497"
+         height="24.745703"
+         x="551.9071"
+         y="276.07471"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path4912.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <g
+         id="g3829-00"
+         transform="translate(175.46611,134.7798)"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90">
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-14"
+           y="249.50505"
+           x="469.28574"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"><tspan
+             style="font-size:11px"
+             y="249.50505"
+             x="469.28574"
+             id="tspan3783-60"
+             sodipodi:role="line">Зона </tspan><tspan
+             id="tspan3810-7"
+             style="font-size:11px"
+             y="263.25507"
+             x="469.28574"
+             sodipodi:role="line">действия </tspan><tspan
+             id="tspan3812-17"
+             style="font-size:11px"
+             y="277.00507"
+             x="469.28574"
+             sodipodi:role="line">радиации</tspan></text>
+        <rect
+           y="240.57646"
+           x="466.07144"
+           height="41.07143"
+           width="49.285713"
+           id="rect3818-7"
+           style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1.04495835px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+         d="m 691.28871,403.80659 31.33974,18.34536"
+         id="path3838-7"
+         inkscape:connector-curvature="0"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.75959581px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 787.83403,376.3229 0,80.84269"
+         id="path4501-7"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.54918617px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 609.3311,457.16559 178.60814,0"
+         id="path4503-3"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.75959581;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1.51919164, 1.51919164;stroke-dashoffset:0"
+         d="m 625.33478,422.98378 0,33.63925"
+         id="path4507-3"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <g
+         id="g3822-0-9"
+         transform="translate(190.59459,169.51555)"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90">
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-98"
+           y="215.74268"
+           x="366.16138"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-1"
+             style="font-size:11px"
+             y="215.74268"
+             x="366.16138"
+             sodipodi:role="line">Зона приема </tspan><tspan
+             style="font-size:11px"
+             y="229.49268"
+             x="366.16138"
+             sodipodi:role="line"
+             id="tspan4849-8">сигнала</tspan><tspan
+             style="font-size:11px"
+             y="243.24268"
+             x="366.16138"
+             sodipodi:role="line"
+             id="tspan4681-2" /></text>
+        <rect
+           y="206.47806"
+           x="362.28677"
+           height="26.319016"
+           width="66.693932"
+           id="rect3816-5-6"
+           style="fill:none;stroke:#000000;stroke-width:1.00770783;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90" />
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-6"
+           y="297.79459"
+           x="427.5658"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-0"
+             style="font-size:11px"
+             y="297.79459"
+             x="427.5658"
+             sodipodi:role="line">0%</tspan><tspan
+             style="font-size:11px"
+             y="311.54459"
+             x="427.5658"
+             sodipodi:role="line"
+             id="tspan4681-3-3" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-7-8"
+           y="298.82047"
+           x="482.74258"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-8-0"
+             style="font-size:11px"
+             y="298.82047"
+             x="482.74258"
+             sodipodi:role="line">40%</tspan><tspan
+             style="font-size:11px"
+             y="312.57047"
+             x="482.74258"
+             sodipodi:role="line"
+             id="tspan4681-3-8-1" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-2-2"
+           y="297.73532"
+           x="586.91571"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-9-5"
+             style="font-size:11px"
+             y="297.73532"
+             x="586.91571"
+             sodipodi:role="line">100%</tspan><tspan
+             style="font-size:11px"
+             y="311.48532"
+             x="586.91571"
+             sodipodi:role="line"
+             id="tspan4681-3-1-0" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-7-3-9"
+           y="296.65021"
+           x="697.13275"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-8-5-4"
+             style="font-size:11px"
+             y="296.65021"
+             x="697.13275"
+             sodipodi:role="line">40%</tspan><tspan
+             style="font-size:11px"
+             y="310.40021"
+             x="697.13275"
+             sodipodi:role="line"
+             id="tspan4681-3-8-9-7" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-8-8"
+           y="297.73532"
+           x="752.94165"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-4-3"
+             style="font-size:11px"
+             y="297.73532"
+             x="752.94165"
+             sodipodi:role="line">0%</tspan><tspan
+             style="font-size:11px"
+             y="311.48532"
+             x="752.94165"
+             sodipodi:role="line"
+             id="tspan4681-3-0-5" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-76-12"
+           y="262.01892"
+           x="476.58817"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-3-01"
+             style="font-size:11px"
+             y="262.01892"
+             x="476.58817"
+             sodipodi:role="line">+5</tspan><tspan
+             style="font-size:11px"
+             y="275.76892"
+             x="476.58817"
+             sodipodi:role="line"
+             id="tspan4681-3-6-6" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-76-1-4"
+           y="263.22723"
+           x="705.14392"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-3-5-0"
+             style="font-size:11px"
+             y="263.22723"
+             x="705.14392"
+             sodipodi:role="line">+5</tspan><tspan
+             style="font-size:11px"
+             y="276.97723"
+             x="705.14392"
+             sodipodi:role="line"
+             id="tspan4681-3-6-4-6" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-76-2-1"
+           y="239.69933"
+           x="579.40979"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-3-0-8"
+             style="font-size:11px"
+             y="239.69933"
+             x="579.40979"
+             sodipodi:role="line">+10</tspan><tspan
+             style="font-size:11px"
+             y="253.44933"
+             x="579.40979"
+             sodipodi:role="line"
+             id="tspan4681-3-6-9-9" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-7-8-7"
+           y="296.97299"
+           x="558.31696"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-8-0-1"
+             style="font-size:11px"
+             y="296.97299"
+             x="558.31696"
+             sodipodi:role="line">90%</tspan><tspan
+             style="font-size:11px"
+             y="310.72299"
+             x="558.31696"
+             sodipodi:role="line"
+             id="tspan4681-3-8-1-0" /></text>
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-1-2-9-7-8-7-7"
+           y="296.97299"
+           x="619.95361"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"
+           inkscape:export-filename="D:\Nute\ChibiArmlet\path3838-4.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><tspan
+             id="tspan3808-6-6-8-0-1-3"
+             style="font-size:11px"
+             y="296.97299"
+             x="619.95361"
+             sodipodi:role="line">90%</tspan><tspan
+             style="font-size:11px"
+             y="310.72299"
+             x="619.95361"
+             sodipodi:role="line"
+             id="tspan4681-3-8-1-0-4" /></text>
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:1.37286282px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+         d="m 609.38046,401.51691 14.16732,21.38067"
+         id="path3836-0-8"
+         inkscape:connector-curvature="0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4585-4"
+         d="m 966.25243,457.13268 -178.60814,0"
+         style="fill:none;stroke:#000000;stroke-width:0.54918617px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4587-1"
+         d="m 950.24874,422.95087 0,33.63925"
+         style="fill:none;stroke:#000000;stroke-width:0.75959581;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1.51919164, 1.51919164;stroke-dashoffset:0"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <g
+         id="g3829-6-3"
+         transform="translate(346.05475,136.58639)"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90">
+        <text
+           sodipodi:linespacing="125%"
+           id="text3781-0-9"
+           y="249.50505"
+           x="469.28574"
+           style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+           xml:space="preserve"><tspan
+             style="font-size:11px"
+             y="249.50505"
+             x="469.28574"
+             id="tspan3783-6-8"
+             sodipodi:role="line">Центр зоны </tspan><tspan
+             id="tspan3812-1-8"
+             style="font-size:11px"
+             y="263.25507"
+             x="469.28574"
+             sodipodi:role="line">(тут люстра)</tspan></text>
+        <rect
+           y="240.57355"
+           x="466.06854"
+           height="30.768448"
+           width="65.026016"
+           id="rect3818-8-0"
+           style="fill:none;stroke:#000000;stroke-width:0.99418211;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+      </g>
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.7560789px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+         d="M 811.86996,388.32565 788.61398,401.2683"
+         id="path3838-4-8"
+         inkscape:connector-curvature="0"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3781-3-7"
+         y="453.80582"
+         x="555.19659"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:Times New Roman"
+         xml:space="preserve"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"><tspan
+           id="tspan3812-0-7"
+           style="font-size:11px"
+           y="453.80582"
+           x="555.19659"
+           sodipodi:role="line">Уровень </tspan><tspan
+           style="font-size:11px"
+           y="467.55585"
+           x="555.19659"
+           sodipodi:role="line"
+           id="tspan5104-8">сигнала</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.75959581"
+         id="rect5106-3"
+         width="44.887497"
+         height="24.745703"
+         x="551.62939"
+         y="445.27911"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.75959581px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend-6)"
+         d="m 596.32504,463.88629 19.95,0"
+         id="path4912-8"
+         inkscape:connector-curvature="0"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png" />
+      <path
+         style="fill:#ff0000;stroke:none"
+         d="m 677.69906,456.69998 0,-23.87301 80.03263,-20.61761 29.5662,0 0,44.49062 z"
+         id="path5339"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccccc"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+      <path
+         style="fill:#ff0000;stroke:none"
+         d="m 897.70792,456.76901 0,-23.87301 -80.03264,-20.61761 -29.56619,0 0,44.49062 z"
+         id="path5339-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccccc"
+         inkscape:export-filename="D:\Nute\ChibiArmlet\path5319-3.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend-6)"
+       d="m 243.95184,386.92419 26.26397,0"
+       id="path4912"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+  </g>
+</svg>
