@@ -13,17 +13,13 @@
 
 class rLevel1_t {
 private:
-    rPkt_t PktRx;       // Local rPkt to receive
-    rPkt_t PktTx;       // FIXME: remove if not needed
+    rPkt_t PktRx;
     Thread *PThread;
-    uint32_t Damage;
-    bool Rcvd, NewDamageReady;
 public:
+    uint32_t Damage;
     void Init();
-    uint32_t GetDamage();
     // Inner use
     void ITask();
-    void IDamageTmrCallback();
 };
 
 extern rLevel1_t Radio;

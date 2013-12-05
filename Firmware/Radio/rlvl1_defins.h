@@ -10,15 +10,21 @@
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    int8_t MinLvlDb;
-    int8_t MaxLvlDb;
-    uint8_t ConstDmg;
-    uint8_t VarDmgMin;
-    uint8_t VarDmgMax;
+    uint8_t ID;
+    uint8_t MinLvl;
+    uint8_t MaxLvl;
+    uint8_t DmgMin;
+    uint8_t DmgMax;
     int8_t RSSI;        // Received signal level, RX use only
 } __attribute__ ((__packed__));
 #define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
 #endif
+
+// Signal levels
+#define RSSI_MIN_DB     (-110)
+#define RSSI_MAX_DB     (-35)
+
+#define RSSI_DB2PERCENT(db) ((((db) - RSSI_MIN_DB) * 100) / (RSSI_MAX_DB - RSSI_MIN_DB))
 
 // Emanators
 #define CHANNEL_ZERO        0
