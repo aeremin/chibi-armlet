@@ -26,6 +26,21 @@ struct rPkt_t {
 
 #define RSSI_DB2PERCENT(db) ((((db) - RSSI_MIN_DB) * 100) / (RSSI_MAX_DB - RSSI_MIN_DB))
 
+static inline int32_t GetRadioDmg(rPkt_t *PPkt) {
+    int32_t EmDmg = 0;
+    int32_t prc = RSSI_DB2PERCENT(PPkt->RSSI);
+    if(prc >= PPkt->MaxLvl) EmDmg = PPkt->DmgMax;
+    else if(prc >= PPkt->MinLvl) {
+        int32_t DifDmg = PPkt->DmgMax - PPkt->DmgMin;
+        int32_t DifLvl = PPkt->MaxLvl - PPkt->MinLvl;
+        EmDmg = (prc * DifDmg + PPkt->DmgMax * DifLvl - PPkt->MaxLvl * DifDmg) / DifLvl;
+        if(EmDmg < 0) EmDmg = 0;
+    }
+    return EmDmg;
+}
+
+
+
 // Emanators
 #define CHANNEL_ZERO        0
 #define SLOW_EMANATOR_CNT   1

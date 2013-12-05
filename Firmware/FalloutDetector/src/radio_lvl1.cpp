@@ -50,19 +50,11 @@ void rLevel1_t::ITask() {
             if(RxRslt == OK) {
                 int32_t prc = RSSI_DB2PERCENT(PktRx.RSSI);
 //                Uart.Printf("%u\r", PktRx.ID);
-                // "Clean zone" emanator
-                if((prc >= PktRx.MaxLvl) and (PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0;
-                // Ordinal emanator
-                else {
-//                    Uart.Printf("%d; %d\r", PktRx.RSSI, prc);
-                    if(prc >= PktRx.MaxLvl) RadioDmg += PktRx.DmgMax;
-                    else if(prc >= PktRx.MinLvl) {
-                        int32_t DifDmg = PktRx.DmgMax - PktRx.DmgMin;
-                        int32_t DifLvl = PktRx.MaxLvl - PktRx.MinLvl;
-                        int32_t EmDmg = (prc * DifDmg + PktRx.DmgMax * DifLvl - PktRx.MaxLvl * DifDmg) / DifLvl;
-//                        Uart.Printf("%d; %d\r", prc, EmDmg);
-                        if(EmDmg > 0) RadioDmg += EmDmg;
-                    }
+                if(prc >= PktRx.MinLvl) {   // Only if signal level is enough
+                    // "Clean zone" emanator
+                    if((PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0;
+                    // Ordinal emanator
+                    else RadioDmg += GetRadioDmg(&PktRx);
                 }
 //                if(RadioDmg != 0) Uart.Printf("%d; %d\r", prc, RadioDmg);
             } // if ok
