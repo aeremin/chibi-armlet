@@ -63,54 +63,17 @@ void rLevel1_t::ITask() {
         else Clr = clBlack;
         Led.SetColor(Clr);
 #else
-        NewDamageReady = false;
-        uint32_t NaturalDmg = 1, RadioDmg = 0;
-        // Iterate slow emanators
-        for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
-            CC.SetChannel(CHANNEL_ZERO + i);
-            uint8_t RxRslt = CC.ReceiveSync(27, &PktRx);
-            if(RxRslt == OK) {
-//                Uart.Printf("%d\r", PktRx.ConstDmg);
-                NewDamageReady = true;  // Set to true if any pkt received
-                // "Clean zone" emanator
-                if((PktRx.ConstDmg == 0) and (PktRx.VarDmgMax == 0) and (PktRx.VarDmgMin == 0)) {
-                    NaturalDmg = 0;
-                }
-                // Ordinal emanator
-                else {
-                    RadioDmg += PktRx.ConstDmg;
-                }
-            } // if ok
-        } // for
-        // Sleep until asked
-        CC.Sleep();
-        if(NewDamageReady) {    // Wait reading
-            // Calculate sum
-            Damage = NaturalDmg + RadioDmg;
-            chSysLock();
-            chSchGoSleepS(THD_STATE_SUSPENDED);
-            chSysUnlock();
-        }
-        else chThdSleepMilliseconds(27);
+        IterateEmanators();
+//        Uart.Printf("%d\r", Damage);
+        chThdSleepMilliseconds(45);
 #endif
     } // while true
 }
 
-uint32_t rLevel1_t::GetDamage() {
-    if(!NewDamageReady) return 1;
-    uint32_t FDmg = Damage;
-    chSysLock();
-    if(PThread->p_state == THD_STATE_SUSPENDED) {
-        PThread->p_u.rdymsg = RDY_OK;    // Signal that IRQ fired
-        chSchReadyI(PThread);
-    }
-    chSysUnlock();
-    return FDmg;    // Otherwise Damage can be changed right after high-prio thread wakeup
-}
 #endif
 
 #if 1 // ============================
-void rLevel1_t::Init() {
+void rLevel1_t::Init(uint16_t ASelfID) {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
@@ -120,7 +83,6 @@ void rLevel1_t::Init() {
     CC.SetChannel(CHANNEL_ZERO);
     // Variables
     Damage = 1;
-    NewDamageReady = false;
     // Thread
     PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

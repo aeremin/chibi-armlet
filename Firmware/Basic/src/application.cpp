@@ -178,9 +178,10 @@ static void AppThread(void *arg) {
         // ==== Process dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) {
             // Check if radio damage occured. Will return 1 if no.
-            uint32_t FDamage = Radio.GetDamage();
-            if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
+            uint32_t FDamage = Radio.Damage;
+            //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
             Dose.Increase(FDamage, diUsual);
+            Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
         }
 
         // ==== Store dose ====
