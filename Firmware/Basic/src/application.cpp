@@ -181,7 +181,7 @@ static void AppThread(void *arg) {
             uint32_t FDamage = Radio.Damage;
             //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
             Dose.Increase(FDamage, diUsual);
-            Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
+            //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
         }
 
         // ==== Store dose ====

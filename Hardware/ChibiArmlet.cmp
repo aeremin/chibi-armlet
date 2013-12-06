@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 30/10/2013 22:46:06
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 06/12/2013 16:15:57
 
 BeginCmp
 TimeStamp = /527152AC;
@@ -29,10 +29,10 @@ IdModule  = BUZZER_HC0903;
 EndCmp
 
 BeginCmp
-TimeStamp = /526CD506;
+TimeStamp = /52A1C437;
 Reference = C1;
-ValeurCmp = 100pF;
-IdModule  = CAP_0402;
+ValeurCmp = 10u;
+IdModule  = CAP_0603;
 EndCmp
 
 BeginCmp
@@ -109,7 +109,7 @@ BeginCmp
 TimeStamp = /525CF18D;
 Reference = C12;
 ValeurCmp = 10u;
-IdModule  = CAP_0805;
+IdModule  = CAP_0603;
 EndCmp
 
 BeginCmp
@@ -144,7 +144,7 @@ BeginCmp
 TimeStamp = /526D45CD;
 Reference = C17;
 ValeurCmp = 10u;
-IdModule  = CAP_0805;
+IdModule  = CAP_0603;
 EndCmp
 
 BeginCmp
@@ -179,7 +179,7 @@ BeginCmp
 TimeStamp = /526647C9;
 Reference = C22;
 ValeurCmp = 10u;
-IdModule  = CAP_0805;
+IdModule  = CAP_0603;
 EndCmp
 
 BeginCmp
@@ -193,7 +193,14 @@ BeginCmp
 TimeStamp = /52664799;
 Reference = C24;
 ValeurCmp = 10u;
-IdModule  = CAP_0805;
+IdModule  = CAP_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /52A1C457;
+Reference = D1;
+ValeurCmp = BAT54WS;
+IdModule  = DIODE_SOD323;
 EndCmp
 
 BeginCmp
@@ -211,10 +218,10 @@ IdModule  = SOT23-5;
 EndCmp
 
 BeginCmp
-TimeStamp = /526E377D;
+TimeStamp = /52A19E0D;
 Reference = DD1;
-ValeurCmp = STM32L100CX;
-IdModule  = QFN48;
+ValeurCmp = STM32L151CXTX;
+IdModule  = LQFP48;
 EndCmp
 
 BeginCmp
@@ -236,6 +243,20 @@ TimeStamp = /526647B7;
 Reference = L2;
 ValeurCmp = 22uH;
 IdModule  = IND_1210;
+EndCmp
+
+BeginCmp
+TimeStamp = /52A1CB80;
+Reference = M1;
+ValeurCmp = MOTOR_PAD;
+IdModule  = MOTOR_KHN4NX;
+EndCmp
+
+BeginCmp
+TimeStamp = /52A1C443;
+Reference = Q1;
+ValeurCmp = MMBT2222;
+IdModule  = SOT23;
 EndCmp
 
 BeginCmp
@@ -298,7 +319,7 @@ BeginCmp
 TimeStamp = /5266EE19;
 Reference = R7;
 ValeurCmp = 150;
-IdModule  = RES_0603;
+IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
@@ -330,6 +351,13 @@ IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
+TimeStamp = /52A1C44F;
+Reference = R12;
+ValeurCmp = 1k;
+IdModule  = RES_0402;
+EndCmp
+
+BeginCmp
 TimeStamp = /5149B6E8;
 Reference = RP1;
 ValeurCmp = REFPOINT;
@@ -339,20 +367,6 @@ EndCmp
 BeginCmp
 TimeStamp = /5149B6EB;
 Reference = RP2;
-ValeurCmp = REFPOINT;
-IdModule  = REF_POINT_1MM;
-EndCmp
-
-BeginCmp
-TimeStamp = /5149B6ED;
-Reference = RP3;
-ValeurCmp = REFPOINT;
-IdModule  = REF_POINT_1MM;
-EndCmp
-
-BeginCmp
-TimeStamp = /5149B6EF;
-Reference = RP4;
 ValeurCmp = REFPOINT;
 IdModule  = REF_POINT_1MM;
 EndCmp
@@ -421,6 +435,13 @@ IdModule  = CONN_PBS2_04R;
 EndCmp
 
 BeginCmp
+TimeStamp = /52A1ABA5;
+Reference = XL5;
+ValeurCmp = CONN_1;
+IdModule  = SIL-1;
+EndCmp
+
+BeginCmp
 TimeStamp = /5265B349;
 Reference = XTAL1;
 ValeurCmp = 27MHz;
@@ -428,7 +449,7 @@ IdModule  = CRYSTAL_03225C4;
 EndCmp
 
 BeginCmp
-TimeStamp = /5270DB72;
+TimeStamp = /52A1D281;
 Reference = XTAL2;
 ValeurCmp = 32768;
 IdModule  = CRYSTAL_KX26_NOGND;
