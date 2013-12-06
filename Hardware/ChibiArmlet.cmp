@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 06/12/2013 16:15:57
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 06/12/2013 16:56:04
 
 BeginCmp
 TimeStamp = /527152AC;
@@ -155,20 +155,6 @@ IdModule  = CAP_0402;
 EndCmp
 
 BeginCmp
-TimeStamp = /5270DB78;
-Reference = C19;
-ValeurCmp = 6.8pF;
-IdModule  = CAP_0402;
-EndCmp
-
-BeginCmp
-TimeStamp = /5270DB7E;
-Reference = C20;
-ValeurCmp = 6.8pF;
-IdModule  = CAP_0402;
-EndCmp
-
-BeginCmp
 TimeStamp = /526647CF;
 Reference = C21;
 ValeurCmp = 0.1u;
@@ -288,13 +274,6 @@ IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
-TimeStamp = /52704260;
-Reference = R3;
-ValeurCmp = 51R;
-IdModule  = RES_0402;
-EndCmp
-
-BeginCmp
 TimeStamp = /52670A2A;
 Reference = R4;
 ValeurCmp = 1k;
@@ -344,13 +323,6 @@ IdModule  = RES_0402;
 EndCmp
 
 BeginCmp
-TimeStamp = /5270DB98;
-Reference = R11;
-ValeurCmp = 200k*;
-IdModule  = RES_0402;
-EndCmp
-
-BeginCmp
 TimeStamp = /52A1C44F;
 Reference = R12;
 ValeurCmp = 1k;
@@ -369,27 +341,6 @@ TimeStamp = /5149B6EB;
 Reference = RP2;
 ValeurCmp = REFPOINT;
 IdModule  = REF_POINT_1MM;
-EndCmp
-
-BeginCmp
-TimeStamp = /52703029;
-Reference = SW1;
-ValeurCmp = BUTTON;
-IdModule  = BUTTON_IT1181A;
-EndCmp
-
-BeginCmp
-TimeStamp = /52703038;
-Reference = SW2;
-ValeurCmp = BUTTON;
-IdModule  = BUTTON_IT1181A;
-EndCmp
-
-BeginCmp
-TimeStamp = /52703047;
-Reference = SW3;
-ValeurCmp = BUTTON;
-IdModule  = BUTTON_IT1181A;
 EndCmp
 
 BeginCmp
@@ -421,13 +372,6 @@ IdModule  = SIL-3;
 EndCmp
 
 BeginCmp
-TimeStamp = /52704267;
-Reference = XL3;
-ValeurCmp = CONN_NOKIA_LCD10;
-IdModule  = CONN_NOKIA_LCD;
-EndCmp
-
-BeginCmp
 TimeStamp = /5266EE0B;
 Reference = XL4;
 ValeurCmp = CONN_4;
@@ -446,13 +390,6 @@ TimeStamp = /5265B349;
 Reference = XTAL1;
 ValeurCmp = 27MHz;
 IdModule  = CRYSTAL_03225C4;
-EndCmp
-
-BeginCmp
-TimeStamp = /52A1D281;
-Reference = XTAL2;
-ValeurCmp = 32768;
-IdModule  = CRYSTAL_KX26_NOGND;
 EndCmp
 
 EndListe
