@@ -16,7 +16,7 @@ $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "8 dec 2013"
+Date "10 dec 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -30,12 +30,10 @@ Text Notes 1250 5400 0    60   Italic 12
 Programming
 Text Notes 5050 700  0    60   Italic 12
 CPU
-Text Notes 1800 9900 0    60   Italic 12
+Text Notes 1800 9900 0    60   ~ 12
 Indication
-Text Notes 7700 9800 0    60   Italic 12
+Text Notes 7700 9800 0    60   ~ 12
 Power
-Text Notes 12200 10950 0    60   Italic 12
-WWPASS Reader G.II
 Text Label 3650 1300 2    60   ~ 0
 BLUE_LED
 Text Label 3650 1400 2    60   ~ 0
@@ -1131,7 +1129,7 @@ F 3 "~" H 1400 7050 60  0000 C CNN
 	1    0    0    1   
 $EndComp
 Text Notes 6050 9850 0    60   ~ 0
-1xAAA
+1xAA
 $Comp
 L +3.3V #PWR046
 U 1 1 526D45BA
@@ -1684,7 +1682,7 @@ F 1 "MOTOR_PAD" H 14700 6100 60  0000 C CNN
 F 2 "~" H 14550 5850 60  0000 C CNN
 F 3 "~" H 14550 5850 60  0000 C CNN
 	1    14550 5850
-	-1   0    0    -1  
+	1    0    0    -1  
 $EndComp
 $Comp
 L GND #PWR052
