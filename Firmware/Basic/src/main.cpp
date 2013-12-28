@@ -34,7 +34,9 @@ int main(void) {
 //    if(ClkResult) Uart.Printf("Clock failure\r");
 
     while(1) {
-        chThdSleep(TIME_INFINITE);
+        //chThdSleep(TIME_INFINITE);
+        chThdSleepMilliseconds(999);
+        Vibro.Flinch(Brr);
     } // while
 }
 
@@ -44,7 +46,10 @@ void Init() {
     Led.Init();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
+    Vibro.Init();
+    Vibro.Flinch(BrrBrr);
     PillMgr.Init();
     Radio.Init(0);
+
     App.Init();
 }

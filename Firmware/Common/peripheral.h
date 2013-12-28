@@ -19,7 +19,7 @@ struct BeepChunk_t {
     uint16_t Freq_Hz;
     uint16_t Time_ms;
     ChunkKind_t ChunkKind;
-} PACKED;
+};
 #define BEEP_CHUNK_SZ   sizeof(BeepChunk_t)
 class Beeper_t {
 private:
@@ -80,7 +80,7 @@ struct LedChunk_t {
     Color_t Color;
     uint16_t Time_ms;
     ChunkKind_t ChunkKind;
-} PACKED;
+};
 #define LED_CHUNK_SZ   sizeof(LedChunk_t)
 
 class LedRGB_t {
@@ -114,6 +114,43 @@ public:
 };
 
 extern LedRGB_t Led;
+#endif
+
+#if 1 // ================================ Vibro ================================
+#define VIBRO_ENABLED   TRUE
+#define VIBRO_GPIO      GPIOB
+#define VIBRO_PIN       6
+
+enum StateOnOff_t {stOn, stOff};
+struct VibroChunk_t {
+    StateOnOff_t OnOff;
+    uint16_t Time_ms;
+    ChunkKind_t ChunkKind;
+} PACKED;
+#define VIBRO_CHUNK_SZ   sizeof(VibroChunk_t)
+
+class Vibro_t {
+private:
+    VirtualTimer ITmr;
+    const VibroChunk_t *IPFirstChunk;
+public:
+    void Flinch(const VibroChunk_t *PSequence) {   // Beep with this function
+        IPFirstChunk = PSequence;
+        chSysLock();
+        IFlinchI(PSequence);
+        chSysUnlock();
+    }
+    void Stop() {
+        chSysLock();
+        if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+        chSysUnlock();
+        PinClear(VIBRO_GPIO, VIBRO_PIN);
+    }
+    void Init();
+    // Inner use
+    void IFlinchI(const VibroChunk_t *PSequence);
+};
+extern Vibro_t Vibro;
 #endif
 
 #endif /* PERIPHERAL_H_ */

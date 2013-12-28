@@ -186,7 +186,7 @@ static void AppThread(void *arg) {
 
         // ==== Store dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) {
-            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");
+            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // DEBUG
         }
 
         // ==== Check pill ====

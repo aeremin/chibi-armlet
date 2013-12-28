@@ -34,7 +34,7 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TX
-//#define LED_RX
+#define LED_RX
 
 void rLevel1_t::ITask() {
     while(true) {

@@ -87,4 +87,24 @@ const BeepChunk_t BeepRedFast[] = {
 };
 #endif
 
+#if VIBRO_ENABLED // =================== Vibro =================================
+/* Every sequence is an array of VibroChunk_t:
+struct VibroChunk_t {
+    StateOnOff_t OnOff;
+    uint16_t Time_ms;
+    ChunkKind_t ChunkKind;
+};
+*/
+const VibroChunk_t Brr[] = {
+        {stOn,  180, ckStop},
+};
+
+const VibroChunk_t BrrBrr[] = {
+        {stOn,  99, ckNormal},
+        {stOff, 180, ckNormal},
+        {stOn,  99, ckStop},
+};
+
+#endif
+
 #endif /* SEQUENCES_H_ */

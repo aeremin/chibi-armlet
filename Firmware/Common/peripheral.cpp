@@ -47,7 +47,7 @@ void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
 }
 
 void Beeper_t::Shutdown() {
-    PinSetupAnalog(GPIOD, 12);
+    PinSetupAnalog(GPIOB, 3);
 }
 #endif
 
@@ -98,5 +98,42 @@ void LedRGB_t::IStartBlinkI(const LedChunk_t *PLedChunk) {
         case ckRepeat: PCh = IPFirstChunk;  break;
     }
     chVTSetI(&ITmr, MS2ST(PLedChunk->Time_ms), LedTmrCallback, (void*)PCh); // Start timer
+}
+#endif
+
+#if VIBRO_ENABLED // ======================= Vibro =============================
+Vibro_t Vibro;
+#define VIBRO_TOP_VALUE   22
+
+// Timer callback
+void VibroTmrCallback(void *p) {
+    chSysLockFromIsr();
+    Vibro.IFlinchI((const VibroChunk_t*)p);
+    chSysUnlockFromIsr();
+}
+
+void Vibro_t::Init() {
+    PinSetupOut(GPIOB, 6, omPushPull, pudNone);
+}
+
+void Vibro_t::IFlinchI(const VibroChunk_t *PSequence) {
+    // Reset timer
+    if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+    if(PSequence == nullptr) {
+        PinClear(VIBRO_GPIO, VIBRO_PIN);
+        return;
+    }
+    // Set vibro pwr
+    if(PSequence->OnOff == stOn) PinSet(VIBRO_GPIO, VIBRO_PIN);
+    else PinClear(VIBRO_GPIO, VIBRO_PIN);
+    // Proceed with sequence, stop it or restart
+    const VibroChunk_t *PCh = nullptr;
+    switch(PSequence->ChunkKind) {
+        case ckNormal: PCh = PSequence + 1; break;
+        case ckStop:                        break;
+        case ckRepeat: PCh = IPFirstChunk;  break;
+    }
+    // Start timer
+    chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), VibroTmrCallback, (void*)PCh);
 }
 #endif
