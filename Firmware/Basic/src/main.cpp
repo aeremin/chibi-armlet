@@ -16,40 +16,26 @@
 #include "cmd_uart.h"
 #include "application.h"
 #include "radio_lvl1.h"
-
-static inline void Init();
+#include "AccGiro.h"
 
 int main(void) {
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V8);
+    SetupVCore(vcore1V5);
     //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
 //    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
 
-    // ==== Init OS ====
+    // Init OS
     halInit();
     chSysInit();
-    // ==== Init Hard & Soft ====
-    Init();
-//    if(ClkResult) Uart.Printf("Clock failure\r");
+    Uart.Init(115200);
+    Uart.Printf("AccGiroTest AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    Led.Init();
+    AccGyro.Init();
+    App.Init();
 
-    while(1) {
-        //chThdSleep(TIME_INFINITE);
-        chThdSleepMilliseconds(999);
-        Vibro.Flinch(Brr);
+    while(true) {
+        App.ITask();
     } // while
 }
 
-void Init() {
-    Uart.Init(115200);
-    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-    Led.Init();
-    Beeper.Init();
-    Beeper.Beep(BeepBeep);
-    Vibro.Init();
-    Vibro.Flinch(BrrBrr);
-    PillMgr.Init();
-    Radio.Init(0);
-
-    App.Init();
-}
