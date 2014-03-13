@@ -33,8 +33,10 @@ void TmrCheckCallback(void *p) {
 void App_t::ITask() {
     uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
     if(EvtMsk & EVTMSK_CHECK) {
-        AccGyro.ReadAccelerations();
-        Uart.Printf("Acc: %d %d %d\r", AccGyro.a[0], AccGyro.a[1], AccGyro.a[2]);
+//        AccGyro.ReadAccelerations();
+//        Uart.Printf("Acc: %d %d %d\r", AccGyro.a[0], AccGyro.a[1], AccGyro.a[2]);
+        AccGyro.ReadSpeeds();
+        Uart.Printf("Spd: %d %d %d\r", AccGyro.w[0], AccGyro.w[1], AccGyro.w[2]);
 
     } // if EVTMSK_PILL_CHECK
 }

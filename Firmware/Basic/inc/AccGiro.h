@@ -22,7 +22,7 @@
 #define AG_DMATX                STM32_DMA1_STREAM6
 #define AG_DMARX                STM32_DMA1_STREAM7
 
-// Accelerometer
+// ==== Accelerometer ====
 #define ACC_ADDR                0x1C
 // Registers addresses
 #define ACC_REG_STATUS          0x00
@@ -33,16 +33,22 @@
 #define ACC_FF_MT_THS           0x17
 #define ACC_REG_CONTROL1        0x2A
 
-
+// ==== Gyro ====
+#define GYR_ADDR                0b1101001
+// Registers addresses
+#define GYR_WHO_AM_I            0x0F
+#define GYR_CTRL_REG1           0x20
+#define GYR_OUTX_L              0x28
 
 class AccGyro_t {
 private:
     i2c_t i2c;
     int16_t Convert(uint8_t HiByte, uint8_t LoByte);
 public:
-    int16_t a[3];
+    int16_t a[3], w[3];
     void Init();
     void ReadAccelerations();
+    void ReadSpeeds();
     //void StartMeasure
 };
 
