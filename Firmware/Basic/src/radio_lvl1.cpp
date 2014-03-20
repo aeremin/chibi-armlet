@@ -12,6 +12,7 @@
 #include "cmd_uart.h"
 
 #include "peripheral.h"
+#include "mesh_lvl.h"
 
 #define DBG_PINS
 
@@ -34,7 +35,14 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TX
-#define LED_RX
+//#define LED_RX
+
+#ifdef  MESH
+static void RxEnd(void *p) {
+//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+    Radio.IMeshRx = false;
+}
+#endif
 
 void rLevel1_t::ITask() {
     while(true) {
@@ -63,9 +71,44 @@ void rLevel1_t::ITask() {
         else Clr = clBlack;
         Led.SetColor(Clr);
 #else
-        IterateEmanators();
+//        IterateEmanators();
 //        Uart.Printf("%d\r", Damage);
-        chThdSleepMilliseconds(45);
+//        chThdSleepMilliseconds(45);
+#endif
+#if 1 // ==== Mesh ====
+        CC.SetChannel(MESH_CHANNEL);
+        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+        PktTx.TimeAge++;
+        if(EvtMsk & EVTMSK_MESH_TX) {
+            PktTx.CycleN = Mesh.GetAbsTime();
+//            Uart.Printf("RadioTx\r");
+            if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
+            CC.TransmitSync(&PktTx);
+        }
+        if(EvtMsk & EVTMSK_MESH_RX) {
+            int8_t RSSI = 0;
+            RxTmt = CYCLE_TIME;
+//            RxStartTime = chTimeNow();
+            IMeshRx = true;
+            Counter++;
+            // Init VirtualTimer
+            chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr);
+            Uart.Printf("RxStart=%u, t=%u\r", Counter, chTimeNow());
+            do {
+                Time = chTimeNow();
+//                Uart.Printf("Rx for t=%u\r", RxTmt);
+                uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx);
+                if(RxRslt == OK) { // Pkt received correctly
+                    Uart.Printf("Rx ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, RSSI);
+//                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI}); /* SendMsg to MeshThd with PktRx structure */
+                } // Pkt Ok
+                RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
+            } while(IMeshRx);
+            Uart.Printf("RxEnd, t=%u\r\r", chTimeNow());
+            chEvtSignal(Mesh.IPThread, EVTMSK_UPDATE_CYCLE);
+
+        }
+        chThdSleepMilliseconds(99);
 #endif
     } // while true
 }
@@ -84,6 +127,6 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     // Variables
     Damage = 1;
     // Thread
-    PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+    PrThd = PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

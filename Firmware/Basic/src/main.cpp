@@ -16,13 +16,14 @@
 #include "cmd_uart.h"
 #include "application.h"
 #include "radio_lvl1.h"
+#include "mesh_lvl.h"
 
 static inline void Init();
 
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V8);
-    //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
+//    Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
 //    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
 
@@ -41,15 +42,17 @@ int main(void) {
 }
 
 void Init() {
-    Uart.Init(115200);
+    Uart.Init(57600);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-    Led.Init();
-    Beeper.Init();
-    Beeper.Beep(BeepBeep);
-    Vibro.Init();
-    Vibro.Flinch(BrrBrr);
-    PillMgr.Init();
-    Radio.Init(0);
+//    Led.Init();
+//    Beeper.Init();
+//    Beeper.Beep(BeepBeep);
+//    Vibro.Init();
+//    Vibro.Flinch(BrrBrr);
+//    PillMgr.Init();
 
-    App.Init();
+//    Radio.Init(SELF_MESH_ID);
+    Mesh.Init(SELF_MESH_ID);
+
+//    App.Init();
 }

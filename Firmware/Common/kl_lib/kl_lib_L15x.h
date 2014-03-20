@@ -315,6 +315,8 @@ public:
     // DMA, Irq, Evt
     inline void DmaOnTriggerEnable() { ITmr->DIER |= TIM_DIER_TDE; }
     inline void GenerateUpdateEvt()  { ITmr->EGR = TIM_EGR_UG; }
+    inline void IrqOnTriggerEnable() { ITmr->DIER |= TIM_DIER_UIE; }
+    inline void ClearIrqPendingBit() { ITmr->SR &= ~TIM_SR_UIF;    }
     // PWM
     void PwmInit(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed = ps10MHz);
     void PwmSet(uint16_t Value) { *PCCR = Value; }

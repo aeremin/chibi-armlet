@@ -8,6 +8,23 @@
 #ifndef RLVL1_DEFINS_H_
 #define RLVL1_DEFINS_H_
 
+#define MESH
+
+#ifdef MESH
+#if 1 // ============================== Pkt_t ========================================
+struct rPkt_t {
+    uint8_t ID;
+    uint32_t CycleN;
+    uint8_t TimeOwnerID;
+    uint8_t TimeAge;
+    int8_t RSSI;
+} __attribute__ ((__packed__));
+#define RPKT_SZ     sizeof(rPkt_t)
+#define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
+#endif
+#endif
+
+#ifndef MESH
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
     uint8_t ID;
@@ -19,6 +36,11 @@ struct rPkt_t {
 } __attribute__ ((__packed__));
 #define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
 #endif
+#endif
+
+
+
+
 
 // Signal levels
 #define RSSI_MIN_DB     (-110)

@@ -15,4 +15,10 @@
 #define EVTMASK_RADIO_RX    EVENT_MASK(3)
 
 
+
+#define EVTMSK_NEW_CYCLE        EVENT_MASK(9)
+#define EVTMSK_UPDATE_CYCLE     EVENT_MASK(10)
+#define EVTMSK_MESH_RX          EVENT_MASK(11)
+#define EVTMSK_MESH_TX          EVENT_MASK(12)
+
 #endif /* EVT_MASK_H_ */
