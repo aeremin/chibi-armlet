@@ -73,6 +73,8 @@ public:
     void ResetTimeAge(uint8_t ID)     { PktTx.TimeAge = 0; PktTx.TimeOwnerID = ID; }
     uint8_t GetTimeAge()              { return PktTx.TimeAge;     }
     uint8_t GetTimeOwner()            { return PktTx.TimeOwnerID; }
+    void SetColor(Color_t NewColor)   { PktTx.Color = NewColor;   }
+    void SetColorOwner(uint8_t ID)    { PktTx.ColorOwner = ID;    }
     bool IMeshRx;
 #endif
 };

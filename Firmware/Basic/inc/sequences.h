@@ -56,6 +56,10 @@ const LedChunk_t LedGreen[] = {
 */
 #define BEEP_VOLUME     1   // set to 10 in production, and to 1 when someone sleeps near
 
+const BeepChunk_t ShortBeep[] = {
+        {BEEP_VOLUME, 1975, 54, ckStop},
+};
+
 const BeepChunk_t BeepBeep[] = {
         {BEEP_VOLUME, 1975, 54, ckNormal},
         {0, 0, 54, ckNormal},

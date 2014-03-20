@@ -19,10 +19,10 @@
  *  |_____________________..._________________|   SUPER_CYCLE
  */
 
-#define SELF_MESH_ID        1
+#define SELF_MESH_ID        9
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
-#define MAX_ABONENTS        700   /* max ID, started from 1 */
+#define MAX_ABONENTS        100   /* max ID, started from 1 */
 
 #define MESH_CHANNEL        1     /* mesh RF channel */
 #define SLOT_TIME           4     /* ms */
@@ -90,9 +90,9 @@ private:
     void TableSend();
     void UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime);
     bool DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime);
-    void ResetTimeAge(uint8_t ID)     {   /* Radio.ResetTimeAge(ID); */  }
-    uint8_t GetTimeAge()              { return 0;/*return Radio.GetTimeAge(); */  }
-    uint8_t GetMeshID()               { return (uint8_t)SELF_MESH_ID;/*return Radio.GetTimeOwner(); */}
+    void ResetTimeAge(uint8_t ID)     { Radio.ResetTimeAge(ID); }
+    uint8_t GetTimeAge()              { return Radio.GetTimeAge(); }
+    uint8_t GetMeshID()               { return Radio.GetTimeOwner(); }
 
 public:
     Mesh_t() :  PRndTable(RndTableBuf),
@@ -103,7 +103,9 @@ public:
                 NeedUpdateTime(false),
                 SelfID(0),
                 NeedToSendTable(0),
-                IPThread(NULL) {}
+                IPThread(NULL),
+                LedColor(clCyan),
+                INeedColor(clBlack) {}
 
     Thread *IPThread;
     CircBufPkt_t PktBuf;
@@ -112,8 +114,25 @@ public:
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
     MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
     void Init(uint32_t ID);
-    void ITask();
 
+    Color_t LedColor, INeedColor;
+    Color_t GetColor(uint8_t LedColor) {
+        switch (LedColor) {
+            case 1: return clBlack; break;
+            case 2: return clRed; break;
+            case 3: return clGreen; break;
+            case 4: return clBlue; break;
+            case 5: return clYellow; break;
+            case 6: return clMagenta; break;
+            case 7: return clCyan; break;
+            case 8: return clWhite; break;
+            default: return clBlack;
+        }
+        return clBlack;
+    }
+
+
+    void ITask();
     void IIrqHandler();
 };
 

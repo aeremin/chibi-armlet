@@ -65,9 +65,14 @@ struct Color_t {
 
 // Timer
 #define LED_TIM         TIM3
-#define LED_RED_CCR     CCR2
-#define LED_GREEN_CCR   CCR4
-#define LED_BLUE_CCR    CCR3
+//#define LED_RED_CCR     CCR2
+//#define LED_GREEN_CCR   CCR4
+//#define LED_BLUE_CCR    CCR3
+
+#define LED_RED_CCR     CCR4
+#define LED_GREEN_CCR   CCR3
+#define LED_BLUE_CCR    CCR2
+
 #define LED_RCC_EN()    rccEnableTIM3(FALSE)
 #define LED_ALTERFUNC   AF2 // TIM3
 // GPIO

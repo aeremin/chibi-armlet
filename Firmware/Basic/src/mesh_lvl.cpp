@@ -9,6 +9,8 @@
 #include "mesh_lvl.h"
 #include "radio_lvl1.h"
 //#include "SensorTable.h"
+#include "peripheral.h"
+#include "sequences.h"
 
 //#define MESH_DBG        // On/Off Debug Message in MeshLvl
 
@@ -79,6 +81,13 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
         mshMsg_t MeshMsg;
         do {
             PktBuf.ReadPkt(&MeshMsg);
+
+            // Led
+            if(SelfID > MeshMsg.PktRx.ColorOwner) {
+                LedColor = MeshMsg.PktRx.Color;
+                Radio.SetColorOwner(MeshMsg.PktRx.ColorOwner);
+            }
+
 //            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
             if(PriorityID > MeshMsg.PktRx.TimeOwnerID) {                /* Priority time checking */
                 CycleTmr.Disable();
@@ -103,7 +112,7 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
             if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
             else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
             MeshMsg.RSSI += 100;    // 0...65
-            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
+//            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
 //            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
         } while(PktBuf.GetFilledSlots() != 0);
     }
@@ -167,6 +176,7 @@ void Mesh_t::Init(uint32_t ID) {
     CycleTmr.Enable();
     nvicEnableVector(TIM7_IRQn, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
     Uart.Printf("Msh: Init ID=%u\r", SelfID);
+    Led.SetColor(LedColor);
 }
 
 void Mesh_t::IIrqHandler() {

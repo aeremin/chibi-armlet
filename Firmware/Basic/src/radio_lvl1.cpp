@@ -39,7 +39,7 @@ static void rLvl1Thread(void *arg) {
 
 #ifdef  MESH
 static void RxEnd(void *p) {
-    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
     Radio.IMeshRx = false;
 }
 #endif
@@ -81,7 +81,8 @@ void rLevel1_t::ITask() {
         PktTx.TimeAge++;
         if(EvtMsk & EVTMSK_MESH_TX) {
             PktTx.CycleN = Mesh.GetAbsTime();
-            Uart.Printf("RadioTx\r");
+            PktTx.Color = Mesh.LedColor;
+//            Uart.Printf("RadioTx\r");
             if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
             CC.TransmitSync(&PktTx);
         }
@@ -93,22 +94,21 @@ void rLevel1_t::ITask() {
             Counter++;
             // Init VirtualTimer
             chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr);
-            Uart.Printf("RxStart=%u, t=%u\r", Counter, chTimeNow());
+//            Uart.Printf("RxStart=%u, t=%u\r", Counter, chTimeNow());
             do {
                 Time = chTimeNow();
 //                Uart.Printf("Rx for t=%u\r", RxTmt);
                 uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx);
                 if(RxRslt == OK) { // Pkt received correctly
-                    Uart.Printf("Rx ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, RSSI);
-//                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI}); /* SendMsg to MeshThd with PktRx structure */
+//                    Uart.Printf("ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, PktRx.RSSI);
+                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI}); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
                 RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
             } while(IMeshRx);
-            Uart.Printf("RxEnd, t=%u\r\r", chTimeNow());
+//            Uart.Printf("RxEnd, t=%u\r\r", chTimeNow());
             chEvtSignal(Mesh.IPThread, EVTMSK_UPDATE_CYCLE);
 
         }
-        chThdSleepMilliseconds(99);
 #endif
     } // while true
 }
@@ -120,6 +120,21 @@ void rLevel1_t::Init(uint16_t ASelfID) {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
+
+#ifdef MESH
+    if(ASelfID == 0) {
+        Uart.Printf("rLvl1 WrongID\r");
+        return;
+    }
+
+    PktTx.ID = (uint8_t)ASelfID;
+    PktTx.CycleN = 0;
+    PktTx.ColorOwner = (uint8_t)ASelfID;
+    PktTx.Color = Mesh.LedColor;
+    ResetTimeAge(PktTx.ID);
+#endif
+
+
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);

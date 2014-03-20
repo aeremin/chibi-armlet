@@ -13,6 +13,7 @@
 #include "evt_mask.h"
 #include "eestore.h"
 #include "radio_lvl1.h"
+#include "mesh_lvl.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -172,15 +173,15 @@ __attribute__((noreturn))
 static void AppThread(void *arg) {
     chRegSetThreadName("App");
     uint32_t EvtMsk;
-    bool PillConnected = false;
+//    bool PillConnected = false;
     while(true) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) {
             // Check if radio damage occured. Will return 1 if no.
-            uint32_t FDamage = Radio.Damage;
+//            uint32_t FDamage = Radio.Damage;
             //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-            Dose.Increase(FDamage, diUsual);
+//            Dose.Increase(FDamage, diUsual);
             //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
         }
 
@@ -191,14 +192,14 @@ static void AppThread(void *arg) {
 
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
-            // Check if new connection occured
-            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
-                if(!PillConnected) {
-                    PillConnected = true;
-                    App.IPillHandler();
-                }
-            }
-            else PillConnected = false;
+//            // Check if new connection occured
+//            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
+//                if(!PillConnected) {
+//                    PillConnected = true;
+//                    App.IPillHandler();
+//                }
+//            }
+//            else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
     } // while 1
 }
@@ -262,6 +263,14 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             }
             else Ack(FAILURE);
             break;
+
+        // ==== Mesh Led ====
+        case CMD_SET_LED:
+            Uart.Printf("Color=%X\r", PData[0]);
+            Mesh.LedColor = Mesh.GetColor(PData[0]);
+            Radio.ResetTimeAge(SELF_MESH_ID);
+            break;
+
 
         default: break;
     } // switch
