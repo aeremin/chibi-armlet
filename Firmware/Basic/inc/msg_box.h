@@ -10,6 +10,7 @@
 
 #include "kl_lib_L15x.h"
 #include "radio_lvl1.h"
+#include "string.h"
 
 #if 1 // =============================== Message Box =================================
 struct mshMsg_t {

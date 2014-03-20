@@ -51,23 +51,24 @@ void Mesh_t::ITask() {
 }
 
 void Mesh_t::NewCycle() {
-    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
+//    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
-//        chEvtSignal(rLevel1.PrThd, EVTMSK_MESH_RX);
-//        mshMsg_t MeshPkt;
-//        uint32_t Timeout = CYCLE_TIME; /* Wait Answer for Cycle Time */
-//        do {
-//            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBuf.WritePkt(MeshPkt); /* Put Msg to CircBuffer */
-//        } while(rLevel1.IMeshRx);
-
+        if(Radio.PrThd == nullptr) Uart.Printf("Msh: rLvl not init!\r");
+        else {
+            chEvtSignal(Radio.PrThd, EVTMSK_MESH_RX);
+            mshMsg_t MeshPkt;
+            do {
+                if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBuf.WritePkt(MeshPkt); /* Put Msg to CircBuffer */
+            } while(Radio.IMeshRx);
+        }
     }
     // ==== TX ====
     else {
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
-//        chEvtSignal(Radio.PrThd, EVTMSK_MESH_TX);
+        if(Radio.PrThd != nullptr) chEvtSignal(Radio.PrThd, EVTMSK_MESH_TX);
     }
 }
 
@@ -78,7 +79,7 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
         mshMsg_t MeshMsg;
         do {
             PktBuf.ReadPkt(&MeshMsg);
-//            Uart.Printf("Msh ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
+//            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
             if(PriorityID > MeshMsg.PktRx.TimeOwnerID) {                /* Priority time checking */
                 CycleTmr.Disable();
                 Rslt = true;
@@ -113,7 +114,7 @@ void Mesh_t::TableSend() {
     NeedToSendTable++;
     if(NeedToSendTable == TABLE_SEND_N) {
 #ifdef MESH_DBG
-        Uart.Printf("Msh TabSnd,t=%u\r", chTimeNow());
+        Uart.Printf("Msh: TabSnd,t=%u\r", chTimeNow());
 #endif
 //        SnsTable.SendEvtReady();
         NeedToSendTable = 0;
@@ -123,7 +124,7 @@ void Mesh_t::TableSend() {
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
     if(NeedUpdateTime) {
 #ifdef MESH_DBG
-        Uart.Printf("Msh CycUpd=%u\r", NewTime);
+        Uart.Printf("Msh: CycUpd=%u\r", NewTime);
 #endif
         uint32_t timeNow = chTimeNow();
         do {
@@ -135,7 +136,7 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
         CycleTmr.SetCounter(0);
         NeedUpdateTime = false;
 #ifdef MESH_DBG
-        Uart.Printf("Msh Slp %u to %u\r", chTimeNow(), WakeUpSysTime);
+        Uart.Printf("Msh: Slp %u to %u\r", chTimeNow(), WakeUpSysTime);
 #endif
         chThdSleepUntil(WakeUpSysTime); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
         CycleTmr.Enable();
@@ -144,20 +145,20 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
 
 void Mesh_t::Init(uint32_t ID) {
     if(ID == 0) {
-        Uart.Printf("Msh WrongID\r");
+        Uart.Printf("Msh: WrongID\r");
         return;
     }
     // Init Thread
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
-//    MsgBox.Init();
+    MsgBox.Init();
     SelfID = (uint8_t)ID;
     SleepTime = ((SelfID-1)*SLOT_TIME);
 
     // Create RandomTable
-//    for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
-//        RndTableBuf[i] = 0; // GET_RND_VALUE(COUNT_OF_CYCLES);
-//    }
-//    Uart.Printf("RndTable: %A\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
+    for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
+        RndTableBuf[i] = 2; // GET_RND_VALUE(COUNT_OF_CYCLES);
+    }
+    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);
     CycleTmr.SetTopValue(CYCLE_TIME-1);
@@ -165,7 +166,7 @@ void Mesh_t::Init(uint32_t ID) {
     CycleTmr.IrqOnTriggerEnable();
     CycleTmr.Enable();
     nvicEnableVector(TIM7_IRQn, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
-    Uart.Printf("Mesh Init ID=%u\r", SelfID);
+    Uart.Printf("Msh: Init ID=%u\r", SelfID);
 }
 
 void Mesh_t::IIrqHandler() {

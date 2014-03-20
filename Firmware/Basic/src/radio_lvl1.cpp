@@ -39,7 +39,7 @@ static void rLvl1Thread(void *arg) {
 
 #ifdef  MESH
 static void RxEnd(void *p) {
-//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
     Radio.IMeshRx = false;
 }
 #endif
@@ -81,7 +81,7 @@ void rLevel1_t::ITask() {
         PktTx.TimeAge++;
         if(EvtMsk & EVTMSK_MESH_TX) {
             PktTx.CycleN = Mesh.GetAbsTime();
-//            Uart.Printf("RadioTx\r");
+            Uart.Printf("RadioTx\r");
             if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
             CC.TransmitSync(&PktTx);
         }

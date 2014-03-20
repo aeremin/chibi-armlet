@@ -110,7 +110,7 @@ public:
     uint32_t GetAbsTime()       { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()     { return (AbsCycle*CYCLE_TIME);  }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
-//    MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
+    MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
     void Init(uint32_t ID);
     void ITask();
 
