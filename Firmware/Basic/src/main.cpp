@@ -36,8 +36,7 @@ int main(void) {
 
     while(1) {
         //chThdSleep(TIME_INFINITE);
-        Led.SetColor(Mesh.LedColor);
-        chThdSleepMilliseconds(125);
+        chThdSleepMilliseconds(999);
         Vibro.Flinch(Brr);
     } // while
 }

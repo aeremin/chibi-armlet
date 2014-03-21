@@ -89,12 +89,9 @@ void rLevel1_t::ITask() {
         if(EvtMsk & EVTMSK_MESH_RX) {
             int8_t RSSI = 0;
             RxTmt = CYCLE_TIME;
-//            RxStartTime = chTimeNow();
             IMeshRx = true;
-            Counter++;
-            // Init VirtualTimer
-            chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr);
-//            Uart.Printf("RxStart=%u, t=%u\r", Counter, chTimeNow());
+            chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
+//            Uart.Printf("RxStart, t=%u\r", chTimeNow());
             do {
                 Time = chTimeNow();
 //                Uart.Printf("Rx for t=%u\r", RxTmt);
@@ -129,7 +126,8 @@ void rLevel1_t::Init(uint16_t ASelfID) {
 
     PktTx.ID = (uint8_t)ASelfID;
     PktTx.CycleN = 0;
-    PktTx.ColorOwner = (uint8_t)ASelfID;
+    PktTx.TimeOwnerID = PktTx.ID;
+    PktTx.ColorOwner = PktTx.ID;
     PktTx.Color = Mesh.LedColor;
     ResetTimeAge(PktTx.ID);
 #endif

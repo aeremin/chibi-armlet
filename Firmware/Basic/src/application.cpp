@@ -14,6 +14,7 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
+#include "SensorTable.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -201,6 +202,15 @@ static void AppThread(void *arg) {
 //            }
 //            else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
+        if(EvtMsk & EVTMSK_LED_UPD) {
+            Led.SetColor(Mesh.LedColor);
+        }
+        if(EvtMsk & EVTMSK_SENS_TABLE_READY) {
+            Uart.Printf("App: Tab Get, s=%u\r", SnsTable.PTable->Size);
+            for(uint32_t i=0; i<SnsTable.PTable->Size; i++) {
+                Uart.Printf(" ID=%u; Pwr=%u\r", SnsTable.PTable->Row[i].ID, SnsTable.PTable->Row[i].Level);
+            }
+        }
     } // while 1
 }
 
@@ -208,6 +218,7 @@ void App_t::Init() {
     //Dose.Load();
     Uart.Printf("Dose = %u\r", Dose.Get());
     PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
+    SnsTable.RegisterAppThd(PThd);
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
@@ -269,6 +280,7 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             Uart.Printf("Color=%X\r", PData[0]);
             Mesh.LedColor = Mesh.GetColor(PData[0]);
             Radio.ResetTimeAge(SELF_MESH_ID);
+            if(App.PThd != nullptr) chEvtSignal(App.PThd, EVTMSK_LED_UPD);
             break;
 
 

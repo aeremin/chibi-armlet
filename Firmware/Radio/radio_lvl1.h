@@ -21,7 +21,7 @@ private:
     int32_t NaturalDmg, RadioDmg;
 
 #ifdef MESH
-    uint32_t RxTmt, RxStartTime, Time, Counter;
+    uint32_t RxTmt, Time;
     VirtualTimer MeshRxVT;
 #endif
 

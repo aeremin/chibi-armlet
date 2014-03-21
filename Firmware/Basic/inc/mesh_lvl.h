@@ -19,7 +19,7 @@
  *  |_____________________..._________________|   SUPER_CYCLE
  */
 
-#define SELF_MESH_ID        9
+#define SELF_MESH_ID        1
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
@@ -67,8 +67,10 @@ public:
 
 
 #if 1// ============================== Mesh Class =============================
-#define MESH_TIM            TIM7
-#define RND_TBL_BUFFER_SZ   50
+#define MESH_TIM                TIM7
+#define MESH_TIM_IRQ            TIM7_IRQn
+#define MESH_TIM_IRQ_HANDLER    TIM7_IRQHandler
+#define RND_TBL_BUFFER_SZ       50
 
 class Mesh_t {
 private:
