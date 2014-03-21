@@ -108,9 +108,9 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
                 }
             }
 
-            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
-            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
-            MeshMsg.RSSI += 100;    // 0...65
+            if(MeshMsg.PktRx.RSSI < -100) MeshMsg.PktRx.RSSI = -100;
+            else if(MeshMsg.PktRx.RSSI > -35) MeshMsg.PktRx.RSSI = -35;
+            MeshMsg.PktRx.RSSI += 100;    // 0...65
             uint32_t Lvl = DbTranslate[MeshMsg.PktRx.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
             SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
         } while(PktBuf.GetFilledSlots() != 0);
@@ -164,9 +164,9 @@ void Mesh_t::Init(uint32_t ID) {
 
     // Create RandomTable
     for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
-        RndTableBuf[i] = 2; // GET_RND_VALUE(COUNT_OF_CYCLES);
+        RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
     }
-    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
+//    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);
     CycleTmr.SetTopValue(CYCLE_TIME-1);

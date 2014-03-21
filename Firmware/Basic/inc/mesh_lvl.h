@@ -12,6 +12,7 @@
 #include "evt_mask.h"
 #include "radio_lvl1.h"
 #include "msg_box.h"
+#include "stdlib.h"
 
 /*********************** MESH ******************************
  *  |_|_|_|_..._|_|_|_|_|_..._|_|_|_|_|_..._|_|   SLOTS
@@ -32,8 +33,8 @@
 #define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
 
 
-#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
-
+//#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
+#define GET_RND_VALUE(Top)    ( ((rand() % Top) + 1) )
 //#define END_OF_EPOCH        4294967295 // ms = 2^32
 #define END_OF_EPOCH        65536       // max cycle counter
 
