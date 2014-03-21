@@ -49,6 +49,7 @@ class App_t {
 public:
     Thread *PThd;
     void Init();
+    void SendEvt(eventmask_t mask) { if(PThd != nullptr) chEvtSignal(PThd, mask); }
     // Inner use
     void IPillHandler();
 };

@@ -59,19 +59,16 @@ void Mesh_t::NewCycle() {
     IncCurrCycle();
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
-        if(Radio.PrThd == nullptr) Uart.Printf("Msh: rLvl not init!\r");
-        else {
-            chEvtSignal(Radio.PrThd, EVTMSK_MESH_RX);
-            mshMsg_t MeshPkt;
-            do {
-                if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBuf.WritePkt(MeshPkt); /* Put Msg to CircBuffer */
-            } while(Radio.IMeshRx);
-        }
+        Radio.SendEvt(EVTMSK_MESH_RX);
+        mshMsg_t MeshPkt;
+        do {
+            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBuf.WritePkt(MeshPkt); /* Put Msg to CircBuffer */
+        } while(Radio.IMeshRx);
     }
     // ==== TX ====
     else {
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
-        if(Radio.PrThd != nullptr) chEvtSignal(Radio.PrThd, EVTMSK_MESH_TX);
+        Radio.SendEvt(EVTMSK_MESH_TX);
     }
 }
 
@@ -87,7 +84,7 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
             if(SelfID > MeshMsg.PktRx.ColorOwner) {
                 LedColor = MeshMsg.PktRx.Color;
                 Radio.SetColorOwner(MeshMsg.PktRx.ColorOwner);
-                if(App.PThd != nullptr) chEvtSignal(App.PThd, EVTMSK_LED_UPD);
+                App.SendEvt(EVTMSK_LED_UPD);
             }
 
 //            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);

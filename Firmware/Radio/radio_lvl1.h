@@ -64,8 +64,7 @@ public:
     Thread *PrThd;
     uint32_t Damage;
     void Init(uint16_t ASelfID);
-//    void Shutdown();
-//    void RegisterAppThd(Thread *PThd) { PAppThd = PThd; }
+    void SendEvt(eventmask_t mask) { if(PrThd != nullptr) chEvtSignal(PrThd, mask);}
     // Inner use
     void ITask();
 
