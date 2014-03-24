@@ -20,7 +20,7 @@
  *  |_____________________..._________________|   SUPER_CYCLE
  */
 
-#define SELF_MESH_ID        5
+#define SELF_MESH_ID        1
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
 #define MAX_ABONENTS        100   /* max ID, started from 1 */

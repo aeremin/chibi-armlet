@@ -54,15 +54,17 @@ private:
 
     void PutTimeMS(uint32_t Ams) {
             Time.SetTime(Ams);
-            RTC->TR = ((Time.HH << 16) | (Time.MM << 8) | Time.SS);
-            Uart.Printf("Put %X\r", RTC->TR);
+            uint32_t tmp = 0;
+            tmp = (Time.HH << 16) | (Time.MM << 8) | (Time.SS);
+            Uart.Printf("RTC: put %X\r", tmp);
+            RTC->TR = tmp;
         }
 public:
     Time_t() : PTime(&Time) {}
 
     void SetTime(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
     void SetTimeMS(uint32_t Ams);
-    void SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
+    uint8_t SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
     uint32_t GetTimeMS();
     void Init();
 };

@@ -144,6 +144,7 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
         }
         while (WakeUpSysTime < timeNow);
         SetCurrCycleN(NewTime);
+        Uart.Printf("Msh: put %u\r", GetAbsTimeMS());
         RTU.SetTimeMS(GetAbsTimeMS());
         CycleTmr.SetCounter(0);
         NeedUpdateTime = false;
@@ -172,6 +173,7 @@ void Mesh_t::Init(uint32_t ID) {
     }
 //    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
     SetAbsTimeMS(RTU.GetTimeMS());
+
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);
     CycleTmr.SetTopValue(CYCLE_TIME-1);

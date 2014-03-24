@@ -35,6 +35,7 @@ void Time_t::Init() {
 
 //    SetTime(10,15,00);
     SetTimeMS(58862000);
+
 }
 
 void Time_t::SetTime(uint8_t Ahh, uint8_t Amm, uint8_t Ass) {
@@ -64,15 +65,20 @@ void Time_t::SetTimeMS(uint32_t Ams) {
     }
 }
 
-void Time_t::SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass) {
+uint8_t Time_t::SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass) {
     DisableWriteProtection();
     /* Set Initialization mode */
+    if(Ahh > 0x23) return FAILURE;
+    if(Amm > 0x59) return FAILURE;
+    if(Ass > 0x59) return FAILURE;
     RTC->ISR = (uint32_t)RTC_INIT_MASK;
     if(EnterInit() == OK) {
         RTC->TR = (Ahh << 16) | (Amm << 8) | Ass;
         RTC->ISR &= (uint32_t)~RTC_ISR_INIT;
         EnableWriteProtection();
+        return OK;
     }
+    return FAILURE;
 }
 
 uint32_t Time_t::GetTimeMS() {
