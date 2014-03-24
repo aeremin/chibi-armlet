@@ -54,8 +54,8 @@ private:
 
     void PutTimeMS(uint32_t Ams) {
             Time.SetTime(Ams);
-            Uart.Printf("%u:%u:%u\r", Time.HH, Time.MM, Time.SS);
-            RTC->TR = ( (((Time.HH/10)<<20)|((Time.HH%10)<<16)) | (((Time.MM/10)<<12)|((Time.MM%10)<<8)) | (((Time.SS/10)<<4)|(Time.SS%10)));
+            RTC->TR = ((Time.HH << 16) | (Time.MM << 8) | Time.SS);
+            Uart.Printf("Put %X\r", RTC->TR);
         }
 public:
     Time_t() : PTime(&Time) {}

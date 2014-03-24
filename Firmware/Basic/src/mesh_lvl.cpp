@@ -171,6 +171,7 @@ void Mesh_t::Init(uint32_t ID) {
         RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
     }
 //    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
+    SetAbsTimeMS(RTU.GetTimeMS());
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);
     CycleTmr.SetTopValue(CYCLE_TIME-1);

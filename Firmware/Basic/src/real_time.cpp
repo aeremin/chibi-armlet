@@ -33,7 +33,8 @@ void Time_t::Init() {
     rccRTCEnable();
     RCC->CSR |= RCC_CSR_RTCSEL_LSI;
 
-    SetTime(10,15,00);
+//    SetTime(10,15,00);
+    SetTimeMS(58862000);
 }
 
 void Time_t::SetTime(uint8_t Ahh, uint8_t Amm, uint8_t Ass) {
