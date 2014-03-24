@@ -15,6 +15,7 @@
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
 #include "SensorTable.h"
+#include "real_time.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -283,6 +284,10 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             if(App.PThd != nullptr) chEvtSignal(App.PThd, EVTMSK_LED_UPD);
             break;
 
+        case CMD_SET_TIME:
+            Uart.Printf("Set time %X:%X:%X\r", PData[0], PData[1], PData[2]);
+            RTU.SetTimeBCD(PData[0], PData[1], PData[2]);
+            break;
 
         default: break;
     } // switch

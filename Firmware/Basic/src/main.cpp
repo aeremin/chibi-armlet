@@ -17,6 +17,7 @@
 #include "application.h"
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
+#include "real_time.h"
 
 static inline void Init();
 
@@ -24,7 +25,7 @@ int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V8);
 //    Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
-//    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
+    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
 
     // ==== Init OS ====
@@ -36,6 +37,7 @@ int main(void) {
 
     while(1) {
         //chThdSleep(TIME_INFINITE);
+        Uart.Printf("%X:%X:%X\r", (((RTC->TR) & 0x7F0000) >>16), ((RTC->TR & 0x7F00) >>8), (RTC->TR & 0x7F));
         chThdSleepMilliseconds(999);
         Vibro.Flinch(Brr);
     } // while
@@ -51,8 +53,9 @@ void Init() {
 //    Vibro.Flinch(BrrBrr);
 //    PillMgr.Init();
 
-    Radio.Init(SELF_MESH_ID);
-    Mesh.Init(SELF_MESH_ID);
+//    Radio.Init(SELF_MESH_ID);
+//    Mesh.Init(SELF_MESH_ID);
 
+    RTU.Init();
     App.Init();
 }

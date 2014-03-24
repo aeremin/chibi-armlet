@@ -112,8 +112,9 @@ public:
 
     Thread *IPThread;
     CircBufPkt_t PktBuf;
-    uint32_t GetAbsTime()       { return (AbsCycle);             }
-    uint32_t GetAbsTimeMS()     { return (AbsCycle*CYCLE_TIME);  }
+    uint32_t GetAbsTime()               { return (AbsCycle);             }
+    uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
+    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2) / CYCLE_TIME); }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
     MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
     void Init(uint32_t ID);
