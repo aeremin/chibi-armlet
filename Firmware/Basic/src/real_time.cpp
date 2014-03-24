@@ -74,6 +74,22 @@ void Time_t::SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass) {
     }
 }
 
+uint32_t Time_t::GetTimeMS() {
+    uint32_t TimeMs, tmp;
+    // Hours
+    tmp = (uint32_t)(((RTC->TR) & 0x7F0000) >> 16);
+    tmp = tmp*3600*1000;
+    TimeMs = tmp;
+    // Minutes
+    tmp = ((RTC->TR & 0x7F00) >>8);
+    tmp = tmp*60*1000;
+    TimeMs += tmp;
+    // Seconds
+    tmp = (RTC->TR & 0x7F);
+    TimeMs += (tmp*1000);
+    Uart.Printf("TimeMs=%u\r", TimeMs);
+    return TimeMs;
+}
 
 uint8_t Time_t::WaitConfiguration() {
     uint8_t Status;

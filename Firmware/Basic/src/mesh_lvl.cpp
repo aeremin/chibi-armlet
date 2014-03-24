@@ -12,6 +12,7 @@
 #include "peripheral.h"
 #include "sequences.h"
 #include "application.h"
+#include "real_time.h"
 
 //#define MESH_DBG        // On/Off Debug Message in MeshLvl
 
@@ -54,7 +55,7 @@ void Mesh_t::ITask() {
 }
 
 void Mesh_t::NewCycle() {
-//    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
+    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     // ==== RX ====
@@ -130,6 +131,8 @@ void Mesh_t::TableSend() {
 }
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
+    // Check Time
+    SetAbsTimeMS(RTU.GetTimeMS());
     if(NeedUpdateTime) {
 #ifdef MESH_DBG
         Uart.Printf("Msh: CycUpd=%u\r", NewTime);
@@ -141,6 +144,7 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
         }
         while (WakeUpSysTime < timeNow);
         SetCurrCycleN(NewTime);
+        RTU.SetTimeMS(GetAbsTimeMS());
         CycleTmr.SetCounter(0);
         NeedUpdateTime = false;
 #ifdef MESH_DBG

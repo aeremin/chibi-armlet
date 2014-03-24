@@ -63,6 +63,7 @@ public:
     void SetTime(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
     void SetTimeMS(uint32_t Ams);
     void SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
+    uint32_t GetTimeMS();
     void Init();
 };
 
