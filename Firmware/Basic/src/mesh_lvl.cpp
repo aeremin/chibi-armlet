@@ -55,7 +55,7 @@ void Mesh_t::ITask() {
 }
 
 void Mesh_t::NewCycle() {
-    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
+//    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     // ==== RX ====

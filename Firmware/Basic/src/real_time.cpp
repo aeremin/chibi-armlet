@@ -87,7 +87,6 @@ uint32_t Time_t::GetTimeMS() {
     // Seconds
     tmp = (RTC->TR & 0x7F);
     TimeMs += (tmp*1000);
-    Uart.Printf("TimeMs=%u\r", TimeMs);
     return TimeMs;
 }
 
