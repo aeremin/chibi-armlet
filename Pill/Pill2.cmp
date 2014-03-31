@@ -1,0 +1,45 @@
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 21/03/2014 00:33:57
+
+BeginCmp
+TimeStamp = /504343DE;
+Reference = C1;
+ValeurCmp = 0.1u;
+IdModule  = CAP_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /504343E1;
+Reference = DD1;
+ValeurCmp = M24C04;
+IdModule  = SO8E;
+EndCmp
+
+BeginCmp
+TimeStamp = /505712FC;
+Reference = F1;
+ValeurCmp = FUSE0R;
+IdModule  = SMD0603_FUSE;
+EndCmp
+
+BeginCmp
+TimeStamp = /5057130E;
+Reference = F2;
+ValeurCmp = FUSE0R;
+IdModule  = SMD0603_FUSE;
+EndCmp
+
+BeginCmp
+TimeStamp = /50571311;
+Reference = F3;
+ValeurCmp = FUSE0R;
+IdModule  = SMD0603_FUSE;
+EndCmp
+
+BeginCmp
+TimeStamp = /51665C75;
+Reference = XL1;
+ValeurCmp = CONN_4;
+IdModule  = CONN_PLS-4R;
+EndCmp
+
+EndListe
