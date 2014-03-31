@@ -118,28 +118,28 @@ void App_t::IPillHandler() {
     // Read med
     if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
     //Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
-    if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
-        bool Rslt = OK;
-        // Lower charges if not infinity
-        if(Pill.Charge != INFINITY16) {
-            Pill.Charge--;
-            Rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
-        }
-        if(Rslt == OK) {
-            Beeper.Beep(BeepPillOk);
-            Led.StartBlink(LedPillOk);
-            // Decrease dose if not dead, or if this is panacea
-            if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
-            chThdSleep(2007);    // Let indication to complete
-            Dose.ChangeIndication();
-            return;
-        }
-    } // if Cure
+//    if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
+//        bool Rslt = OK;
+//        // Lower charges if not infinity
+//        if(Pill.Charge != INFINITY16) {
+//            Pill.Charge--;
+//            Rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
+//        }
+//        if(Rslt == OK) {
+//            Beeper.Beep(BeepPillOk);
+//            Led.StartBlink(LedPillOk);
+//            // Decrease dose if not dead, or if this is panacea
+//            if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
+//            chThdSleep(2007);    // Let indication to complete
+//            Dose.ChangeIndication();
+//            return;
+//        }
+//    } // if Cure
     // Will be here in case of strange/discharged pill
     Beeper.Beep(BeepPillBad);
-    Led.StartBlink(LedPillBad);
+//    Led.StartBlink(LedPillBad);
     chThdSleep(2007);    // Let indication to complete
-    Dose.ChangeIndication();
+//    Dose.ChangeIndication();
 }
 
 #endif
@@ -176,18 +176,18 @@ static void AppThread(void *arg) {
     while(true) {
         EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Process dose ====
-        if(EvtMsk & EVTMSK_DOSE_INC) {
-            // Check if radio damage occured. Will return 1 if no.
-            uint32_t FDamage = Radio.Damage;
-            //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-            Dose.Increase(FDamage, diUsual);
-            //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
-        }
+//        if(EvtMsk & EVTMSK_DOSE_INC) {
+//            // Check if radio damage occured. Will return 1 if no.
+//            uint32_t FDamage = Radio.Damage;
+//            //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
+//            Dose.Increase(FDamage, diUsual);
+//            //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
+//        }
 
         // ==== Store dose ====
-        if(EvtMsk & EVTMSK_DOSE_STORE) {
-            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // DEBUG
-        }
+//        if(EvtMsk & EVTMSK_DOSE_STORE) {
+//            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // DEBUG
+//        }
 
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
@@ -205,12 +205,12 @@ static void AppThread(void *arg) {
 
 void App_t::Init() {
     //Dose.Load();
-    Uart.Printf("Dose = %u\r", Dose.Get());
+//    Uart.Printf("Dose = %u\r", Dose.Get());
     PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
     // Timers init
     chSysLock();
-    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
-    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+//    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+//    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlock();
 }
