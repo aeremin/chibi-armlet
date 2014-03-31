@@ -62,6 +62,10 @@ const BeepChunk_t BeepBeep[] = {
         {BEEP_VOLUME, 1975, 54, ckStop},
 };
 
+const BeepChunk_t BeepShort[] = {
+        {BEEP_VOLUME, 1975, 54, ckStop},
+};
+
 // Pill
 const BeepChunk_t BeepPillOk[] = {
         {BEEP_VOLUME, 1975, 180, ckNormal},

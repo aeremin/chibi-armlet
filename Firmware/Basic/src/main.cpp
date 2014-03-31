@@ -35,8 +35,9 @@ int main(void) {
 
     while(1) {
         //chThdSleep(TIME_INFINITE);
-        chThdSleepMilliseconds(999);
-        Vibro.Flinch(Brr);
+        chThdSleepMilliseconds(2007);
+//        Vibro.Flinch(Brr);
+//        Beeper.Beep(BeepShort);
     } // while
 }
 
@@ -44,6 +45,8 @@ void Init() {
     Uart.Init(115200);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
+    Led.SetColor(clWhite);
+    chThdSleepMilliseconds(999);
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     Vibro.Init();

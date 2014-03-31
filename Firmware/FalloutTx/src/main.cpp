@@ -16,8 +16,10 @@
 
 static inline void Init();
 
-#define LED_ON()    PinSet(GPIOB, 0)
-#define LED_OFF()   PinClear(GPIOB, 0)
+#define LED_N       0
+
+#define LED_ON()    PinSet(GPIOB, LED_N)
+#define LED_OFF()   PinClear(GPIOB, LED_N)
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -44,7 +46,7 @@ int main(void) {
 void Init() {
     Uart.Init(115200);
     Uart.Printf("FalloutTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-    PinSetupOut(GPIOB, 0, omPushPull);
+    PinSetupOut(GPIOB, LED_N, omPushPull);
     LED_ON();
 
     Radio.Init(0);  // FIXME: read ID somehow
