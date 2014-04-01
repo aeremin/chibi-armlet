@@ -9,7 +9,7 @@
 #define CLOCKING_H_
 
 #include "stm32l1xx.h"
-
+#include "chconf.h"
 /*
  * Right after reset, CPU works on internal MSI source.
  * To switch to external src (HSE) without dividing (i.e. SysClk == CrystalFreq),
@@ -57,19 +57,11 @@ enum AHBDiv_t {
 };
 enum APBDiv_t {apbDiv1=0b000, apbDiv2=0b100, apbDiv4=0b101, apbDiv8=0b110, apbDiv16=0b111};
 
-//enum ADCDiv_t {
-//    adcDiv2=RCC_CFGR_ADCPRE_DIV2,
-//    adcDiv4=RCC_CFGR_ADCPRE_DIV4,
-//    adcDiv6=RCC_CFGR_ADCPRE_DIV6,
-//    adcDiv8=RCC_CFGR_ADCPRE_DIV8
-//};
-
 class Clk_t {
 private:
-    uint8_t HSEEnable();
-    uint8_t HSIEnable();
-    uint8_t PLLEnable();
-    uint8_t MSIEnable();
+    uint8_t EnableHSE();
+    uint8_t EnablePLL();
+    uint8_t EnableMSI();
 public:
     // Frequency values
     uint32_t AHBFreqHz;     // HCLK: AHB Bus, Core, Memory, DMA; 32 MHz max
@@ -80,21 +72,34 @@ public:
     uint8_t SwitchToHSE();
     uint8_t SwitchToPLL();
     uint8_t SwitchToMSI();
-    void HSEDisable() { RCC->CR &= ~RCC_CR_HSEON; }
-    void HSIDisable() { RCC->CR &= ~RCC_CR_HSION; }
-    void PLLDisable() { RCC->CR &= ~RCC_CR_PLLON; }
-    void MSIDisable() { RCC->CR &= ~RCC_CR_MSION; }
+    void DisableHSE() { RCC->CR &= ~RCC_CR_HSEON; }
+    uint8_t EnableHSI();
+    void DisableHSI() { RCC->CR &= ~RCC_CR_HSION; }
+    void DisablePLL() { RCC->CR &= ~RCC_CR_PLLON; }
+    void DisableMSI() { RCC->CR &= ~RCC_CR_MSION; }
     void SetupBusDividers(AHBDiv_t AHBDiv, APBDiv_t APB1Div, APBDiv_t APB2Div);
     uint8_t SetupPLLMulDiv(PllMul_t PllMul, PllDiv_t PllDiv);
     void UpdateFreqValues();
+    void UpdateSysTick() { SysTick->LOAD = AHBFreqHz / CH_FREQUENCY - 1; }
     void SetupFlashLatency(uint8_t AHBClk_MHz);
-    // Other clocks
-//    void SetupAdcClk(ADCDiv_t ADCDiv);
-//    void LsiEnable() {
-//        RCC->CSR |= RCC_CSR_LSION;
-//        while(!(RCC->CSR & RCC_CSR_LSIRDY));
-//    }
-//    void LsiDisable() { RCC->CSR &= RCC_CSR_LSION; }
+    // LSI
+    void EnableLSI() {
+        RCC->CSR |= RCC_CSR_LSION;
+        while(!(RCC->CSR & RCC_CSR_LSIRDY));
+    }
+    void DisableLSI() { RCC->CSR &= RCC_CSR_LSION; }
+    // LSE
+    void StartLSE() {
+        RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+        PWR->CR |= PWR_CR_DBP;
+        RCC->CSR |= RCC_CSR_LSEON;
+    }
+    bool IsLseOn() { return (RCC->CSR & RCC_CSR_LSERDY); }
+    void DisableLSE() {
+        RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+        PWR->CR |= PWR_CR_DBP;
+        RCC->CSR &= ~RCC_CSR_LSEON;
+    }
 };
 
 extern Clk_t Clk;

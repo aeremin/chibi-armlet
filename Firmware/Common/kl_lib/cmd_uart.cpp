@@ -6,36 +6,30 @@
  */
 
 #include "cmd_uart.h"
-#include "tiny_sprintf.h"
+#include <string.h>
 
 CmdUart_t Uart;
 
+static inline void FPutChar(char c) { Uart.IPutChar(c); }
+
+void CmdUart_t::IPutChar(char c) {
+    *PWrite++ = c;
+    if(PWrite >= &TXBuf[UART_TXBUF_SIZE]) PWrite = TXBuf;   // Circulate buffer
+}
+
 void CmdUart_t::Printf(const char *format, ...) {
+    uint32_t MaxLength = (PWrite < PRead)? (PRead - PWrite) : ((UART_TXBUF_SIZE + PRead) - PWrite);
     va_list args;
     va_start(args, format);
-    uint32_t Cnt = tiny_vsprintf(SprintfBuf, UART_TXBUF_SIZE, format, args);
+    IFullSlotsCount += kl_vsprintf(FPutChar, MaxLength, format, args);
     va_end(args);
-
-    // Put data to buffer
-    uint8_t *p = (uint8_t*)SprintfBuf;
-    IFullSlotsCount += Cnt;
-    uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PWrite;  // Data from PWrite to right bound
-    if(Cnt > PartSz) {
-        MemCopy(PWrite, p, PartSz);
-        PWrite = TXBuf;     // Start from beginning
-        p += PartSz;
-        Cnt -= PartSz;
-    }
-    MemCopy(PWrite, p, Cnt);
-    PWrite += Cnt;
-    if(PWrite >= (TXBuf + UART_TXBUF_SIZE)) PWrite = TXBuf; // Circulate pointer
 
     // Start transmission if Idle
     if(IDmaIsIdle) {
         IDmaIsIdle = false;
         dmaStreamSetMemory0(UART_DMA_TX, PRead);
-        PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;
-        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;
+        uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;    // Char count from PRead to buffer end
+        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;  // How many to transmit now
         dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
         dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
         dmaStreamEnable(UART_DMA_TX);
@@ -145,7 +139,6 @@ void CmdUart_t::Init(uint32_t ABaudrate) {
     else               UART->BRR = Clk.APB1FreqHz / ABaudrate;
     UART->CR2 = 0;
     // ==== DMA ====
-    // Here only unchanged parameters of the DMA are configured.
     dmaStreamAllocate     (UART_DMA_TX, IRQ_PRIO_HIGH, CmdUartTxIrq, NULL);
     dmaStreamSetPeripheral(UART_DMA_TX, &UART->DR);
     dmaStreamSetMode      (UART_DMA_TX, UART_DMA_TX_MODE);

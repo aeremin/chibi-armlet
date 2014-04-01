@@ -62,11 +62,6 @@ typedef void (*ftVoidVoid)(void);
 #define ANY_OF_4(a, b1, b2, b3, b4)     (((a)==(b1)) or ((a)==(b2)) or ((a)==(b3)) or ((a)==(b4)))
 #define ANY_OF_5(a, b1, b2, b3, b4, b5) (((a)==(b1)) or ((a)==(b2)) or ((a)==(b3)) or ((a)==(b4)) or ((a)==(b5)))
 
-// Memcpy
-static inline void MemCopy(uint8_t *PDst, const uint8_t *PSrc, uint32_t Sz) {
-    while(Sz--) *PDst++ = *PSrc++;
-}
-
 // IRQ priorities
 #define IRQ_PRIO_LOW            15  // Minimum
 #define IRQ_PRIO_MEDIUM         9
@@ -82,6 +77,16 @@ static inline void MemCopy(uint8_t *PDst, const uint8_t *PSrc, uint32_t Sz) {
 // Init, to calm compiler
 extern "C" {
 void __attribute__ ((weak)) _init(void)  {}
+}
+#endif
+
+#if 1 // =========================== Time ======================================
+static inline bool TimeElapsed(systime_t *PSince, uint32_t Delay_ms) {
+    chSysLock();
+    bool Rslt = (systime_t)(chTimeNow() - *PSince) > MS2ST(Delay_ms);
+    if(Rslt) *PSince = chTimeNow();
+    chSysUnlock();
+    return Rslt;
 }
 #endif
 
@@ -275,49 +280,58 @@ enum TmrTrigInput_t {tiITR0=0x00, tiITR1=0x10, tiITR2=0x20, tiITR3=0x30, tiTIED=
 enum TmrMasterMode_t {mmReset=0x00, mmEnable=0x10, mmUpdate=0x20, mmComparePulse=0x30, mmCompare1=0x40, mmCompare2=0x50, mmCompare3=0x60, mmCompare4=0x70};
 enum TmrSlaveMode_t {smDisable=0, smEncoder1=1, smEncoder2=2, smEncoder3=3, smReset=4, smGated=5, smTrigger=6, smExternal=7};
 enum Inverted_t {invNotInverted, invInverted};
+enum ExtTrigPol_t {etpInverted=0x8000, etpNotInverted=0x0000};
+enum ExtTrigPsc_t {etpOff=0x0000, etpDiv2=0x1000, etpDiv4=0x2000, etpDiv8=0x30000};
 
 class Timer_t {
 private:
     TIM_TypeDef* ITmr;
     uint32_t *PClk;
 public:
-    __IO uint32_t *PCCR;    // Made public to allow DMA
+    volatile uint32_t *PCCR;    // Made public to allow DMA
     // Common
     void Init(TIM_TypeDef* Tmr);
     void Deinit();
-    inline void Enable()  { ITmr->CR1 |=  TIM_CR1_CEN; }
-    inline void Disable() { ITmr->CR1 &= ~TIM_CR1_CEN; }
-    inline void SetUpdateFrequency(uint32_t FreqHz) { SetTopValue(*PClk / FreqHz); }
-    inline void SetTopValue(uint16_t Value) { ITmr->ARR = Value; }
-    inline uint16_t GetTopValue() { return ITmr->ARR; }
-    inline void SetupPrescaler(uint32_t PrescaledFreqHz) { ITmr->PSC = (*PClk / PrescaledFreqHz) - 1; }
-    inline void SetCounter(uint16_t Value) { ITmr->CNT = Value; }
-    inline uint16_t GetCounter() { return ITmr->CNT; }
+    void Enable()  { ITmr->CR1 |=  TIM_CR1_CEN; }
+    void Disable() { ITmr->CR1 &= ~TIM_CR1_CEN; }
+    void SetTopValue(uint16_t Value) { ITmr->ARR = Value; }
+    void SetCounter(uint16_t Value) { ITmr->CNT = Value; }
+    uint16_t GetCounter() { return ITmr->CNT; }
+    uint16_t GetTopValue() { return ITmr->ARR; }
+    void SetPrescaler(uint16_t Value) { ITmr->PSC = Value; }
+    void SetUpdateFreq(uint32_t FreqHz) {
+        uint32_t ClkCnt = *PClk / (ITmr->PSC + 1);
+        SetTopValue((ClkCnt / FreqHz) - 1);
+    }
+    void SetCounterFreq(uint32_t CounterFreqHz) { ITmr->PSC = (*PClk / CounterFreqHz) - 1; }
     // Master/Slave
-    inline void SetTriggerInput(TmrTrigInput_t TrgInput) {
+    void SetTriggerInput(TmrTrigInput_t TrgInput) {
         uint16_t tmp = ITmr->SMCR;
         tmp &= ~TIM_SMCR_TS;   // Clear bits
         tmp |= (uint16_t)TrgInput;
         ITmr->SMCR = tmp;
     }
-    inline void MasterModeSelect(TmrMasterMode_t MasterMode) {
+    void SelectMasterMode(TmrMasterMode_t MasterMode) {
         uint16_t tmp = ITmr->CR2;
         tmp &= ~TIM_CR2_MMS;
         tmp |= (uint16_t)MasterMode;
         ITmr->CR2 = tmp;
     }
-    inline void SlaveModeSelect(TmrSlaveMode_t SlaveMode) {
+    void SelectSlaveMode(TmrSlaveMode_t SlaveMode) {
         uint16_t tmp = ITmr->SMCR;
         tmp &= ~TIM_SMCR_SMS;
         tmp |= (uint16_t)SlaveMode;
         ITmr->SMCR = tmp;
     }
+    void EnableExternalClk(ExtTrigPol_t ExtTrigPol = etpNotInverted, ExtTrigPsc_t ExtTrigPsc = etpOff) { ITmr->SMCR = (uint16_t)ExtTrigPol | (uint16_t)ExtTrigPsc | TIM_SMCR_ECE; }
     // DMA, Irq, Evt
-    inline void DmaOnTriggerEnable() { ITmr->DIER |= TIM_DIER_TDE; }
-    inline void GenerateUpdateEvt()  { ITmr->EGR = TIM_EGR_UG; }
+    void EnableDmaOnTrigger() { ITmr->DIER |= TIM_DIER_TDE; }
+    void GenerateUpdateEvt()  { ITmr->EGR = TIM_EGR_UG; }
+    void EnableIrqOnUpdate()  { ITmr->DIER |= TIM_DIER_UIE; }
+    void ClearIrqBits()       { ITmr->SR = 0; }
     // PWM
-    void PwmInit(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed = ps10MHz);
-    void PwmSet(uint16_t Value) { *PCCR = Value; }
+    void InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed = ps10MHz);
+    void SetPwm(uint16_t Value) { *PCCR = Value; }
 };
 #endif
 
@@ -354,6 +368,20 @@ public:
             return true;
         }
         else return false;
+    }
+    void GoSleep(uint32_t Timeout_ms) {
+        chSysLock();
+        // Start LSI
+        Clk.EnableLSI();
+        // Start IWDG
+        SetTimeout(Timeout_ms);
+        Enable();
+        // Enter standby mode
+        SCB->SCR |= SCB_SCR_SLEEPDEEP;
+        PWR->CR = PWR_CR_PDDS;
+        PWR->CR |= PWR_CR_CWUF;
+        __WFI();
+        chSysUnlock();
     }
 };
 #endif
