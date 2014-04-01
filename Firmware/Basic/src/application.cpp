@@ -92,7 +92,7 @@ void App_t::Init() {
     // Read device ID and type
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);
-    if(t <= 7) Type = (DeviceType_t)t;
+    if(t < 7) Type = (DeviceType_t)t;
     Uart.Printf("ID=%u; Type=%u\r", ID, Type);
 
     // Timers init
@@ -102,6 +102,14 @@ void App_t::Init() {
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlock();
 }
+
+uint8_t App_t::SetType(uint8_t AType) {
+    if(AType > 7) return FAILURE;
+    Type = (DeviceType_t)AType;
+    EE.Write32(EE_DEVICE_TYPE_ADDR, AType);
+    return OK;
+}
+
 #endif
 
 #if 1 // ======================= Command processing ============================
@@ -127,6 +135,15 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             SBuf[0] = (App.ID >> 8) & 0xFF;
             SBuf[1] = App.ID & 0xFF;
             Uart.Cmd(RPL_GET_ID, SBuf, 2);
+            break;
+
+        case CMD_SET_TYPE:
+            if(Length == 1) Ack(App.SetType(PData[0]));
+            else Ack(CMD_ERROR);
+            break;
+        case CMD_GET_TYPE:
+            SBuf[0] = (uint8_t)App.Type;
+            Uart.Cmd(RPL_GET_TYPE, SBuf, 1);
             break;
 #endif
 

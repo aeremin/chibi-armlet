@@ -46,7 +46,7 @@ enum DeviceType_t {
 };
 
 #define EE_DEVICE_ID_ADDR       0
-#define EE_DEVICE_TYPE_ADDR     1
+#define EE_DEVICE_TYPE_ADDR     4
 
 class App_t {
 private:
@@ -57,6 +57,7 @@ public:
     Thread *PThd;
     Eeprom_t EE;
     void Init();
+    uint8_t SetType(uint8_t AType);
     // Inner use
     void ITask();
 };
