@@ -12,43 +12,53 @@
 
 # if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
 #define CMD_PING            0x01
+#define CMD_SET_ID          0x10
+#define CMD_GET_ID          0x11
+#define CMD_SET_TYPE        0x16
+#define CMD_GET_TYPE        0x17
 #define CMD_PILL_STATE      0x30
 #define CMD_PILL_WRITE      0x31
 #define CMD_PILL_READ       0x32
-#define CMD_DOSE_GET        0x60
-#define CMD_DOSE_SET        0x61
 
 #define RPL_ACK             0x90    // Acknowledge
+#define RPL_GET_ID          0xA1
+#define RPL_GET_TYPE        0xA7
 #define RPL_PILL_STATE      0xC0
 #define RPL_PILL_WRITE      0xC1
 #define RPL_PILL_READ       0xC2
-#define RPL_DOSE_GET        0xE0
 #endif
 
 #if 1 // ==== Timings ====
-#define TM_DOSE_INCREASE_MS     999
-#define TM_DOSE_SAVE_MS         2007
 #define TM_PILL_CHECK_MS        504     // Check if pill connected every TM_PILL_CHECK
 #endif
 
-#if 1 // ==== Dose constants ====
-#define DOSE_TOP            300    // Death; top value
-#define DOSE_RED_FAST       (DOSE_TOP-7)  // Near death
-#define DOSE_RED            200    // Yellow if lower
-#define DOSE_YELLOW         100     // Green if lower
-#endif
 
 #if 1 // ==== Pill ====
 #define PILL_ID_CURE        0x09
 
 #endif
 
+enum DeviceType_t {
+    dtNothing=0,
+    dtFieldWeak=1, dtFieldNature=2, dtFieldStrong=3,
+    dtXtraNormal=4, dtXtraWeak=5, dtUfo=6,
+    dtDetector=7
+};
+
+#define EE_DEVICE_ID_ADDR       0
+#define EE_DEVICE_TYPE_ADDR     1
+
 class App_t {
+private:
+    void IPillHandler();
 public:
+    uint32_t ID;
+    DeviceType_t Type;
     Thread *PThd;
+    Eeprom_t EE;
     void Init();
     // Inner use
-    void IPillHandler();
+    void ITask();
 };
 
 extern App_t App;

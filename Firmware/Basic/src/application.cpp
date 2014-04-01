@@ -15,96 +15,9 @@
 #include "radio_lvl1.h"
 
 App_t App;
+
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
-
-#if 1 // ================================ Dose =================================
-enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
-enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
-class Dose_t {
-private:
-    uint32_t IDose;
-    EEStore_t EE;   // EEPROM storage for dose
-    void ConvertDoseToState() {
-        if     (IDose >= DOSE_TOP)      State = hsDeath;
-        else if(IDose >= DOSE_RED_FAST) State = hsRedFast;
-        else if(IDose >= DOSE_RED)      State = hsRedSlow;
-        else if(IDose >= DOSE_YELLOW)   State = hsYellow;
-        else                            State = hsGreen;
-    }
-public:
-    HealthState_t State;
-    void ChangeIndication() {
-        Beeper.Stop();
-        Led.StopBlink();
-        switch(State) {
-            case hsDeath:
-                Led.SetColor(clRed);
-                Beeper.Beep(BeepDeath);
-                break;
-            case hsRedFast:
-                Led.StartBlink(LedRedFast);
-                Beeper.Beep(BeepRedFast);
-                break;
-            case hsRedSlow:
-                Led.StartBlink(LedRedSlow);
-                Beeper.Beep(BeepBeep);
-                break;
-            case hsYellow:
-                Led.StartBlink(LedYellow);
-                Beeper.Beep(BeepBeep);
-                break;
-            case hsGreen:
-                Led.StartBlink(LedGreen);
-                Beeper.Beep(BeepBeep);
-                break;
-            default: break;
-        } // switch
-    }
-    void Set(uint32_t ADose, DoIndication_t DoIndication) {
-        IDose = ADose;
-        HealthState_t OldState = State;
-        ConvertDoseToState();
-        if((DoIndication == diAlwaysIndicate) or ((State != OldState) and (DoIndication == diUsual))) ChangeIndication();
-    }
-    uint32_t Get() { return IDose; }
-    void Increase(uint32_t Amount, DoIndication_t DoIndication) {
-        uint32_t Dz = IDose;
-        // Increase no more than up to near death
-        if(Dz < DOSE_RED_FAST) {
-            if(((Dz + Amount) > DOSE_RED_FAST) or (Amount == INFINITY32)) Dz = DOSE_RED_FAST;
-            else Dz += Amount;
-        }
-        // Near death, increase no more than 1 at a time
-        else if(Dz < DOSE_TOP) Dz++;
-        // After death, no need to increase
-//        Uart.Printf("Dz=%u\r", Dz);
-        Set(Dz, DoIndication);
-    }
-    void Decrease(uint32_t Amount, DoIndication_t DoIndication) {
-        uint32_t Dz = IDose;
-        if((Amount > Dz) or (Amount == INFINITY32)) Dz = 0;
-        else Dz -= Amount;
-        Set(Dz, DoIndication);
-    }
-    // Save if changed
-    uint8_t Save() {
-        uint32_t OldDose = 0;
-        if(EE.Get(&OldDose) == OK) {
-            if(OldDose == IDose) return OK;
-        }
-        return EE.Put(&IDose);
-    }
-    // Try load from EEPROM, set 0 if failed
-    void Load() {
-        uint32_t FDose = 0;
-        EE.Get(&FDose);     // Try to read
-        Set(FDose, diUsual);
-    }
-};
-static Dose_t Dose;
-
-#endif
 
 #if 1 // ================================ Pill =================================
 struct Pill_t {
@@ -145,19 +58,7 @@ void App_t::IPillHandler() {
 #endif
 
 #if 1 // ============================ Timers ===================================
-static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck;
-void TmrDoseCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
-    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-void TmrDoseSaveCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
-    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
-    chSysUnlockFromIsr();
-}
+static VirtualTimer ITmrPillCheck;
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
@@ -167,28 +68,12 @@ void TmrPillCheckCallback(void *p) {
 #endif
 
 #if 1 // ========================= Application =================================
-static WORKING_AREA(waAppThread, 256);
 __attribute__((noreturn))
-static void AppThread(void *arg) {
+void App_t::ITask() {
     chRegSetThreadName("App");
-    uint32_t EvtMsk;
     bool PillConnected = false;
     while(true) {
-        EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        // ==== Process dose ====
-//        if(EvtMsk & EVTMSK_DOSE_INC) {
-//            // Check if radio damage occured. Will return 1 if no.
-//            uint32_t FDamage = Radio.Damage;
-//            //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-//            Dose.Increase(FDamage, diUsual);
-//            //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
-//        }
-
-        // ==== Store dose ====
-//        if(EvtMsk & EVTMSK_DOSE_STORE) {
-//            //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // DEBUG
-//        }
-
+        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
             // Check if new connection occured
@@ -204,9 +89,12 @@ static void AppThread(void *arg) {
 }
 
 void App_t::Init() {
-    //Dose.Load();
-//    Uart.Printf("Dose = %u\r", Dose.Get());
-    PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
+    // Read device ID and type
+    ID = EE.Read32(EE_DEVICE_ID_ADDR);
+    uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);
+    if(t <= 7) Type = (DeviceType_t)t;
+    Uart.Printf("ID=%u; Type=%u\r", ID, Type);
+
     // Timers init
     chSysLock();
 //    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
@@ -221,9 +109,29 @@ void Ack(uint8_t Result) { Uart.Cmd(0x90, &Result, 1); }
 
 void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
-    uint32_t w, *p;
+    uint16_t w;
     switch(CmdCode) {
         case CMD_PING: Ack(OK); break;
+
+#if 1 // ==== ID and type ====
+        case CMD_SET_ID:
+            if(Length == 2) {
+                w = (PData[0] << 8) | PData[1];
+                chSysLock();
+                App.ID = w;
+                b = App.EE.Write32(EE_DEVICE_ID_ADDR, App.ID);
+                chSysUnlock();
+//                Uart.Printf("r=%u\r", b);
+                Ack(b);
+            }
+            else Ack(CMD_ERROR);
+            break;
+        case CMD_GET_ID:
+            SBuf[0] = (App.ID >> 8) & 0xFF;
+            SBuf[1] = App.ID & 0xFF;
+            Uart.Cmd(RPL_GET_ID, SBuf, 2);
+            break;
+#endif
 
         // ==== Pills ====
         case CMD_PILL_STATE:
@@ -246,21 +154,6 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             SBuf[0] = b;
             if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
             else Uart.Cmd(RPL_PILL_READ, SBuf, 2);
-            break;
-
-        // ==== Dose ====
-        case CMD_DOSE_GET:
-            p = (uint32_t*)SBuf;
-            *p = Dose.Get();
-            Uart.Cmd(RPL_DOSE_GET, SBuf, 4);
-            break;
-        case CMD_DOSE_SET:
-            w = *((uint32_t*)PData);
-            if(w <= DOSE_TOP) {
-                Dose.Set(w, diAlwaysIndicate);
-                Ack(OK);
-            }
-            else Ack(FAILURE);
             break;
 
         default: break;

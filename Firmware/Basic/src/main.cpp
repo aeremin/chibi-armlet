@@ -17,8 +17,6 @@
 #include "application.h"
 #include "radio_lvl1.h"
 
-static inline void Init();
-
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V2);
@@ -29,21 +27,10 @@ int main(void) {
     // ==== Init OS ====
     halInit();
     chSysInit();
+
     // ==== Init Hard & Soft ====
-    Init();
-//    if(ClkResult) Uart.Printf("Clock failure\r");
-
-    while(1) {
-        //chThdSleep(TIME_INFINITE);
-        chThdSleepMilliseconds(2007);
-//        Vibro.Flinch(Brr);
-//        Beeper.Beep(BeepShort);
-    } // while
-}
-
-void Init() {
     Uart.Init(115200);
-    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    Uart.Printf("Shiko AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
     Led.SetColor(clRed);
     chThdSleepMilliseconds(450);
@@ -51,6 +38,10 @@ void Init() {
     chThdSleepMilliseconds(450);
     Led.SetColor(clBlue);
     chThdSleepMilliseconds(450);
+
+    App.PThd = chThdSelf();
+    App.Init();
+
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     Vibro.Init();
@@ -58,5 +49,7 @@ void Init() {
     PillMgr.Init();
     Radio.Init(0);
 
-    App.Init();
+//    if(ClkResult) Uart.Printf("Clock failure\r");
+
+    while(1) App.ITask();
 }
