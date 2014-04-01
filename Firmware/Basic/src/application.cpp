@@ -117,11 +117,8 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
         case CMD_SET_ID:
             if(Length == 2) {
                 w = (PData[0] << 8) | PData[1];
-                chSysLock();
                 App.ID = w;
                 b = App.EE.Write32(EE_DEVICE_ID_ADDR, App.ID);
-                chSysUnlock();
-//                Uart.Printf("r=%u\r", b);
                 Ack(b);
             }
             else Ack(CMD_ERROR);
