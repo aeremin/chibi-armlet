@@ -268,7 +268,7 @@ public:
         else if ((APinNumber >= 5)  and (APinNumber <= 9))  IIrqChnl = EXTI9_5_IRQn;
         else if ((APinNumber >= 10) and (APinNumber <= 15)) IIrqChnl = EXTI15_10_IRQn;
     }
-    void EnableIRQ(const uint32_t Priority) { nvicEnableVector(IIrqChnl, CORTEX_PRIORITY_MASK(Priority)); }
+    void EnableIrq(const uint32_t Priority) { nvicEnableVector(IIrqChnl, CORTEX_PRIORITY_MASK(Priority)); }
     void DisableIrq() { nvicDisableVector(IIrqChnl); }
     void CleanIrqFlag() { EXTI->PR = (1 << IPinNumber); }
 };

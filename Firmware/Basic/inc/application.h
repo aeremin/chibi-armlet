@@ -48,6 +48,14 @@ enum DeviceType_t {
 #define EE_DEVICE_ID_ADDR       0
 #define EE_DEVICE_TYPE_ADDR     4
 
+//struct ModeTable_t {
+//    uint32_t TxCnt,
+//};
+//
+//const ModeTable_t ModeTable[8] = {
+//
+//};
+
 class App_t {
 private:
     void IPillHandler();

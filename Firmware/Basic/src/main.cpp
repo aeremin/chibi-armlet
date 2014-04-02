@@ -38,16 +38,17 @@ int main(void) {
     chThdSleepMilliseconds(450);
     Led.SetColor(clBlue);
     chThdSleepMilliseconds(450);
-
-    App.PThd = chThdSelf();
-    App.Init();
+    Led.SetColor(clBlack);
 
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     Vibro.Init();
     Vibro.Flinch(BrrBrr);
     PillMgr.Init();
-    Radio.Init(0);
+    Radio.Init();
+
+    App.PThd = chThdSelf();
+    App.Init();
 
 //    if(ClkResult) Uart.Printf("Clock failure\r");
 

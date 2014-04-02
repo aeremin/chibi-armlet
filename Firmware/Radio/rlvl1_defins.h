@@ -10,14 +10,15 @@
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint8_t ID;
-    uint8_t MinLvl;
-    uint8_t MaxLvl;
-    uint8_t DmgMin;
-    uint8_t DmgMax;
-    int8_t RSSI;        // Received signal level, RX use only
+    uint8_t Type;
+    uint8_t Check[3];
 } __attribute__ ((__packed__));
-#define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
+#define RPKT_LEN    sizeof(rPkt_t)
+
+#define CHECK_0         0xA5
+#define CHECK_1         0xB4
+#define CHECK_2         0xF2
+
 #endif
 
 // Signal levels
@@ -27,12 +28,9 @@ struct rPkt_t {
 #define RSSI_DB2PERCENT(db) ((((db) - RSSI_MIN_DB) * 100) / (RSSI_MAX_DB - RSSI_MIN_DB))
 
 // Emanators
-#define CHANNEL_ZERO        0
-#define SLOW_EMANATOR_CNT   1
-#define FAST_EMANATOR_CNT   0
+#define FIELD_TX_CNT    99
 
 #if 1 // =========================== Timings ===================================
-#define RX_DURATION_SLOW_MS 270  // How long to listen
 
 
 #endif

@@ -92,8 +92,7 @@ void App_t::Init() {
     // Read device ID and type
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);
-    if(t < 7) Type = (DeviceType_t)t;
-    Uart.Printf("ID=%u; Type=%u\r", ID, Type);
+    SetType(t);
 
     // Timers init
     chSysLock();
@@ -106,8 +105,12 @@ void App_t::Init() {
 uint8_t App_t::SetType(uint8_t AType) {
     if(AType > 7) return FAILURE;
     Type = (DeviceType_t)AType;
-    EE.Write32(EE_DEVICE_TYPE_ADDR, AType);
-    return OK;
+    // Save in EE if not equal
+    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
+    uint8_t rslt = OK;
+    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
+    Uart.Printf("ID=%u; Type=%u\r", ID, Type);
+    return rslt;
 }
 
 #endif
