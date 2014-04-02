@@ -89,6 +89,7 @@ void App_t::ITask() {
 }
 
 void App_t::Init() {
+    RxTable.RegisterAppThd(PThd);
     // Read device ID and type
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);

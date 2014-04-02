@@ -20,7 +20,8 @@ struct rPkt_t {
 #endif
 
 #if 1 // ======================= Address space =================================
-#define RCHNL_MIN       10
+#define FIELD_RX_CHNL    9
+#define RCHNL_MIN       FIELD_RX_CHNL
 #define RCHNL_MAX       60
 
 
@@ -33,11 +34,12 @@ struct rPkt_t {
 #define RSSI_DB2PERCENT(db) ((((db) - RSSI_MIN_DB) * 100) / (RSSI_MAX_DB - RSSI_MIN_DB))
 
 
-#define FIELD_RX_CHNL       9
+
 #define DETECTOR_TX_CNT     4
 
 #if 1 // =========================== Timings ===================================
-#define RX_TIMEOUT_MS       4
+#define FIELD_RX_T_MS       4
+#define RCVR_RX_T_MS        6
 
 #endif
 

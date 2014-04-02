@@ -9,6 +9,7 @@
 #define APPLICATION_H_
 
 #include "kl_lib_L15x.h"
+#include "RxTable.h"
 
 # if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
 #define CMD_PING            0x01
@@ -64,6 +65,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     Eeprom_t EE;
+    RxTable_t RxTable;
     void Init();
     uint8_t SetType(uint8_t AType);
     // Inner use

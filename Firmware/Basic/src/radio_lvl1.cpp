@@ -41,8 +41,6 @@ void rLevel1_t::ITask() {
     int8_t Rssi;
     uint8_t RxRslt;
     while(true) {
-        // New cycle begins
-        CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
         PktTx.Type = App.Type;
 
 #if 1 // ======== TX cycle ========
@@ -58,7 +56,6 @@ void rLevel1_t::ITask() {
                 CC.SetChannel(FIELD_RX_CHNL);
                 for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx, RPKT_LEN);
                 break;
-#endif
             default: break;
         } // switch
 #endif
@@ -69,10 +66,10 @@ void rLevel1_t::ITask() {
             case dtFieldNature:
             case dtFieldStrong:
                 CC.SetChannel(FIELD_RX_CHNL);
-                RxRslt = CC.ReceiveSync(RX_TIMEOUT_MS, &PktRx, RPKT_LEN, &Rssi);
+                RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, RPKT_LEN, &Rssi);
                 if(RxRslt == OK) {
-                    Uart.Printf("Ch=%u; Lvl=%d\r", FIELD_RX_CHNL, Rssi);
-                    Led.StartBlink(LedFieldDemonstrate);
+                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
+                    if(PktRx.Type == (uint8_t)dtDetector) Led.StartBlink(LedFieldDemonstrate);
                 }
                 break;
 
@@ -82,12 +79,13 @@ void rLevel1_t::ITask() {
             case dtDetector:
                 for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
                     CC.SetChannel(i);
-                    RxRslt = CC.ReceiveSync(RX_TIMEOUT_MS, &PktRx, RPKT_LEN, &Rssi);
+                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, RPKT_LEN, &Rssi);
                     if(RxRslt == OK) {
-                        Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
-
+                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                        App.RxTable.PutInfo(i, PktTx.Type, Rssi);
                     }
                 } // for
+                App.RxTable.SendEvtReady();
                 break;
 
             default:
@@ -118,15 +116,10 @@ void rLevel1_t::ITask() {
         }
         else Clr = clBlack;
         Led.SetColor(Clr);
-#else
-//        IterateEmanators();
-//        Uart.Printf("%d\r", Damage);
-
 #endif
     } // while true
 }
-
-#endif
+#endif // task
 
 #if 1 // ============================
 void rLevel1_t::Init() {

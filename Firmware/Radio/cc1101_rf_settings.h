@@ -32,8 +32,8 @@
 //#define CC_MDMCFG1_VALUE    (0b10000000 | CC_MDMCFG1_CHANSPC_E)  // FEC=1, Preamble length=000 => 2bytes
 //#define CC_MDMCFG1_VALUE    (0b11000000 | CC_MDMCFG1_CHANSPC_E)  // FEC=1, Preamble length=100 => 8bytes
 
-//#define CC_MCSM0_VALUE      0x18        // Calibrate at IDLE->RX,TX
-#define CC_MCSM0_VALUE      0x08        // Never calibrate
+#define CC_MCSM0_VALUE      0x18        // Calibrate at IDLE->RX,TX
+//#define CC_MCSM0_VALUE      0x08        // Never calibrate
 
 // Clear channel signal
 #define CC_CCA_MODE         0b00000000  // Always clear
