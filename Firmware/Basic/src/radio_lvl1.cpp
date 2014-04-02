@@ -12,6 +12,7 @@
 #include "cmd_uart.h"
 
 #include "peripheral.h"
+#include "sequences.h"
 
 #define DBG_PINS
 
@@ -35,26 +36,65 @@ static void rLvl1Thread(void *arg) {
 
 //#define TX
 //#define LED_RX
-
+__attribute__((noreturn))
 void rLevel1_t::ITask() {
+    int8_t Rssi;
+    uint8_t RxRslt;
     while(true) {
         // New cycle begins
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-//        uint8_t RxRslt;
-        if((App.Type == dtFieldWeak) or (App.Type == dtFieldNature) or (App.Type == dtFieldStrong)) {
-            // TX cycle
-            CC.SetChannel(App.ID);
-            PktTx.Type = App.Type;
-            PktTx.Check[0] = CHECK_0;
-            PktTx.Check[1] = CHECK_1;
-            PktTx.Check[2] = CHECK_2;
-            for(uint32_t i=0; i<FIELD_TX_CNT; i++) CC.TransmitSync(&PktTx, RPKT_LEN);
-            chThdSleepMilliseconds(45);
-            // RX cycle
-            //RxRslt = CC.ReceiveSync(306, &PktRx);
-        }
+        PktTx.Type = App.Type;
 
-        else chThdSleepMilliseconds(450);
+#if 1 // ======== TX cycle ========
+        switch(App.Type) {
+            case dtFieldWeak:
+            case dtFieldNature:
+            case dtFieldStrong:
+                CC.SetChannel(App.ID);
+                CC.TransmitSync(&PktTx, RPKT_LEN);
+                break;
+
+            case dtDetector:
+                CC.SetChannel(FIELD_RX_CHNL);
+                for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx, RPKT_LEN);
+                break;
+#endif
+            default: break;
+        } // switch
+#endif
+
+#if 1 // ======== RX cycle ========
+        switch(App.Type) {
+            case dtFieldWeak:
+            case dtFieldNature:
+            case dtFieldStrong:
+                CC.SetChannel(FIELD_RX_CHNL);
+                RxRslt = CC.ReceiveSync(RX_TIMEOUT_MS, &PktRx, RPKT_LEN, &Rssi);
+                if(RxRslt == OK) {
+                    Uart.Printf("Ch=%u; Lvl=%d\r", FIELD_RX_CHNL, Rssi);
+                    Led.StartBlink(LedFieldDemonstrate);
+                }
+                break;
+
+            case dtXtraNormal:
+            case dtXtraWeak:
+            case dtUfo:
+            case dtDetector:
+                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                    CC.SetChannel(i);
+                    RxRslt = CC.ReceiveSync(RX_TIMEOUT_MS, &PktRx, RPKT_LEN, &Rssi);
+                    if(RxRslt == OK) {
+                        Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
+
+                    }
+                } // for
+                break;
+
+            default:
+                chThdSleepMilliseconds(450);
+                break;
+        } // switch
+#endif
 
 #ifdef TX
         // Transmit
@@ -99,7 +139,9 @@ void rLevel1_t::Init() {
     CC.SetChannel(0);
     CC.SetPktSize(RPKT_LEN);
     // Variables
-
+    PktTx.Check[0] = CHECK_0;
+    PktTx.Check[1] = CHECK_1;
+    PktTx.Check[2] = CHECK_2;
     // Thread
     PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

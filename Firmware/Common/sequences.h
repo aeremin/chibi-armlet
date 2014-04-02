@@ -17,6 +17,11 @@
  */
 
 #if 1 // ============================ LED RGB ==================================
+// Field
+const LedChunk_t LedFieldDemonstrate[] = {
+        {clRed, 3600, ckStop},
+};
+
 // Pill
 const LedChunk_t LedPillOk[] = {
         {clBlue,  540, ckStop},
