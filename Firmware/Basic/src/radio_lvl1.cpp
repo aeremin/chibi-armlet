@@ -49,12 +49,12 @@ void rLevel1_t::ITask() {
             case dtFieldNature:
             case dtFieldStrong:
                 CC.SetChannel(App.ID);
-                CC.TransmitSync(&PktTx, RPKT_LEN);
+                CC.TransmitSync(&PktTx);
                 break;
 
             case dtDetector:
                 CC.SetChannel(FIELD_RX_CHNL);
-                for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx, RPKT_LEN);
+                for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
                 break;
             default: break;
         } // switch
@@ -66,7 +66,7 @@ void rLevel1_t::ITask() {
             case dtFieldNature:
             case dtFieldStrong:
                 CC.SetChannel(FIELD_RX_CHNL);
-                RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, RPKT_LEN, &Rssi);
+                RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
                 if(RxRslt == OK) {
                     Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
                     if(PktRx.Type == (uint8_t)dtDetector) Led.StartBlink(LedFieldDemonstrate);
@@ -79,7 +79,7 @@ void rLevel1_t::ITask() {
             case dtDetector:
                 for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
                     CC.SetChannel(i);
-                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, RPKT_LEN, &Rssi);
+                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
                     if(RxRslt == OK) {
                         Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
                         App.RxTable.PutInfo(i, PktTx.Type, Rssi);

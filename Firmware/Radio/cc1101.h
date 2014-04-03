@@ -26,6 +26,7 @@ private:
     uint8_t IState; // Inner CC state, returned as first byte
     Thread *PWaitingThread;
     Spi_t ISpi;
+    uint8_t IPktSz;
     // Pins
     PinIrq_t IGdo0;
     void CsHi() { PinSet(CC_GPIO, CC_CS); }
@@ -54,11 +55,11 @@ public:
     void Init();
     void SetChannel(uint8_t AChannel);
     void SetTxPower(uint8_t APwr)  { WriteRegister(CC_PATABLE, APwr); }
-    void SetPktSize(uint8_t ASize) { WriteRegister(CC_PKTLEN, ASize); }
+    void SetPktSize(uint8_t ASize) { WriteRegister(CC_PKTLEN, ASize); IPktSz = ASize; }
     // State change
-    void TransmitSync(void *Ptr, uint8_t Len);
-    uint8_t ReceiveSync(uint32_t Timeout_ms, void *Ptr, uint8_t Len, int8_t *PRssi);
-    void TransmitAsync(void *Ptr, uint8_t Len);
+    void TransmitSync(void *Ptr);
+    uint8_t ReceiveSync(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi);
+    void TransmitAsync(void *Ptr);
     void ReceiveAsync();
     void EnterIdle()  { WriteStrobe(CC_SIDLE); State = ccIdle; }
     void Sleep() { WriteStrobe(CC_SPWD); State = ccSleeping; }
@@ -67,7 +68,7 @@ public:
         WriteStrobe(CC_SCAL);
         BusyWait();
     }
-    uint8_t ReadFIFO(void *Ptr, uint8_t Len, int8_t *PRssi);
+    uint8_t ReadFIFO(void *Ptr, int8_t *PRssi);
     // Inner use
     void IGdo0IrqHandler();
 };
