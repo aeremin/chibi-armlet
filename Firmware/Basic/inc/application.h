@@ -39,13 +39,43 @@
 
 #endif
 
+// ==== Device Types ====
 enum DeviceType_t {
     dtNothing=0,
     dtFieldWeak=1, dtFieldNature=2, dtFieldStrong=3,
     dtXtraNormal=4, dtXtraWeak=5, dtUfo=6,
     dtDetector=7
 };
+// Sensitivity Constants, percent [1...100]. Feel if RxLevel > SnsConst.
+#define RLVL_NEVER              0xFF
+#define RLVL_2M                 80
+#define RLVL_4M                 60
+#define RLVL_50M                5
 
+const uint8_t SnsTable[8][3] = {
+        {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtNothing
+        {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldWeak
+        {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldNature
+        {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldStrong
+
+        {RLVL_2M,    RLVL_50M,   RLVL_4M   }, // dtXtraNormal
+        {RLVL_NEVER, RLVL_NEVER, RLVL_2M   }, // dtXtraWeak
+        {RLVL_NEVER, RLVL_50M,   RLVL_2M   }, // dtUfo
+
+        {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtDetector
+};
+
+#define SNS_XTRA_NORMAL_1       RLVL_2M
+#define SNS_XTRA_NORMAL_2       RLVL_50M
+#define SNS_XTRA_NORMAL_3       RLVL_4M
+
+#define SNS_XTRA_WEAK_3         RLVL_2M
+
+#define SNS_UFO_2               RLVL_50M
+#define SNS_UFO_3               RLVL_2M
+
+
+// Eeprom addresses
 #define EE_DEVICE_ID_ADDR       0
 #define EE_DEVICE_TYPE_ADDR     4
 
@@ -60,6 +90,8 @@ enum DeviceType_t {
 class App_t {
 private:
     void IPillHandler();
+    inline void ITableHandler();
+    inline void IDemonstrate(uint8_t Level) {}
 public:
     uint32_t ID;
     DeviceType_t Type;

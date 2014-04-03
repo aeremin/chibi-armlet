@@ -9,8 +9,10 @@
 #define SENSORTABLE_H_
 
 #include "kl_lib_L15x.h"
+#include "cmd_uart.h"
 #include "ch.h"
 #include "evt_mask.h"
+#include "rlvl1_defins.h"
 
 struct Row_t {
     uint8_t ID;
@@ -64,6 +66,24 @@ public:
         ISwitchTableI();
         if(IPThd != nullptr) chEvtSignalI(IPThd, EVTMSK_RX_TABLE_READY);
         chSysUnlock();
+    }
+
+    void dBm2Percent() {
+        for(uint32_t i=0; i < PTable->Size; i++) {
+            int32_t Rssi = PTable->Row[i].Rssi;
+            if(Rssi < -100) Rssi = -100;
+            else if(Rssi > -35) Rssi = -35;
+            Rssi += 100;    // 0...65
+            PTable->Row[i].Rssi  = dBm2PercentTbl[Rssi];
+        }
+    }
+
+    void Print() {
+        if(PTable->Size == 0) return;
+        Uart.Printf("ID; Type; Rssi;\r");
+        for(uint32_t i=0; i < PTable->Size; i++) {
+            Uart.Printf("%u; %u; %d\r", PTable->Row[i].ID, PTable->Row[i].Type, PTable->Row[i].Rssi);
+        }
     }
 };
 

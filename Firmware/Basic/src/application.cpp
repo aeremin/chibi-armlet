@@ -85,7 +85,52 @@ void App_t::ITask() {
             }
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
+
+        // ==== RX table ====
+        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
+
     } // while 1
+}
+
+void App_t::ITableHandler() {
+    // ==== Process table ====
+//    RxTable.Print();
+    RxTable.dBm2Percent();
+    RxTable.Print();
+    // Summ all signals by type
+    uint8_t SnsConst1 = SnsTable[Type][0];
+    uint8_t SnsConst2 = SnsTable[Type][1];
+    uint8_t SnsConst3 = SnsTable[Type][2];
+
+    uint32_t Lvl1=100, Lvl2=100, Lvl3=100;
+    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
+        Row_t *PRow = &RxTable.PTable->Row[i];
+        switch(PRow->Type) {
+            case dtFieldWeak:   Lvl1 = (Lvl1 * (100 - PRow->Rssi)) / 100; break;
+            case dtFieldNature: Lvl2 = (Lvl2 * (100 - PRow->Rssi)) / 100; break;
+            case dtFieldStrong: Lvl3 = (Lvl3 * (100 - PRow->Rssi)) / 100; break;
+            default: break;
+        }
+    } // for
+    // Normalize levels
+    Lvl1 = 100 - Lvl1;
+    Lvl2 = 100 - Lvl2;
+    Lvl3 = 100 - Lvl3;
+    uint8_t RxType = 0, TopLvl  = Lvl1;
+    if(Lvl2 > TopLvl) {
+        RxType = 1;
+        TopLvl = Lvl2;
+    }
+    if(Lvl3 > TopLvl) {
+        RxType = 2;
+        TopLvl = Lvl3;
+    }
+    // ==== Show time ====
+    uint8_t SnsConst = SnsTable[Type][RxType];
+    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Sns=%u\r", Lvl1, Lvl2, Lvl3, TopLvl, SnsConst);
+    if(TopLvl > SnsConst) {
+        IDemonstrate(1);
+    }
 }
 
 void App_t::Init() {
@@ -113,7 +158,6 @@ uint8_t App_t::SetType(uint8_t AType) {
     Uart.Printf("ID=%u; Type=%u\r", ID, Type);
     return rslt;
 }
-
 #endif
 
 #if 1 // ======================= Command processing ============================
