@@ -11,7 +11,7 @@
 Clk_t Clk;
 
 // ==== Inner use ====
-uint8_t Clk_t::HSEEnable() {
+uint8_t Clk_t::EnableHSE() {
     RCC->CR |= RCC_CR_HSEON;    // Enable HSE
     // Wait until ready
     uint32_t StartUpCounter=0;
@@ -22,7 +22,7 @@ uint8_t Clk_t::HSEEnable() {
     return 1; // Timeout
 }
 
-uint8_t Clk_t::HSIEnable() {
+uint8_t Clk_t::EnableHSI() {
     RCC->CR |= RCC_CR_HSION;
     // Wait until ready
     uint32_t StartUpCounter=0;
@@ -33,7 +33,7 @@ uint8_t Clk_t::HSIEnable() {
     return 1; // Timeout
 }
 
-uint8_t Clk_t::PLLEnable() {
+uint8_t Clk_t::EnablePLL() {
     RCC->CR |= RCC_CR_PLLON;
     // Wait until ready
     uint32_t StartUpCounter=0;
@@ -44,7 +44,7 @@ uint8_t Clk_t::PLLEnable() {
     return 1; // Timeout
 }
 
-uint8_t Clk_t::MSIEnable() {
+uint8_t Clk_t::EnableMSI() {
     RCC->CR |= RCC_CR_MSION;
     // Wait until ready
     uint32_t StartUpCounter=0;
@@ -116,7 +116,7 @@ void Clk_t::SetupBusDividers(AHBDiv_t AHBDiv, APBDiv_t APB1Div, APBDiv_t APB2Div
 
 // Enables HSI, switches to HSI
 uint8_t Clk_t::SwitchToHSI() {
-    if(HSIEnable() != 0) return 1;
+    if(EnableHSI() != 0) return 1;
     uint32_t tmp = RCC->CFGR;
     tmp &= ~RCC_CFGR_SW;
     tmp |=  RCC_CFGR_SW_HSI;  // Select HSI as system clock src
@@ -127,7 +127,7 @@ uint8_t Clk_t::SwitchToHSI() {
 
 // Enables HSE, switches to HSE
 uint8_t Clk_t::SwitchToHSE() {
-    if(HSEEnable() != 0) return 1;
+    if(EnableHSE() != 0) return 1;
     uint32_t tmp = RCC->CFGR;
     tmp &= ~RCC_CFGR_SW;
     tmp |=  RCC_CFGR_SW_HSE;  // Select HSE as system clock src
@@ -138,8 +138,8 @@ uint8_t Clk_t::SwitchToHSE() {
 
 // Enables HSE, enables PLL, switches to PLL
 uint8_t Clk_t::SwitchToPLL() {
-    if(HSEEnable() != 0) return 1;
-    if(PLLEnable() != 0) return 2;
+    if(EnableHSE() != 0) return 1;
+    if(EnablePLL() != 0) return 2;
     uint32_t tmp = RCC->CFGR;
     tmp &= ~RCC_CFGR_SW;
     tmp |=  RCC_CFGR_SW_PLL;      // Select PLL as system clock src
@@ -150,7 +150,7 @@ uint8_t Clk_t::SwitchToPLL() {
 
 // Enables MSI, switches to MSI
 uint8_t Clk_t::SwitchToMSI() {
-    if(MSIEnable() != 0) return 1;
+    if(EnableMSI() != 0) return 1;
     uint32_t tmp = RCC->CFGR;
     tmp &= ~RCC_CFGR_SW;
     tmp |=  RCC_CFGR_SW_MSI;      // Select MSI as system clock src

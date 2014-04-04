@@ -21,7 +21,7 @@ static inline void Init();
 
 int main(void) {
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V8);
+    SetupVCore(vcore1V2);
     //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
 //    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
@@ -45,8 +45,12 @@ void Init() {
     Uart.Init(115200);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
-    Led.SetColor(clWhite);
-    chThdSleepMilliseconds(999);
+    Led.SetColor(clRed);
+    chThdSleepMilliseconds(450);
+    Led.SetColor(clGreen);
+    chThdSleepMilliseconds(450);
+    Led.SetColor(clBlue);
+    chThdSleepMilliseconds(450);
     Beeper.Init();
     Beeper.Beep(BeepBeep);
     Vibro.Init();

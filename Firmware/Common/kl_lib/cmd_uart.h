@@ -11,13 +11,15 @@
 #include "stm32l1xx.h"
 #include "ch.h"
 #include "hal.h"
+#include "kl_sprintf.h"
 #include "kl_lib_L15x.h"
 
 // Set to true if RX needed
-#define UART_RX_ENABLED     TRUE
+#define UART_RX_ENABLED     FALSE
 
 // UART
 #define UART_TXBUF_SIZE     504
+
 #define UART                USART1
 #define UART_GPIO           GPIOA
 #define UART_TX_PIN         9
@@ -52,9 +54,8 @@ enum RcvState_t {rsStart, rsCmdCode1, rsCmdCode2, rsData1, rsData2};
 
 class CmdUart_t {
 private:
-    uint8_t TXBuf[UART_TXBUF_SIZE];
-    char SprintfBuf[UART_TXBUF_SIZE];
-    uint8_t *PWrite, *PRead;
+    char TXBuf[UART_TXBUF_SIZE];
+    char *PRead, *PWrite;
     bool IDmaIsIdle;
     uint32_t IFullSlotsCount, ITransSize;
 #if UART_RX_ENABLED
@@ -75,8 +76,9 @@ public:
     }
     void Init(uint32_t ABaudrate);
     void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, 0); }
-
+    // Inner use
     void IRQDmaTxHandler();
+    void IPutChar(char c);
 #if UART_RX_ENABLED
     // Inner use
     void IRxTask();
