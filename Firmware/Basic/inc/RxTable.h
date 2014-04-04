@@ -17,7 +17,7 @@
 struct Row_t {
     uint8_t ID;
     uint8_t Type;
-    int8_t Rssi;
+    int32_t Rssi;
 };
 
 #define MAX_ROW_CNT     99
@@ -74,7 +74,7 @@ public:
             if(Rssi < -100) Rssi = -100;
             else if(Rssi > -35) Rssi = -35;
             Rssi += 100;    // 0...65
-            PTable->Row[i].Rssi  = dBm2PercentTbl[Rssi];
+            PTable->Row[i].Rssi  = dBm2Percent1000Tbl[Rssi];
         }
     }
 

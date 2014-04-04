@@ -19,6 +19,27 @@ App_t App;
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
 
+class LvlSumm_t {
+private:
+    int32_t tm, Sum, IThreshold;
+public:
+    void Init(int32_t Threshold) {
+        IThreshold = Threshold;
+        tm = RX_LVL_TOP - IThreshold;
+        Sum = tm;
+    }
+    void ProcessValue(int32_t Value) {
+        if(Value <= IThreshold) return;
+        Value -= IThreshold;
+        Uart.Printf("a) %d %d\r", Value, Sum);
+        Sum = (Sum * (tm - Value)) / tm;
+        Uart.Printf("b) %d %d\r", Value, Sum);
+    }
+    int32_t GetLevel(int32_t Normalizer) { return ((tm - Sum - 1) * Normalizer) / tm + 1; }
+};
+
+static LvlSumm_t LvlS[3];
+
 #if 1 // ================================ Pill =================================
 struct Pill_t {
     uint16_t ID;
@@ -71,36 +92,42 @@ void TmrPillCheckCallback(void *p) {
 __attribute__((noreturn))
 void App_t::ITask() {
     chRegSetThreadName("App");
-    bool PillConnected = false;
+//    bool PillConnected = false;
     while(true) {
-        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        // ==== Check pill ====
-        if(EvtMsk & EVTMSK_PILL_CHECK) {
-            // Check if new connection occured
-            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
-                if(!PillConnected) {
-                    PillConnected = true;
-                    App.IPillHandler();
-                }
-            }
-            else PillConnected = false;
-        } // if EVTMSK_PILL_CHECK
+        chThdSleepMilliseconds(999);
 
-        // ==== RX table ====
-        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
+        LvlS[0].Init(700);
+        LvlS[0].ProcessValue(700);
+        Uart.Printf("%d\r", LvlS[0].GetLevel(4));
+
+//        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+//        // ==== Check pill ====
+//        if(EvtMsk & EVTMSK_PILL_CHECK) {
+//            // Check if new connection occured
+//            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
+//                if(!PillConnected) {
+//                    PillConnected = true;
+//                    App.IPillHandler();
+//                }
+//            }
+//            else PillConnected = false;
+//        } // if EVTMSK_PILL_CHECK
+//
+//        // ==== RX table ====
+//        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
 
     } // while 1
 }
+
 
 void App_t::ITableHandler() {
     // ==== Process table ====
 //    RxTable.Print();
     RxTable.dBm2Percent();
     RxTable.Print();
+
     // Summ all signals by type
-    uint8_t SnsConst1 = SnsTable[Type][0];
-    uint8_t SnsConst2 = SnsTable[Type][1];
-    uint8_t SnsConst3 = SnsTable[Type][2];
+
 
     uint32_t Lvl1=100, Lvl2=100, Lvl3=100;
     for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
