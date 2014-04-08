@@ -12,6 +12,13 @@ Time_t RTU; // Real Time Unit, based on RTC
 HwTime_t HwTime;
 FwTime_t FwTime;
 
+static inline bool HexToUint(uint8_t b, uint8_t *p) {
+    if( ((b & 0xF0) >> 4) > 0x09) return false;
+    if(  (b & 0x0F)       > 0x09) return false;
+    *p = (((b & 0xF0) >> 4)*10) + (b & 0x0F);
+    return true;
+}
+
 void Time_t::Init(RTUMode_t Mode) {
     TimeMode = Mode;
     switch(TimeMode) {
@@ -30,9 +37,11 @@ void Time_t::Init(RTUMode_t Mode) {
     }
 }
 
+
 #if 1 // ==== Fw Time ====
+
 static void TimeTick(void *p) {
-    FwTime.absMS++;
+    FwTime.TimInc();
     chSysLockFromIsr();
     chVTSetI(&FwTime.RTUTmt, MS2ST(1000), TimeTick, nullptr);
     chSysUnlockFromIsr();
@@ -41,8 +50,23 @@ static void TimeTick(void *p) {
 
 void FwTime_t::Init() {
     absMS = 0;
-    chVTSet(&FwTime.RTUTmt, MS2ST(1000), TimeTick, nullptr); /* Set VT */
+    chVTSet(&FwTime.RTUTmt, MS2ST(1), TimeTick, nullptr); /* Set VT */
 }
+
+uint8_t FwTime_t::SetTime(uint8_t HH, uint8_t MM, uint8_t SS) {
+    uint8_t uHH, uMM, uSS;
+    if(!HexToUint(HH, &uHH)) return FAILURE;
+    if(!HexToUint(MM, &uMM)) return FAILURE;
+    if(!HexToUint(SS, &uSS)) return FAILURE;
+    if((uHH > 23) or (uMM > 59) or (uSS > 59)) return CMD_ERROR;
+    uint32_t NewAbsMs = 0;
+    NewAbsMs =  (uHH*3600)*1000;
+    NewAbsMs += (uMM*60)*1000;
+    NewAbsMs += (uSS*1000);
+    SetMs(NewAbsMs);
+    return OK;
+}
+
 
 #endif
 

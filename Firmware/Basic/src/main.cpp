@@ -38,7 +38,7 @@ int main(void) {
     while(1) {
         //chThdSleep(TIME_INFINITE);
 //        Uart.Printf("%X:%X:%X\r", (((RTC->TR) & 0x7F0000) >>16), ((RTC->TR & 0x7F00) >>8), (RTC->TR & 0x7F));
-        Uart.Printf("%u\r", FwTime.absMS);
+//        Uart.Printf("%u\r", FwTime.GetMs());
         chThdSleepMilliseconds(999);
         Vibro.Flinch(Brr);
     } // while
@@ -59,5 +59,5 @@ void Init() {
 //    Radio.Init(SELF_MESH_ID);
 //    Mesh.Init(SELF_MESH_ID);
 
-//    App.Init();
+    App.Init();
 }

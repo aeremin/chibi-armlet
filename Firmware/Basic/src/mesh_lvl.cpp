@@ -131,8 +131,7 @@ void Mesh_t::TableSend() {
 }
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
-    // Check Time
-//    SetAbsTimeMS(RTU.GetTimeMS());
+    SetAbsTimeMS(FwTime.GetMs()); /* Get New time from RTU, all time when update cycle function is called */
     if(NeedUpdateTime) {
 #ifdef MESH_DBG
         Uart.Printf("Msh: CycUpd=%u\r", NewTime);
@@ -144,8 +143,6 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
         }
         while (WakeUpSysTime < timeNow);
         SetCurrCycleN(NewTime);
-//        Uart.Printf("Msh: put %u\r", GetAbsTimeMS());
-//        RTU.SetTimeMS(GetAbsTimeMS());
         CycleTmr.SetCounter(0);
         NeedUpdateTime = false;
 #ifdef MESH_DBG

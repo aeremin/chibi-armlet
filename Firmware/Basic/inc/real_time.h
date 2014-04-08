@@ -57,7 +57,7 @@ private:
 
     void PutTimeMS(uint32_t Ams) {
 //            RTU.Time.SetTime(Ams);
-            uint32_t tmp = 0;
+//            uint32_t tmp = 0;
 //            tmp = (RTU.Time.HH << 16) | (RTU.Time.MM << 8) | (RTU.Time.SS);
 //            Uart.Printf("RTC: put %X\r", tmp);
 //            RTC->TR = tmp;
@@ -73,9 +73,13 @@ extern HwTime_t HwTime;
 
 class FwTime_t {
 private:
+    uint32_t absMS;
 public:
     VirtualTimer RTUTmt;
-    uint32_t absMS;
+    void TimInc() { absMS++; }
+    uint32_t GetMs()  { return absMS; }
+    void SetMs(uint32_t NValue) { absMS = NValue; }
+    uint8_t SetTime(uint8_t HH, uint8_t MM, uint8_t SS);
     void Init();
 };
 extern FwTime_t FwTime;
