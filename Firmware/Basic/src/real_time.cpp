@@ -42,15 +42,16 @@ void Time_t::Init(RTUMode_t Mode) {
 
 static void TimeTick(void *p) {
     FwTime.TimInc();
+//    Uart.Printf("t,%u\r", FwTime.GetMs());
     chSysLockFromIsr();
-    chVTSetI(&FwTime.RTUTmt, MS2ST(1000), TimeTick, nullptr);
+    chVTSetI(&FwTime.RTUTmt, S2ST(1), TimeTick, nullptr);
     chSysUnlockFromIsr();
 }
 
 
 void FwTime_t::Init() {
     absMS = 0;
-    chVTSet(&FwTime.RTUTmt, MS2ST(1), TimeTick, nullptr); /* Set VT */
+    chVTSet(&FwTime.RTUTmt, S2ST(1), TimeTick, nullptr); /* Set VT */
 }
 
 uint8_t FwTime_t::SetTime(uint8_t HH, uint8_t MM, uint8_t SS) {

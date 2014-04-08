@@ -74,49 +74,37 @@ void Mesh_t::NewCycle() {
 }
 
 bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
-    bool Rslt = false;
+    bool GetPrimaryPkt = false;
     if(PktBuf.GetFilledSlots() != 0) {
         uint8_t PriorityID = GetMeshID();
         mshMsg_t MeshMsg;
         do {
             PktBuf.ReadPkt(&MeshMsg);
-
-            /* Led Update Information from received Pkt */
-            if(SelfID > MeshMsg.PktRx.ColorOwner) {
-                LedColor = MeshMsg.PktRx.Color;
-                Radio.SetColorOwner(MeshMsg.PktRx.ColorOwner);
-                App.SendEvt(EVTMSK_LED_UPD);
+            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
+            if(PriorityID > MeshMsg.PktRx.TimeOwnerID) GetPrimaryPkt = true;
+            else if(PriorityID == MeshMsg.PktRx.TimeOwnerID) {
+                if(GetTimeAge() > MeshMsg.PktRx.TimeAge) {  /* compare TimeAge */
+                    GetPrimaryPkt = true;                   /* need to update */
+                }
             }
 
-//            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
-            if(PriorityID > MeshMsg.PktRx.TimeOwnerID) {                /* Priority time checking */
+            if(GetPrimaryPkt) {
                 CycleTmr.Disable();
-                Rslt = true;
+                GetPrimaryPkt = true;
                 *PTime = MeshMsg.PktRx.CycleN + 1;
                 PriorityID = MeshMsg.PktRx.TimeOwnerID;
                 ResetTimeAge(PriorityID);
                 *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
             }
-            // FIXME: Next following the code which works if our current ID and recieved ID is the same
-            else if(PriorityID == MeshMsg.PktRx.TimeOwnerID) {
-                if(GetTimeAge() > MeshMsg.PktRx.TimeAge) {
-                    CycleTmr.Disable();
-                    Rslt = true;
-                    *PTime = MeshMsg.PktRx.CycleN + 1;
-                    PriorityID = MeshMsg.PktRx.TimeOwnerID;
-                    ResetTimeAge(PriorityID);
-                    *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
-                }
-            }
 
-            if(MeshMsg.PktRx.RSSI < -100) MeshMsg.PktRx.RSSI = -100;
-            else if(MeshMsg.PktRx.RSSI > -35) MeshMsg.PktRx.RSSI = -35;
-            MeshMsg.PktRx.RSSI += 100;    // 0...65
-            uint32_t Lvl = DbTranslate[MeshMsg.PktRx.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
+            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
+            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
+            MeshMsg.RSSI += 100;    // 0...65
+            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
             SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
         } while(PktBuf.GetFilledSlots() != 0);
     }
-    return Rslt;
+    return GetPrimaryPkt;
 }
 
 void Mesh_t::TableSend() {
@@ -131,7 +119,6 @@ void Mesh_t::TableSend() {
 }
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
-    SetAbsTimeMS(FwTime.GetMs()); /* Get New time from RTU, all time when update cycle function is called */
     if(NeedUpdateTime) {
 #ifdef MESH_DBG
         Uart.Printf("Msh: CycUpd=%u\r", NewTime);

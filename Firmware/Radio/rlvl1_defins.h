@@ -19,9 +19,6 @@ struct rPkt_t {
     uint32_t CycleN;
     uint8_t TimeOwnerID;
     uint8_t TimeAge;
-    Color_t Color;
-    uint8_t ColorOwner;
-    int8_t RSSI;
 } __attribute__ ((__packed__));
 #define RPKT_SZ     sizeof(rPkt_t)
 #define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI

@@ -56,8 +56,8 @@ void Init() {
 //    Vibro.Flinch(BrrBrr);
 //    PillMgr.Init();
 
-//    Radio.Init(SELF_MESH_ID);
-//    Mesh.Init(SELF_MESH_ID);
+    Radio.Init(SELF_MESH_ID);
+    Mesh.Init(SELF_MESH_ID);
 
-    App.Init();
+//    App.Init();
 }

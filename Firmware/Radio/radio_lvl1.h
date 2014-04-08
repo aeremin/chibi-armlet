@@ -49,10 +49,10 @@ private:
         // Iterate slow emanators
         for(uint8_t i=0; i<SLOW_EMANATOR_CNT; i++) {
             CC.SetChannel(CHANNEL_ZERO + i);
-            if(CC.ReceiveSync(27, &PktRx) == OK) {
+//            if(CC.ReceiveSync(27, &PktRx) == OK) {
 //                GetDmgOutOfPkt();
 //              if(RadioDmg != 0) Uart.Printf("%d; %d\r", prc, RadioDmg);
-            } // if ok
+//            } // if ok
         } // for
         // Sleep until asked
         CC.Sleep();
@@ -72,8 +72,6 @@ public:
     void ResetTimeAge(uint8_t ID)     { PktTx.TimeAge = 0; PktTx.TimeOwnerID = ID; }
     uint8_t GetTimeAge()              { return PktTx.TimeAge;     }
     uint8_t GetTimeOwner()            { return PktTx.TimeOwnerID; }
-    void SetColor(Color_t NewColor)   { PktTx.Color = NewColor;   }
-    void SetColorOwner(uint8_t ID)    { PktTx.ColorOwner = ID;    }
     bool IMeshRx;
 #endif
 };

@@ -57,7 +57,7 @@ public:
     void SetTxPower(uint8_t APwr) { WriteRegister(CC_PATABLE, APwr); }
     // State change
     void TransmitSync(rPkt_t *pPkt);
-    uint8_t ReceiveSync(uint32_t Timeout_ms, rPkt_t *pPkt);
+    uint8_t ReceiveSync(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi);
     void TransmitAsync(rPkt_t *pPkt);
     void ReceiveAsync();
     void EnterIdle()  { WriteStrobe(CC_SIDLE); State = ccIdle; }
@@ -67,7 +67,7 @@ public:
         WriteStrobe(CC_SCAL);
         BusyWait();
     }
-    uint8_t ReadFIFO(rPkt_t *pPkt);
+    uint8_t ReadFIFO(void *Ptr, int8_t *PRssi);
     // Inner use
     void IGdo0IrqHandler();
 };

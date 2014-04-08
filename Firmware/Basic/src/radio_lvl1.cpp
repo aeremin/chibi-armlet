@@ -80,8 +80,7 @@ void rLevel1_t::ITask() {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         PktTx.TimeAge++;
         if(EvtMsk & EVTMSK_MESH_TX) {
-            PktTx.CycleN = Mesh.GetAbsTime();
-            PktTx.Color = Mesh.LedColor;
+            PktTx.CycleN = Mesh.GetCycleN();
 //            Uart.Printf("RadioTx\r");
             if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
             CC.TransmitSync(&PktTx);
@@ -91,14 +90,14 @@ void rLevel1_t::ITask() {
             RxTmt = CYCLE_TIME;
             IMeshRx = true;
             chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
-//            Uart.Printf("RxStart, t=%u\r", chTimeNow());
+            Uart.Printf("Rx\r");
             do {
                 Time = chTimeNow();
 //                Uart.Printf("Rx for t=%u\r", RxTmt);
-                uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx);
+                uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
                 if(RxRslt == OK) { // Pkt received correctly
-//                    Uart.Printf("ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, PktRx.RSSI);
-                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI}); /* SendMsg to MeshThd with PktRx structure */
+                    Uart.Printf("ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, RSSI);
+                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI }); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
                 RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
             } while(IMeshRx);
@@ -127,8 +126,6 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     PktTx.ID = (uint8_t)ASelfID;
     PktTx.CycleN = 0;
     PktTx.TimeOwnerID = PktTx.ID;
-    PktTx.ColorOwner = PktTx.ID;
-    PktTx.Color = Mesh.LedColor;
     ResetTimeAge(PktTx.ID);
 #endif
 

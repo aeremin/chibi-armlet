@@ -76,7 +76,7 @@ void cc1101_t::TransmitAsync(rPkt_t *pPkt) {
 /*
  * Enter RX mode and wait reception for Timeout_ms.
  */
-uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, rPkt_t *pPkt) {
+uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi) {
     FlushRxFIFO();
     chSysLock();
     PWaitingThread = chThdSelf();
@@ -89,7 +89,7 @@ uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, rPkt_t *pPkt) {
         return TIMEOUT;
     }
     // IRQ occured: something received, or CRC error
-    else return ReadFIFO(pPkt);
+    else return ReadFIFO(Ptr, PRssi);
 }
 
 void cc1101_t::ReceiveAsync() {
@@ -108,8 +108,8 @@ int8_t cc1101_t::RSSI_dBm(uint8_t ARawRSSI) {
 }
 
 
-uint8_t cc1101_t::ReadFIFO(rPkt_t *pPkt) {
-    uint8_t b, *p = (uint8_t*)pPkt;
+uint8_t cc1101_t::ReadFIFO(void *Ptr, int8_t *PRssi) {
+    uint8_t b, *p = (uint8_t*)Ptr;
      // Check if received successfully
      b = ReadRegister(CC_PKTSTATUS);
      //    Uart.Printf("St: %X  ", b);
@@ -127,7 +127,7 @@ uint8_t cc1101_t::ReadFIFO(rPkt_t *pPkt) {
          b = ISpi.ReadWriteByte(0); // RSSI
          ISpi.ReadWriteByte(0);     // LQI
          CsHi();                    // End transmission
-         pPkt->RSSI = RSSI_dBm(b);
+         if(PRssi != nullptr) *PRssi = RSSI_dBm(b);
          return OK;
      }
      else return FAILURE;

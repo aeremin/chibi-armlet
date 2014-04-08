@@ -20,7 +20,7 @@
  *  |_____________________..._________________|   SUPER_CYCLE
  */
 
-#define SELF_MESH_ID        1
+#define SELF_MESH_ID        3
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
@@ -39,7 +39,7 @@
 #define END_OF_EPOCH        65536       // max cycle counter
 
 
-#define TIME_AGE_THRESHOLD  99 // in cycles
+#define TIME_AGE_THRESHOLD  20 /* Cycles */
 
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
@@ -112,9 +112,9 @@ public:
 
     Thread *IPThread;
     CircBufPkt_t PktBuf;
-    uint32_t GetAbsTime()               { return (AbsCycle);             }
+    uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
-    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
+//    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
     MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
     void Init(uint32_t ID);
