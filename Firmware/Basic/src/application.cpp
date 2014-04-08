@@ -286,8 +286,8 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 
         case CMD_SET_TIME:
             Uart.Printf("Set time %X:%X:%X ", PData[0], PData[1], PData[2]);
-            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
-            else Uart.Printf(" OK\r");
+//            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
+//            else Uart.Printf(" OK\r");
             break;
 
         default: break;

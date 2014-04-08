@@ -132,7 +132,7 @@ void Mesh_t::TableSend() {
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
     // Check Time
-    SetAbsTimeMS(RTU.GetTimeMS());
+//    SetAbsTimeMS(RTU.GetTimeMS());
     if(NeedUpdateTime) {
 #ifdef MESH_DBG
         Uart.Printf("Msh: CycUpd=%u\r", NewTime);
@@ -144,8 +144,8 @@ void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTi
         }
         while (WakeUpSysTime < timeNow);
         SetCurrCycleN(NewTime);
-        Uart.Printf("Msh: put %u\r", GetAbsTimeMS());
-        RTU.SetTimeMS(GetAbsTimeMS());
+//        Uart.Printf("Msh: put %u\r", GetAbsTimeMS());
+//        RTU.SetTimeMS(GetAbsTimeMS());
         CycleTmr.SetCounter(0);
         NeedUpdateTime = false;
 #ifdef MESH_DBG
@@ -172,7 +172,7 @@ void Mesh_t::Init(uint32_t ID) {
         RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
     }
 //    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
-    SetAbsTimeMS(RTU.GetTimeMS());
+//    SetAbsTimeMS(RTU.GetTimeMS());
 
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);
@@ -182,7 +182,7 @@ void Mesh_t::Init(uint32_t ID) {
     CycleTmr.Enable();
     nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
     Uart.Printf("Msh: Init ID=%u\r", SelfID);
-    Led.SetColor(LedColor);
+//    Led.SetColor(LedColor);
 }
 
 void Mesh_t::IIrqHandler() {

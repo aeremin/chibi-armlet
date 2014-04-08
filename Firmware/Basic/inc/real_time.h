@@ -15,6 +15,10 @@
 #define RTC_INIT_MASK           ((uint32_t)0xFFFFFFFF)
 #define RTC_RSF_MASK            ((uint32_t)0xFFFFFF5F)
 
+enum RTUMode_t {
+    rtumHw, rtumFw, rtumNone
+};
+
 struct TimeContanier_t {
 private:
 public:
@@ -36,9 +40,8 @@ public:
 
 
 
-class Time_t {
+class HwTime_t {
 private:
-    TimeContanier_t Time, *PTime;
     void rccRTCEnable()             { RCC->CSR |= RCC_CSR_RTCEN;     }
     void rccPwrEnable()             { rccEnableAPB1(RCC_APB1ENR_PWREN, false); }
     void BkupRwrEnable()            { PWR->CR |= PWR_CR_DBP; }
@@ -53,21 +56,39 @@ private:
     void Reset()                    { RCC->CSR |= RCC_CSR_RTCRST; RCC->CSR &= ~RCC_CSR_RTCRST; }
 
     void PutTimeMS(uint32_t Ams) {
-            Time.SetTime(Ams);
+//            RTU.Time.SetTime(Ams);
             uint32_t tmp = 0;
-            tmp = (Time.HH << 16) | (Time.MM << 8) | (Time.SS);
-            Uart.Printf("RTC: put %X\r", tmp);
-            RTC->TR = tmp;
+//            tmp = (RTU.Time.HH << 16) | (RTU.Time.MM << 8) | (RTU.Time.SS);
+//            Uart.Printf("RTC: put %X\r", tmp);
+//            RTC->TR = tmp;
         }
 public:
-    Time_t() : PTime(&Time) {}
-
     void SetTime(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
     void SetTimeMS(uint32_t Ams);
     uint8_t SetTimeBCD(uint8_t Ahh, uint8_t Amm, uint8_t Ass);
     uint32_t GetTimeMS();
     void Init();
 };
+extern HwTime_t HwTime;
+
+class FwTime_t {
+private:
+public:
+    VirtualTimer RTUTmt;
+    uint32_t absMS;
+    void Init();
+};
+extern FwTime_t FwTime;
+
+class Time_t {
+private:
+    TimeContanier_t Time, *PTime;
+    RTUMode_t TimeMode;
+public:
+    Time_t() : PTime(&Time), TimeMode(rtumNone) {}
+    void Init(RTUMode_t Mode);
+};
+
 
 extern Time_t RTU;
 
