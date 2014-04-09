@@ -23,22 +23,29 @@ class LvlSumm_t {
 private:
     int32_t tm, Sum, IThreshold;
 public:
+    int32_t Output;
     void Init(int32_t Threshold) {
         IThreshold = Threshold;
         tm = RX_LVL_TOP - IThreshold;
         Sum = tm;
     }
     void ProcessValue(int32_t Value) {
-        if(Value <= IThreshold) return;
+        if(Value < IThreshold) return;     // Ignore too low values
         Value -= IThreshold;
-        Uart.Printf("a) %d %d\r", Value, Sum);
+//        Uart.Printf("a) %d %d\r", Value, Sum);
         Sum = (Sum * (tm - Value)) / tm;
-        Uart.Printf("b) %d %d\r", Value, Sum);
+//        Uart.Printf("b) %d %d\r", Value, Sum);
     }
-    int32_t GetLevel(int32_t Normalizer) { return ((tm - Sum - 1) * Normalizer) / tm + 1; }
+    int32_t CalculateLevel(int32_t Normalizer) {
+        Output = 0;
+        int32_t tmp = (tm - Sum - 1) * Normalizer;
+//        Uart.Printf("B9) %d\r", tmp);
+        if(tmp >= 0) Output = tmp / tm + 1;
+        return Output;
+    }
 };
 
-static LvlSumm_t LvlS[3];
+static LvlSumm_t LvlS[3];   // Three types of fields
 
 #if 1 // ================================ Pill =================================
 struct Pill_t {
@@ -96,12 +103,13 @@ void App_t::ITask() {
     while(true) {
         chThdSleepMilliseconds(999);
 
-        LvlS[0].Init(700);
-        LvlS[0].ProcessValue(700);
-        Uart.Printf("%d\r", LvlS[0].GetLevel(4));
+//        LvlS[0].Init(700);
+//        LvlS[0].ProcessValue(780);
+//        LvlS[0].ProcessValue(800);
+//        Uart.Printf("%d\r", LvlS[0].GetLevel(4));
 
-//        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-//        // ==== Check pill ====
+        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+        // ==== Check pill ====
 //        if(EvtMsk & EVTMSK_PILL_CHECK) {
 //            // Check if new connection occured
 //            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
@@ -112,52 +120,55 @@ void App_t::ITask() {
 //            }
 //            else PillConnected = false;
 //        } // if EVTMSK_PILL_CHECK
-//
-//        // ==== RX table ====
-//        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
+
+        // ==== RX table ====
+        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
 
     } // while 1
 }
 
 
 void App_t::ITableHandler() {
-    // ==== Process table ====
+    // Convert dBm to values 1...1000
 //    RxTable.Print();
     RxTable.dBm2Percent();
     RxTable.Print();
 
+    // Init signal levels with thresholds
+    for(uint8_t i=0; i<3; i++) LvlS[i].Init(SnsTable[Type][i]);
     // Summ all signals by type
-
-
-    uint32_t Lvl1=100, Lvl2=100, Lvl3=100;
     for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
         Row_t *PRow = &RxTable.PTable->Row[i];
         switch(PRow->Type) {
-            case dtFieldWeak:   Lvl1 = (Lvl1 * (100 - PRow->Rssi)) / 100; break;
-            case dtFieldNature: Lvl2 = (Lvl2 * (100 - PRow->Rssi)) / 100; break;
-            case dtFieldStrong: Lvl3 = (Lvl3 * (100 - PRow->Rssi)) / 100; break;
+            case dtFieldWeak:   LvlS[0].ProcessValue(PRow->Rssi); break;
+            case dtFieldNature: LvlS[1].ProcessValue(PRow->Rssi); break;
+            case dtFieldStrong: LvlS[2].ProcessValue(PRow->Rssi); break;
             default: break;
         }
     } // for
-    // Normalize levels
-    Lvl1 = 100 - Lvl1;
-    Lvl2 = 100 - Lvl2;
-    Lvl3 = 100 - Lvl3;
-    uint8_t RxType = 0, TopLvl  = Lvl1;
-    if(Lvl2 > TopLvl) {
-        RxType = 1;
-        TopLvl = Lvl2;
+    // Calculate output levels
+    for(uint8_t i=0; i<3; i++) LvlS[i].CalculateLevel(LVL_STEPS_N);
+
+    // Find top level and type
+    DeviceType_t TopType = dtFieldWeak;
+    int32_t TopLvl = LvlS[0].Output;
+    if(LvlS[1].Output > TopLvl) {
+        TopType = dtFieldNature;
+        TopLvl = LvlS[1].Output;
     }
-    if(Lvl3 > TopLvl) {
-        RxType = 2;
-        TopLvl = Lvl3;
+    if(LvlS[2].Output > TopLvl) {
+        TopType = dtFieldStrong;
+        TopLvl = LvlS[2].Output;
     }
-    // ==== Show time ====
-    uint8_t SnsConst = SnsTable[Type][RxType];
-    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Sns=%u\r", Lvl1, Lvl2, Lvl3, TopLvl, SnsConst);
-    if(TopLvl > SnsConst) {
-        IDemonstrate(1);
-    }
+
+    // Demonstrate
+    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r",
+            LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
+    if(TopLvl > 0) IDemonstrate(TopLvl, TopType);
+}
+
+void App_t::IDemonstrate(uint8_t Level, DeviceType_t Type) {
+    Uart.Printf("Lvl=%u; Type=%u\r", Level, Type);
 }
 
 void App_t::Init() {

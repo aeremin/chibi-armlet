@@ -46,13 +46,15 @@ enum DeviceType_t {
     dtXtraNormal=4, dtXtraWeak=5, dtUfo=6,
     dtDetector=7
 };
-// Sensitivity Constants, percent [1...100]. Feel if RxLevel > SnsConst.
-#define RLVL_NEVER              0xFF
-#define RLVL_2M                 80
-#define RLVL_4M                 60
-#define RLVL_50M                5
+// Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
+#define RLVL_NEVER              10000
+#define RLVL_2M                 700
+#define RLVL_4M                 500
+#define RLVL_50M                1
 
-const uint8_t SnsTable[8][3] = {
+// ==== Table of sensitivity constants ====
+// 8 types of device, 3 nypes of field
+const int32_t SnsTable[8][3] = {
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtNothing
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldWeak
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldNature
@@ -65,14 +67,8 @@ const uint8_t SnsTable[8][3] = {
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtDetector
 };
 
-#define SNS_XTRA_NORMAL_1       RLVL_2M
-#define SNS_XTRA_NORMAL_2       RLVL_50M
-#define SNS_XTRA_NORMAL_3       RLVL_4M
-
-#define SNS_XTRA_WEAK_3         RLVL_2M
-
-#define SNS_UFO_2               RLVL_50M
-#define SNS_UFO_3               RLVL_2M
+// ==== Indication constants ====
+#define LVL_STEPS_N             4 // 0 is nothing, 1...3 is level of indication
 
 
 // Eeprom addresses
@@ -91,7 +87,7 @@ class App_t {
 private:
     void IPillHandler();
     inline void ITableHandler();
-    inline void IDemonstrate(uint8_t Level) {}
+    inline void IDemonstrate(uint8_t Level, DeviceType_t Type);
 public:
     uint32_t ID;
     DeviceType_t Type;
