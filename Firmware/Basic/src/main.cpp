@@ -36,11 +36,7 @@ int main(void) {
 //    if(ClkResult) Uart.Printf("Clock failure\r");
 
     while(1) {
-        //chThdSleep(TIME_INFINITE);
-//        Uart.Printf("%X:%X:%X\r", (((RTC->TR) & 0x7F0000) >>16), ((RTC->TR & 0x7F00) >>8), (RTC->TR & 0x7F));
-//        Uart.Printf("%u\r", FwTime.GetMs());
         chThdSleepMilliseconds(999);
-        Vibro.Flinch(Brr);
     } // while
 }
 
@@ -48,7 +44,14 @@ void Init() {
     RTU.Init(rtumFw);   // Init Timer By second
 
     Uart.Init(57600);
-    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+
+    uint8_t Counter = 10;
+    do {
+        Uart.Printf("*");
+        chThdSleepMilliseconds(249); // Sleep 5 seconds
+    } while (Counter-- != 0);
+
+    Uart.Printf("\rRadioSniffer AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
 //    Beeper.Init();
 //    Beeper.Beep(BeepBeep);
@@ -57,7 +60,7 @@ void Init() {
 //    PillMgr.Init();
 
     Radio.Init(SELF_MESH_ID);
-    Mesh.Init(SELF_MESH_ID);
+//    Mesh.Init(SELF_MESH_ID);
 
 //    App.Init();
 }

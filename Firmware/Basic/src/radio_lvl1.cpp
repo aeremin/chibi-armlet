@@ -37,9 +37,11 @@ static void rLvl1Thread(void *arg) {
 //#define TX
 //#define LED_RX
 
+#define RECALIBRATE_TIME   5000 /* in ms */
+
 #ifdef  MESH
 static void RxEnd(void *p) {
-//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
     Radio.IMeshRx = false;
 }
 #endif
@@ -48,64 +50,16 @@ void rLevel1_t::ITask() {
     while(true) {
         // New cycle begins
         CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-
-#ifdef TX
-        // Transmit
-        DBG1_SET();
-        CC.TransmitSync(&PktTx);
-        DBG1_CLR();
-        chThdSleepMilliseconds(99);
-#elif defined LED_RX
-        Color_t Clr;
-        uint8_t RxRslt = CC.ReceiveSync(306, &PktRx);
-        if(RxRslt == OK) {
-            Uart.Printf("%d\r", PktRx.RSSI);
-            Clr = clWhite;
-            if     (PktRx.RSSI < -100) Clr = clRed;
-            else if(PktRx.RSSI < -90) Clr = clYellow;
-            else if(PktRx.RSSI < -80) Clr = clGreen;
-            else if(PktRx.RSSI < -70) Clr = clCyan;
-            else if(PktRx.RSSI < -60) Clr = clBlue;
-            else if(PktRx.RSSI < -50) Clr = clMagenta;
-        }
-        else Clr = clBlack;
-        Led.SetColor(Clr);
-#else
-//        IterateEmanators();
-//        Uart.Printf("%d\r", Damage);
-//        chThdSleepMilliseconds(45);
-#endif
-#if 1 // ==== Mesh ====
-        CC.SetChannel(MESH_CHANNEL);
-        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        PktTx.TimeAge++;
-        if(EvtMsk & EVTMSK_MESH_TX) {
-            PktTx.CycleN = Mesh.GetCycleN();
-//            Uart.Printf("RadioTx\r");
-            if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
-            CC.TransmitSync(&PktTx);
-        }
-        if(EvtMsk & EVTMSK_MESH_RX) {
-            int8_t RSSI = 0;
-            RxTmt = CYCLE_TIME;
-            IMeshRx = true;
-            chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
-            Uart.Printf("Rx\r");
-            do {
-                Time = chTimeNow();
-//                Uart.Printf("Rx for t=%u\r", RxTmt);
-                uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
-                if(RxRslt == OK) { // Pkt received correctly
-                    Uart.Printf("ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, RSSI);
-                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI }); /* SendMsg to MeshThd with PktRx structure */
-                } // Pkt Ok
-                RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
-            } while(IMeshRx);
-//            Uart.Printf("RxEnd, t=%u\r\r", chTimeNow());
-            chEvtSignal(Mesh.IPThread, EVTMSK_UPDATE_CYCLE);
-
-        }
-#endif
+        int8_t RSSI = 0;
+        chVTSet(&MeshRxVT, MS2ST(RECALIBRATE_TIME), RxEnd, nullptr); /* Set VT */
+        Uart.Printf("Recalibrate\r");
+        IMeshRx = true;
+        do {
+            uint8_t RxRslt = CC.ReceiveSync(CYCLE_TIME, &PktRx, &RSSI);
+            if(RxRslt == OK) { // Pkt received correctly
+                Uart.Printf("ID=%u, %d, %u\r", PktRx.ID, RSSI, chTimeNow());
+            } // Pkt Ok
+        } while(IMeshRx);
     } // while true
 }
 
@@ -133,7 +87,7 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
-    CC.SetChannel(CHANNEL_ZERO);
+    CC.SetChannel(MESH_CHANNEL);
     // Variables
     Damage = 1;
     // Thread
