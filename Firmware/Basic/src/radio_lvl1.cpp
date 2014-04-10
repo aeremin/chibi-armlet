@@ -41,7 +41,7 @@ static void rLvl1Thread(void *arg) {
 
 #ifdef  MESH
 static void RxEnd(void *p) {
-    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
     Radio.IMeshRx = false;
 }
 #endif
@@ -57,7 +57,7 @@ void rLevel1_t::ITask() {
         do {
             uint8_t RxRslt = CC.ReceiveSync(CYCLE_TIME, &PktRx, &RSSI);
             if(RxRslt == OK) { // Pkt received correctly
-                Uart.Printf("ID=%u, %d, %u\r", PktRx.ID, RSSI, chTimeNow());
+                Uart.Printf("ID=%u,%u,%u,%u; %d; %u\r", PktRx.ID, PktRx.CycleN, PktRx.TimeOwnerID, PktRx.TimeAge, RSSI, chTimeNow());
             } // Pkt Ok
         } while(IMeshRx);
     } // while true
