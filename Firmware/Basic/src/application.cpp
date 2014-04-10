@@ -9,7 +9,6 @@
 #include "cmd_uart.h"
 #include "pill_mgr.h"
 #include "peripheral.h"
-#include "sequences.h"
 #include "evt_mask.h"
 #include "eestore.h"
 #include "radio_lvl1.h"
@@ -78,8 +77,8 @@ void App_t::IPillHandler() {
 //    } // if Cure
     // Will be here in case of strange/discharged pill
     Beeper.Beep(BeepPillBad);
-//    Led.StartBlink(LedPillBad);
-    chThdSleep(2007);    // Let indication to complete
+    Led.StartBlink(LedPillBad);
+//    chThdSleep(2007);    // Let indication to complete
 //    Dose.ChangeIndication();
 }
 
@@ -99,27 +98,20 @@ void TmrPillCheckCallback(void *p) {
 __attribute__((noreturn))
 void App_t::ITask() {
     chRegSetThreadName("App");
-//    bool PillConnected = false;
+    bool PillConnected = false;
     while(true) {
-        chThdSleepMilliseconds(999);
-
-//        LvlS[0].Init(700);
-//        LvlS[0].ProcessValue(780);
-//        LvlS[0].ProcessValue(800);
-//        Uart.Printf("%d\r", LvlS[0].GetLevel(4));
-
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Check pill ====
-//        if(EvtMsk & EVTMSK_PILL_CHECK) {
-//            // Check if new connection occured
-//            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
-//                if(!PillConnected) {
-//                    PillConnected = true;
-//                    App.IPillHandler();
-//                }
-//            }
-//            else PillConnected = false;
-//        } // if EVTMSK_PILL_CHECK
+        if(EvtMsk & EVTMSK_PILL_CHECK) {
+            // Check if new connection occured
+            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
+                if(!PillConnected) {
+                    PillConnected = true;
+                    App.IPillHandler();
+                }
+            }
+            else PillConnected = false;
+        } // if EVTMSK_PILL_CHECK
 
         // ==== RX table ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
@@ -162,13 +154,22 @@ void App_t::ITableHandler() {
     }
 
     // Demonstrate
-    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r",
-            LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
+    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r", LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
     if(TopLvl > 0) IDemonstrate(TopLvl, TopType);
 }
 
-void App_t::IDemonstrate(uint8_t Level, DeviceType_t Type) {
-    Uart.Printf("Lvl=%u; Type=%u\r", Level, Type);
+static const VibroChunk_t *PVibroTable[3][4] = {
+        {Brr1, Brr2, Brr3, Brr4},   // dtFieldWeak
+        {Brr4, Brr5, Brr6, Brr7},   // dtFieldNature
+        {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
+};
+
+void App_t::IDemonstrate(int32_t Level, DeviceType_t AType) {
+    Uart.Printf("Lvl=%u; Type=%u\r", Level, AType);
+    uint8_t TypeID = (uint8_t)AType - 1;
+    Level--;    // 1...4 => 0...3
+    if((TypeID > 2) or (Level > 3)) return;
+    Vibro.Flinch(PVibroTable[TypeID][Level]);
 }
 
 void App_t::Init() {

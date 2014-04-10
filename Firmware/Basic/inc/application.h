@@ -10,6 +10,7 @@
 
 #include "kl_lib_L15x.h"
 #include "RxTable.h"
+#include "sequences.h"
 
 # if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
 #define CMD_PING            0x01
@@ -70,24 +71,16 @@ const int32_t SnsTable[8][3] = {
 // ==== Indication constants ====
 #define LVL_STEPS_N             4 // 0 is nothing, 1...3 is level of indication
 
-
-// Eeprom addresses
+// ==== Eeprom addresses ====
 #define EE_DEVICE_ID_ADDR       0
 #define EE_DEVICE_TYPE_ADDR     4
 
-//struct ModeTable_t {
-//    uint32_t TxCnt,
-//};
-//
-//const ModeTable_t ModeTable[8] = {
-//
-//};
-
+// ==== Application class ====
 class App_t {
 private:
     void IPillHandler();
     inline void ITableHandler();
-    inline void IDemonstrate(uint8_t Level, DeviceType_t Type);
+    inline void IDemonstrate(int32_t Level, DeviceType_t AType);
 public:
     uint32_t ID;
     DeviceType_t Type;
