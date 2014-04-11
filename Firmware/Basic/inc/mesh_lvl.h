@@ -23,7 +23,7 @@
 #define SELF_MESH_ID        3
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
-#define MAX_ABONENTS        100   /* max ID, started from 1 */
+#define MAX_ABONENTS        700   /* max ID, started from 1 */
 
 #define MESH_CHANNEL        1     /* mesh RF channel */
 #define SLOT_TIME           4     /* ms */

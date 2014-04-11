@@ -9,17 +9,25 @@
 #define SENSORTABLE_H_
 
 #include "kl_lib_L15x.h"
+#include "mesh_lvl.h"
 
 struct Row_t {
-    uint8_t ID;
-    uint32_t Level;
-};
+    uint16_t    ID;
+    uint8_t     Level;
+    uint8_t     Hops;
+    uint32_t    Timestamp;
+    uint32_t    TimeDiff;
+    uint8_t     Location;
+    uint8_t     Reason;
+    uint8_t     Emotion;
+} __attribute__ ((__packed__));
 
-#define MAX_ROW_CNT     99
+#define MAX_ROW_CNT  700
+
 struct Table_t {
     uint32_t Size;
     Row_t Row[MAX_ROW_CNT];
-};
+}__attribute__ ((__packed__));
 
 class SnsTable_t {
 private:
