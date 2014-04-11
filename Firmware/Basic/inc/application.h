@@ -70,6 +70,7 @@ const int32_t SnsTable[8][3] = {
 
 // ==== Indication constants ====
 #define LVL_STEPS_N             4 // 0 is nothing, 1...3 is level of indication
+extern const VibroChunk_t *PVibroTable[3][4];
 
 // ==== Eeprom addresses ====
 #define EE_DEVICE_ID_ADDR       0

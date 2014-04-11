@@ -158,7 +158,7 @@ void App_t::ITableHandler() {
     if(TopLvl > 0) IDemonstrate(TopLvl, TopType);
 }
 
-static const VibroChunk_t *PVibroTable[3][4] = {
+const VibroChunk_t *PVibroTable[3][4] = {
         {Brr1, Brr2, Brr3, Brr4},   // dtFieldWeak
         {Brr4, Brr5, Brr6, Brr7},   // dtFieldNature
         {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
