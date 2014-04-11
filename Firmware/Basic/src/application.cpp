@@ -285,9 +285,18 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 
         case CMD_SET_TIME:
-            Uart.Printf("Set time %X:%X:%X\r", PData[0], PData[1], PData[2]);
             uint8_t Rslt;
-            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
+            if(Length > 2) Rslt = CMD_ERROR;
+            else {
+                uint8_t *p;
+                p = PData;
+                uint32_t c;
+                c = ((((*p) & 0xF0) >> 4) * 1000) + ((*p & 0x0F) * 100);
+                p++;
+                c += ((((*p) & 0xF0) >> 4) * 10) + (*p & 0x0F);
+                Uart.Printf("NewCycleN = %u\r", c);
+            }
+//            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
             Ack(Rslt);
 //            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
 //            else Uart.Printf(" OK\r");

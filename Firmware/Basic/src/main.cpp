@@ -59,5 +59,5 @@ void Init() {
     Radio.Init(SELF_MESH_ID);
     Mesh.Init(SELF_MESH_ID);
 
-//    App.Init();
+    App.Init();
 }
