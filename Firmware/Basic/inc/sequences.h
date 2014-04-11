@@ -24,6 +24,10 @@ const LedChunk_t LedPillOk[] = {
 const LedChunk_t LedPillBad[] = {
         {clRed,  540, ckStop},
 };
+// Radio
+const LedChunk_t LedRadioRx[] = {
+        {clMagenta,  25, ckStop},
+};
 
 // Health states
 const LedChunk_t LedRedFast[] = {

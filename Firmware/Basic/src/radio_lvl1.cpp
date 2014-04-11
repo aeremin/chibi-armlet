@@ -12,6 +12,7 @@
 #include "cmd_uart.h"
 
 #include "peripheral.h"
+#include "sequences.h"
 #include "mesh_lvl.h"
 
 #define DBG_PINS
@@ -57,6 +58,7 @@ void rLevel1_t::ITask() {
         do {
             uint8_t RxRslt = CC.ReceiveSync(CYCLE_TIME, &PktRx, &RSSI);
             if(RxRslt == OK) { // Pkt received correctly
+                Led.StartBlink(LedRadioRx);
                 Uart.Printf("ID=%u,%u,%u,%u; %d; %u\r", PktRx.ID, PktRx.CycleN, PktRx.TimeOwnerID, PktRx.TimeAge, RSSI, chTimeNow());
             } // Pkt Ok
         } while(IMeshRx);
