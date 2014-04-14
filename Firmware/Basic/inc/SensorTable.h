@@ -22,7 +22,7 @@ struct Row_t {
 //    uint8_t     Emotion;
 } __attribute__ ((__packed__));
 
-#define MAX_ROW_CNT  99
+#define MAX_ROW_CNT  MAX_ABONENTS
 
 struct Table_t {
     uint32_t Size;

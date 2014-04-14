@@ -18,8 +18,11 @@
 #define CMD_DOSE_GET        0x60
 #define CMD_DOSE_SET        0x61
 
+// Uart Console
 #define CMD_SET_LED         0x62
 #define CMD_SET_TIME        0x71
+
+#define GET_CYCLE_TIME      0x81
 
 #define RPL_ACK             0x90    // Acknowledge
 #define RPL_PILL_STATE      0xC0

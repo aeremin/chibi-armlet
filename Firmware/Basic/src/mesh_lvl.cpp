@@ -90,7 +90,6 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
 
             if(GetPrimaryPkt) {
                 CycleTmr.Disable();
-                GetPrimaryPkt = true;
                 *PTime = MeshMsg.PktRx.CycleN + 1;
                 PriorityID = MeshMsg.PktRx.TimeOwnerID;
                 ResetTimeAge(PriorityID);
@@ -101,7 +100,7 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
             else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
             MeshMsg.RSSI += 100;    // 0...65
             uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
-            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
+//            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
         } while(PktBuf.GetFilledSlots() != 0);
     }
     return GetPrimaryPkt;

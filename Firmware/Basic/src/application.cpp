@@ -207,10 +207,10 @@ static void AppThread(void *arg) {
             Led.SetColor(Mesh.LedColor);
         }
         if(EvtMsk & EVTMSK_SENS_TABLE_READY) {
-            Uart.Printf("App: Tab Get, s=%u\r", SnsTable.PTable->Size);
-            for(uint32_t i=0; i<SnsTable.PTable->Size; i++) {
-                Uart.Printf(" ID=%u; Pwr=%u\r", SnsTable.PTable->Row[i].ID, SnsTable.PTable->Row[i].Level);
-            }
+//            Uart.Printf("App: Tab Get, s=%u\r", SnsTable.PTable->Size);
+//            for(uint32_t i=0; i<SnsTable.PTable->Size; i++) {
+//                Uart.Printf(" ID=%u; Pwr=%u\r", SnsTable.PTable->Row[i].ID, SnsTable.PTable->Row[i].Level);
+//            }
         }
     } // while 1
 }
@@ -219,7 +219,7 @@ void App_t::Init() {
     //Dose.Load();
     Uart.Printf("Dose = %u\r", Dose.Get());
     PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
-    SnsTable.RegisterAppThd(PThd);
+//    SnsTable.RegisterAppThd(PThd);
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
@@ -285,21 +285,25 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 
         case CMD_SET_TIME:
-            uint8_t Rslt;
-            if(Length > 2) Rslt = CMD_ERROR;
-            else {
-                uint8_t *p;
-                p = PData;
-                uint32_t c;
-                c = ((((*p) & 0xF0) >> 4) * 1000) + ((*p & 0x0F) * 100);
-                p++;
-                c += ((((*p) & 0xF0) >> 4) * 10) + (*p & 0x0F);
-                Uart.Printf("NewCycleN = %u\r", c);
-            }
+            uint8_t Rslt, *p; p = PData;
+            uint32_t c; c = 0;
+            do {
+                c *= 10;
+                c += (((*p) & 0xF0) >> 4);
+                c *= 10;
+                c += ((*p++) & 0x0F);
+            } while (p < PData + Length);
+//            Uart.Printf("NewCycleN = %u\r", c);
+            Rslt = OK;
 //            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
             Ack(Rslt);
 //            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
 //            else Uart.Printf(" OK\r");
+            break;
+
+        case GET_CYCLE_TIME:
+            Uart.Printf("#82,%u\r", CYCLE_TIME);
+//            Ack(OK);
             break;
 
         default: break;

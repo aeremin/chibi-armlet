@@ -43,7 +43,7 @@
 
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
-#define CIRC_PKT_BUF_SZ     5 // MAX_ABONENTS FIXME: 5 size set to debug only
+#define CIRC_PKT_BUF_SZ     MAX_ABONENTS //  FIXME: 5 size set to debug only
 
 class CircBufPkt_t {
 private:
