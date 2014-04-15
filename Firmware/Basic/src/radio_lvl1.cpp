@@ -12,6 +12,7 @@
 #include "cmd_uart.h"
 
 #include "peripheral.h"
+#include "sequences.h"
 #include "mesh_lvl.h"
 
 #define DBG_PINS
@@ -82,7 +83,8 @@ void rLevel1_t::ITask() {
         if(EvtMsk & EVTMSK_MESH_TX) {
             PktTx.CycleN = Mesh.GetCycleN();
 //            Uart.Printf("RadioTx\r");
-            if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.ID); }
+            if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.SelfID); }
+            Led.StartBlink(LedBlueOneBlink);
             CC.TransmitSync(&PktTx);
         }
         if(EvtMsk & EVTMSK_MESH_RX) {
@@ -90,20 +92,19 @@ void rLevel1_t::ITask() {
             RxTmt = CYCLE_TIME;
             IMeshRx = true;
             chVTSet(&MeshRxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
-            Uart.Printf("Rx\r");
+            Led.StartBlink(LedRadioRx);
             do {
                 Time = chTimeNow();
-//                Uart.Printf("Rx for t=%u\r", RxTmt);
                 uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
                 if(RxRslt == OK) { // Pkt received correctly
-                    Uart.Printf("ID=%u:%u, %d\r", PktRx.ID, PktRx.CycleN, RSSI);
-                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI }); /* SendMsg to MeshThd with PktRx structure */
+                    Uart.Printf("ID=%u:%u, %d\r", PktRx.SelfID, PktRx.CycleN, RSSI);
+                    Payload.WriteInfo(PktRx.SelfID, RSSI, &PktRx.PktPayload);
+//                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI }); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
                 RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
             } while(IMeshRx);
-//            Uart.Printf("RxEnd, t=%u\r\r", chTimeNow());
-            chEvtSignal(Mesh.IPThread, EVTMSK_UPDATE_CYCLE);
-
+            Mesh.SendEvent(EVTMSK_UPDATE_CYCLE);
+            Led.StopBlink();
         }
 #endif
     } // while true
@@ -123,10 +124,19 @@ void rLevel1_t::Init(uint16_t ASelfID) {
         return;
     }
 
-    PktTx.ID = (uint8_t)ASelfID;
+    // Prepare Debug Pkt
+    PktTx.SelfID = (uint8_t)ASelfID;
     PktTx.CycleN = 0;
-    PktTx.TimeOwnerID = PktTx.ID;
-    ResetTimeAge(PktTx.ID);
+    PktTx.TimeOwnerID = PktTx.SelfID;
+    ResetTimeAge(PktTx.SelfID);
+    // PayLoad
+    PktTx.ID = 45;
+    PktTx.PktPayload.Hops = 6;
+    PktTx.PktPayload.Timestamp = 65432;
+    PktTx.PktPayload.TimeDiff = 9870;
+    PktTx.PktPayload.Location = 1;
+    PktTx.PktPayload.Reason = 5;
+    PktTx.PktPayload.Emotion = 8;
 #endif
 
 

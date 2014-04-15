@@ -16,7 +16,6 @@
 #include "cmd_uart.h"
 #include "application.h"
 #include "radio_lvl1.h"
-#include "mesh_lvl.h"
 #include "real_time.h"
 #include "payload.h"
 
@@ -46,7 +45,7 @@ int main(void) {
 }
 
 void Init() {
-//    RTU.Init(rtumFw);   // Init Timer By second
+//    RTU.Init(rtumFw);   // Init Timer
 
     Uart.Init(57600);
     Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);

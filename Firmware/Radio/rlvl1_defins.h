@@ -9,6 +9,7 @@
 #define RLVL1_DEFINS_H_
 
 #include "peripheral.h"
+#include "payload.h"
 
 #define MESH
 
@@ -21,15 +22,20 @@ struct rPkt_t {
     uint8_t TimeAge;
     // Payload
     uint16_t ID;
-    uint8_t Hops;
-    uint32_t TimeStamp;
-    uint32_t TimeDiff;
-    uint8_t Location;
-    uint8_t Reason;
-    uint8_t Emotion;
+    union {
+        PayloadString_t PktPayload;
+        struct {
+            uint8_t Hops;
+            uint32_t TimeStamp;
+            uint32_t TimeDiff;
+            uint8_t Location;
+            uint8_t Reason;
+            uint8_t Emotion;
+        } __attribute__ ((__packed__));
+    } __attribute__ ((__packed__));
 } __attribute__ ((__packed__));
 #define RPKT_SZ     sizeof(rPkt_t)
-#define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
+//#define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
 #endif
 #endif
 

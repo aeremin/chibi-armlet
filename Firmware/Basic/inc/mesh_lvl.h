@@ -16,55 +16,37 @@
 
 #include "mesh_params.h"
 
-#if 1 // ======================== Circ Buf of Pkt ==============================
-#define CIRC_PKT_BUF_SZ     5 //  FIXME: 5 size set to debug only
-
-class CircBufPkt_t {
-private:
-    mshMsg_t PktBuf[CIRC_PKT_BUF_SZ];
-    mshMsg_t *PRPkt;
-    mshMsg_t *PWPkt;
-    uint8_t FilledCount;
-public:
-    CircBufPkt_t() :
-        PRPkt(PktBuf), PWPkt(PktBuf),
-        FilledCount(0) {}
-
-    uint8_t GetFilledSlots()        { return (uint8_t)FilledCount; }
-    void WritePkt(mshMsg_t Ptr)     { *PWPkt++ = Ptr; FilledCount++; if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf; }
-    void ReadPkt(mshMsg_t *Ptr)     { *Ptr = *PRPkt++; if(PRPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PRPkt = PktBuf; FilledCount--;}
-
-};
-
-
-#endif
-
-
 #if 1// ============================== Mesh Class =============================
 #define MESH_TIM                TIM7
 #define MESH_TIM_IRQ            TIM7_IRQn
 #define MESH_TIM_IRQ_HANDLER    TIM7_IRQHandler
 
-#define RND_TBL_BUFFER_SZ       20
+#define RND_TBL_BUFFER_SZ       25
 
 class Mesh_t {
 private:
     uint8_t RndTableBuf[RND_TBL_BUFFER_SZ];
     uint8_t *PRndTable;
+
     uint32_t AbsCycle;
     uint32_t CurrCycle;
     uint32_t RxCycleN;
     uint32_t SleepTime;
     bool NeedUpdateTime;
-    uint32_t SelfID;
-    uint8_t NeedToSendTable;
+    uint16_t SelfID;
+//    uint8_t NeedToSendTable;
 
     Timer_t CycleTmr;
     void NewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
     void IncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; NewRxCycle(); } }
+    void GenerateRandomTable(uint32_t Size) {
+        for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
+            RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
+        }
+    }
 
     void NewCycle();
-    void TableSend();
+//    void TableSend();
     void UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime);
     bool DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime);
     void ResetTimeAge(uint8_t ID)     { Radio.ResetTimeAge(ID); }
@@ -79,18 +61,16 @@ public:
                 SleepTime(0),
                 NeedUpdateTime(false),
                 SelfID(0),
-                NeedToSendTable(0),
+//                NeedToSendTable(0),
                 IPThread(NULL),
                 LedColor(clCyan),
                 INeedColor(clBlack) {}
 
     Thread *IPThread;
-    CircBufPkt_t PktBuf;
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
-    MsgBox_t<mshMsg_t, RPKT_SZ> MsgBox;
     void Init(uint32_t ID);
 
     Color_t LedColor, INeedColor;
@@ -112,6 +92,7 @@ public:
 
     void ITask();
     void IIrqHandler();
+    void SendEvent(eventmask_t mask)  { chEvtSignal(IPThread,mask); }
 };
 
 extern Mesh_t Mesh;

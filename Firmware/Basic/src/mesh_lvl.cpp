@@ -48,7 +48,7 @@ void Mesh_t::ITask() {
         uint32_t NewAbsTime=0;
         uint32_t NextCycleStart=0;
         NeedUpdateTime = DispatchPkt(&NewAbsTime, &NextCycleStart);
-        TableSend();
+//        TableSend();
         UpdateTimer(NeedUpdateTime, NewAbsTime, NextCycleStart);
     }
 }
@@ -58,13 +58,7 @@ void Mesh_t::NewCycle() {
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     // ==== RX ====
-    if(CurrCycle == RxCycleN) {
-        Radio.SendEvt(EVTMSK_MESH_RX);
-        mshMsg_t MeshPkt;
-        do {
-            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBuf.WritePkt(MeshPkt); /* Put Msg to CircBuffer */
-        } while(Radio.IMeshRx);
-    }
+    if(CurrCycle == RxCycleN) Radio.SendEvt(EVTMSK_MESH_RX);
     // ==== TX ====
     else {
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
@@ -74,46 +68,37 @@ void Mesh_t::NewCycle() {
 
 bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
     bool GetPrimaryPkt = false;
-    if(PktBuf.GetFilledSlots() != 0) {
-        uint8_t PriorityID = GetMeshID();
-        mshMsg_t MeshMsg;
-        do {
-            PktBuf.ReadPkt(&MeshMsg);
-            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.ID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
-            if(PriorityID > MeshMsg.PktRx.TimeOwnerID) GetPrimaryPkt = true;
-            else if(PriorityID == MeshMsg.PktRx.TimeOwnerID) {
-                if(GetTimeAge() > MeshMsg.PktRx.TimeAge) {  /* compare TimeAge */
-                    GetPrimaryPkt = true;                   /* need to update */
-                }
-            }
 
-            if(GetPrimaryPkt) {
-                CycleTmr.Disable();
-                *PTime = MeshMsg.PktRx.CycleN + 1;
-                PriorityID = MeshMsg.PktRx.TimeOwnerID;
-                ResetTimeAge(PriorityID);
-                *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
-            }
 
-            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
-            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
-            MeshMsg.RSSI += 100;    // 0...65
-//            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
-//            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
-        } while(PktBuf.GetFilledSlots() != 0);
-    }
+//    if(PktBuf.GetFilledSlots() != 0) {
+//        uint8_t PriorityID = GetMeshID();
+//        mshMsg_t MeshMsg;
+//        do {
+//            PktBuf.ReadPkt(&MeshMsg);
+//            Uart.Printf("Msh: ID=%u, TimOwnID=%u, %d\r", MeshMsg.PktRx.SelfID, MeshMsg.PktRx.TimeOwnerID, MeshMsg.RSSI);
+//            if(PriorityID > MeshMsg.PktRx.TimeOwnerID) GetPrimaryPkt = true;
+//            else if(PriorityID == MeshMsg.PktRx.TimeOwnerID) {
+//                if(GetTimeAge() > MeshMsg.PktRx.TimeAge) {  /* compare TimeAge */
+//                    GetPrimaryPkt = true;                   /* need to update */
+//                }
+//            }
+//
+//            if(GetPrimaryPkt) {
+//                CycleTmr.Disable();
+//                *PTime = MeshMsg.PktRx.CycleN + 1;
+//                PriorityID = MeshMsg.PktRx.TimeOwnerID;
+//                ResetTimeAge(PriorityID);
+//                *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
+//            }
+//
+//            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
+//            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
+//            MeshMsg.RSSI += 100;    // 0...65
+////            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
+////            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
+//        } while(PktBuf.GetFilledSlots() != 0);
+//    }
     return GetPrimaryPkt;
-}
-
-void Mesh_t::TableSend() {
-    NeedToSendTable++;
-    if(NeedToSendTable == TABLE_SEND_N) {
-#ifdef MESH_DBG
-        Uart.Printf("Msh: TabSnd,t=%u\r", chTimeNow());
-#endif
-//        SnsTable.SendEvtReady();
-        NeedToSendTable = 0;
-    }
 }
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
@@ -145,16 +130,10 @@ void Mesh_t::Init(uint32_t ID) {
     }
     // Init Thread
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
-    MsgBox.Init();
     SelfID = (uint8_t)ID;
     SleepTime = ((SelfID-1)*SLOT_TIME);
 
-    // Create RandomTable
-    for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
-        RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
-    }
-//    Uart.Printf("Msh: RndTable= {%A}\r", RndTableBuf, RND_TBL_BUFFER_SZ, ' ');
-//    SetAbsTimeMS(RTU.GetTimeMS());
+    GenerateRandomTable(RND_TBL_BUFFER_SZ);
 
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetupPrescaler(1000);

@@ -43,6 +43,16 @@ const LedChunk_t LedGreen[] = {
         {clBlack, 3006, ckRepeat},
 };
 
+// Radio indicate
+const LedChunk_t LedBlueOneBlink[] = {
+        {clBlue,   40, ckStop},
+};
+
+const LedChunk_t LedRadioRx[] = {
+        {clMagenta,  456, ckNormal},
+        {clBlack, 121, ckRepeat},
+};
+
 #endif
 
 #if 1 // ============================= Beep ====================================

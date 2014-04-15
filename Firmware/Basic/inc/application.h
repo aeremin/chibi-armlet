@@ -9,6 +9,7 @@
 #define APPLICATION_H_
 
 #include "kl_lib_L15x.h"
+#include "mesh_lvl.h"
 
 # if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
 #define CMD_PING            0x01

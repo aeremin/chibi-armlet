@@ -55,7 +55,7 @@ void cc1101_t::SetChannel(uint8_t AChannel) {
 void cc1101_t::TransmitSync(rPkt_t *pPkt) {
     // WaitUntilChannelIsBusy();   // If this is not done, time after time FIFO is destroyed
     while(IState != CC_STB_IDLE) EnterIdle();
-    WriteTX((uint8_t*)pPkt, RPKT_LEN);
+    WriteTX((uint8_t*)pPkt, RPKT_SZ);
     // Enter TX and wait IRQ
     chSysLock();
     PWaitingThread = chThdSelf();
@@ -69,7 +69,7 @@ void cc1101_t::TransmitAsync(rPkt_t *pPkt) {
     PWaitingThread = NULL;
     State = ccTransmitting;
     while(IState != CC_STB_IDLE) EnterIdle();
-    WriteTX((uint8_t*)pPkt, RPKT_LEN);
+    WriteTX((uint8_t*)pPkt, RPKT_SZ);
     EnterTX();
 }
 
@@ -118,7 +118,7 @@ uint8_t cc1101_t::ReadFIFO(void *Ptr, int8_t *PRssi) {
          CsLo();                                            // Start transmission
          BusyWait();                                        // Wait for chip to become ready
          ISpi.ReadWriteByte(CC_FIFO|CC_READ_FLAG|CC_BURST_FLAG); // Address with read & burst flags
-         for(uint8_t i=0; i<RPKT_LEN; i++) {                // Read bytes
+         for(uint8_t i=0; i<RPKT_SZ; i++) {                // Read bytes
              b = ISpi.ReadWriteByte(0);
              *p++ = b;
              // Uart.Printf(" %X", b);
@@ -206,7 +206,7 @@ void cc1101_t::RfConfig() {
     WriteRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
     WriteRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
     WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
-    WriteRegister(CC_PKTLEN,   RPKT_LEN);            // Packet length, dummy
+    WriteRegister(CC_PKTLEN,   RPKT_SZ);            // Packet length, dummy
 
     WriteRegister(CC_PATABLE, CC_Pwr0dBm);
 

@@ -10,22 +10,17 @@
 
 
 #include "kl_lib_L15x.h"
+#include "cmd_uart.h"
 #include "mesh_params.h"
-#include "rlvl1_defins.h"
 
 
-class PayloadString_t {
+struct PayloadString_t {
+    uint8_t Hops;
     uint32_t Timestamp;
     uint32_t TimeDiff;
-    union {
-        uint32_t Info;
-        struct {
-            uint8_t Hops;
-            uint8_t Location;
-            uint8_t Reason;
-            uint8_t Emotion;
-        };
-    };
+    uint8_t Location;
+    uint8_t Reason;
+    uint8_t Emotion;
 } __attribute__ ((__packed__));
 
 
@@ -35,7 +30,7 @@ private:
 public:
     Payload_t(): PStr(InfoBuf) {}
     PayloadString_t* PStr;
-    uint8_t WriteInfo(uint16_t ID, rPkt_t *P);
+    uint8_t WriteInfo(uint16_t ID, int8_t RSSI, PayloadString_t *Ptr);
 };
 
 extern Payload_t Payload;
