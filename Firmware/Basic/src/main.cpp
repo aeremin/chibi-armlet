@@ -48,7 +48,7 @@ void Init() {
 //    RTU.Init(rtumFw);   // Init Timer
 
     Uart.Init(57600);
-    Uart.Printf("ChibiArmlet AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    Uart.Printf("ChibiArmlet\r");
     Led.Init();
 //    Beeper.Init();
 //    Beeper.Beep(BeepBeep);

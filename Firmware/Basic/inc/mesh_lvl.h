@@ -16,6 +16,27 @@
 
 #include "mesh_params.h"
 
+#if 1 // ======================== Circ Buf of Pkt ==============================
+#define CIRC_PKT_BUF_SZ     21 // MAX_ABONENTS FIXME: 5 size set to debug only
+
+class CircBufPkt_t {
+private:
+    mshMsg_t PktBuf[CIRC_PKT_BUF_SZ];
+    mshMsg_t *PRPkt;
+    mshMsg_t *PWPkt;
+    uint8_t FilledCount;
+public:
+    CircBufPkt_t() :
+        PRPkt(PktBuf), PWPkt(PktBuf),
+        FilledCount(0) {}
+
+    uint8_t GetFilledSlots()        { return (uint8_t)FilledCount; }
+    uint8_t GetFreeSlots()          { return (uint8_t)(CIRC_PKT_BUF_SZ-FilledCount); }
+    void WritePkt(mshMsg_t Ptr)     { *PWPkt++ = Ptr; FilledCount++; if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf; }
+    void ReadPkt(mshMsg_t *Ptr)     { *Ptr = *PRPkt++; if(PRPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PRPkt = PktBuf; FilledCount--;}
+};
+#endif
+
 #if 1// ============================== Mesh Class =============================
 #define MESH_TIM                TIM7
 #define MESH_TIM_IRQ            TIM7_IRQn
@@ -37,6 +58,7 @@ private:
 //    uint8_t NeedToSendTable;
 
     Timer_t CycleTmr;
+    CircBufPkt_t PktBucket;
     void NewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
     void IncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; NewRxCycle(); } }
     void GenerateRandomTable(uint32_t Size) {
