@@ -36,6 +36,13 @@
 
 #define TIME_AGE_THRESHOLD  20 /* Cycles */
 
+struct MeshPayload_t {
+    uint8_t SelfID;
+    uint32_t CycleN;
+    uint8_t TimeOwnerID;
+    uint8_t TimeAge;
+} __attribute__ ((__packed__));
 
+#define MESH_PAYLOAD_SZ sizeof(MeshPayload_t)
 
 #endif /* MESH_PARAMS_H_ */

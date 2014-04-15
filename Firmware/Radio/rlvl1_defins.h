@@ -14,12 +14,19 @@
 #define MESH
 
 #ifdef MESH
+#include "mesh_params.h"
+
 #if 1 // ============================== Pkt_t ========================================
 struct rPkt_t {
-    uint8_t SelfID;
-    uint32_t CycleN;
-    uint8_t TimeOwnerID;
-    uint8_t TimeAge;
+    union {
+        MeshPayload_t MeshPayload;
+        struct {
+            uint8_t SelfID;
+            uint32_t CycleN;
+            uint8_t TimeOwnerID;
+            uint8_t TimeAge;
+        }__attribute__ ((__packed__));
+    }__attribute__ ((__packed__));
     // Payload
     uint16_t ID;
     union {

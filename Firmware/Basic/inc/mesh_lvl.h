@@ -72,7 +72,7 @@ public:
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
     void Init(uint32_t ID);
-
+    MsgBox_t<mshMsg_t, MESH_PAYLOAD_SZ> MsgBox;
     Color_t LedColor, INeedColor;
     Color_t GetColor(uint8_t LedColor) {
         switch (LedColor) {

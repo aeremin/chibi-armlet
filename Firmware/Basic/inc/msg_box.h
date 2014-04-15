@@ -15,8 +15,7 @@
 #if 1 // =============================== Message Box =================================
 struct mshMsg_t {
     uint32_t Timestamp;
-    rPkt_t PktRx;
-    int8_t RSSI;
+    MeshPayload_t MeshPayload;
 };
 
 template <typename T, int32_t Sz>

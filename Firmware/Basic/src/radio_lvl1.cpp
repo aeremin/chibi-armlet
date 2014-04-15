@@ -97,9 +97,9 @@ void rLevel1_t::ITask() {
                 Time = chTimeNow();
                 uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
                 if(RxRslt == OK) { // Pkt received correctly
-                    Uart.Printf("ID=%u:%u, %d\r", PktRx.SelfID, PktRx.CycleN, RSSI);
+                    Uart.Printf("ID=%u:%u, %ddBm\r", PktRx.SelfID, PktRx.CycleN, RSSI);
                     Payload.WriteInfo(PktRx.SelfID, RSSI, &PktRx.PktPayload);
-//                    Mesh.MsgBox.Post({chTimeNow(), PktRx, RSSI }); /* SendMsg to MeshThd with PktRx structure */
+                    Mesh.MsgBox.Post({chTimeNow(), PktRx.MeshPayload}); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
                 RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
             } while(IMeshRx);
@@ -123,7 +123,6 @@ void rLevel1_t::Init(uint16_t ASelfID) {
         Uart.Printf("rLvl1 WrongID\r");
         return;
     }
-
     // Prepare Debug Pkt
     PktTx.SelfID = (uint8_t)ASelfID;
     PktTx.CycleN = 0;

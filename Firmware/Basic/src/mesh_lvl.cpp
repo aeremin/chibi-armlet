@@ -58,7 +58,13 @@ void Mesh_t::NewCycle() {
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     // ==== RX ====
-    if(CurrCycle == RxCycleN) Radio.SendEvt(EVTMSK_MESH_RX);
+    if(CurrCycle == RxCycleN) {
+        Radio.SendEvt(EVTMSK_MESH_RX);
+        mshMsg_t MeshPkt;
+        do {
+            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) Uart.Printf("Msh: %u,%u,%u,%u\r", MeshPkt.MeshPayload.SelfID, MeshPkt.MeshPayload.CycleN, MeshPkt.MeshPayload.TimeOwnerID, MeshPkt.MeshPayload.TimeAge); /* Put Msg to CircBuffer */
+        } while(Radio.IMeshRx);
+    }
     // ==== TX ====
     else {
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
@@ -132,7 +138,7 @@ void Mesh_t::Init(uint32_t ID) {
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
     SelfID = (uint8_t)ID;
     SleepTime = ((SelfID-1)*SLOT_TIME);
-
+    MsgBox.Init();
     GenerateRandomTable(RND_TBL_BUFFER_SZ);
 
     CycleTmr.Init(MESH_TIM);
