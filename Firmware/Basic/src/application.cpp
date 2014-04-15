@@ -293,11 +293,13 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             } while (p < PData + Length);
 //            Uart.Printf("NewCycleN = %u\r", c);
             Rslt = OK;
-//            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
+            Mesh.SetCurrCycleN(c);
             Ack(Rslt);
+            break;
+
+//            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
 //            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
 //            else Uart.Printf(" OK\r");
-            break;
 
         case GET_CYCLE_TIME:
             Uart.Printf("#82,%u\r", CYCLE_TIME);
