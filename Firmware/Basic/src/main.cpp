@@ -18,6 +18,7 @@
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
 #include "real_time.h"
+#include "payload.h"
 
 static inline void Init();
 

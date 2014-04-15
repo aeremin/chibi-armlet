@@ -8,7 +8,6 @@
 
 #include "mesh_lvl.h"
 #include "radio_lvl1.h"
-#include "SensorTable.h"
 #include "peripheral.h"
 #include "sequences.h"
 #include "application.h"
@@ -99,7 +98,7 @@ bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
             if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
             else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
             MeshMsg.RSSI += 100;    // 0...65
-            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
+//            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
 //            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
         } while(PktBuf.GetFilledSlots() != 0);
     }
@@ -112,7 +111,7 @@ void Mesh_t::TableSend() {
 #ifdef MESH_DBG
         Uart.Printf("Msh: TabSnd,t=%u\r", chTimeNow());
 #endif
-        SnsTable.SendEvtReady();
+//        SnsTable.SendEvtReady();
         NeedToSendTable = 0;
     }
 }

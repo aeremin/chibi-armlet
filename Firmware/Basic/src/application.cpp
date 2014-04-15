@@ -14,7 +14,6 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
-#include "SensorTable.h"
 #include "real_time.h"
 
 App_t App;
@@ -219,7 +218,6 @@ void App_t::Init() {
     //Dose.Load();
     Uart.Printf("Dose = %u\r", Dose.Get());
     PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
-//    SnsTable.RegisterAppThd(PThd);
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);

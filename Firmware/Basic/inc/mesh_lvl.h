@@ -14,36 +14,10 @@
 #include "msg_box.h"
 #include "stdlib.h"
 
-/*********************** MESH ******************************
- *  |_|_|_|_..._|_|_|_|_|_..._|_|_|_|_|_..._|_|   SLOTS
- *  |_____________|_______...___|_____________|   CYCLES
- *  |_____________________..._________________|   SUPER_CYCLE
- */
-
-#define SELF_MESH_ID        1
-
-#define TABLE_SEND_N        3     /* send SnsTable after n cycles */
-#define MAX_ABONENTS        100   /* max ID, started from 1 */
-
-#define MESH_CHANNEL        1     /* mesh RF channel */
-#define SLOT_TIME           4     /* ms */
-
-#define COUNT_OF_CYCLES     5     /* count of cycles in supercycle */
-#define CYCLE_TIME          (uint32_t)(SLOT_TIME * MAX_ABONENTS)
-#define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
-
-
-//#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
-#define GET_RND_VALUE(Top)    ( ((rand() % Top) + 1) )
-//#define END_OF_EPOCH        4294967295 // ms = 2^32
-#define END_OF_EPOCH        65536       // max cycle counter
-
-
-#define TIME_AGE_THRESHOLD  20 /* Cycles */
-
+#include "mesh_params.h"
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
-#define CIRC_PKT_BUF_SZ     MAX_ABONENTS //  FIXME: 5 size set to debug only
+#define CIRC_PKT_BUF_SZ     5 //  FIXME: 5 size set to debug only
 
 class CircBufPkt_t {
 private:
@@ -57,7 +31,6 @@ public:
         FilledCount(0) {}
 
     uint8_t GetFilledSlots()        { return (uint8_t)FilledCount; }
-    uint8_t GetFreeSlots()          { return (uint8_t)(MAX_ABONENTS-FilledCount); }
     void WritePkt(mshMsg_t Ptr)     { *PWPkt++ = Ptr; FilledCount++; if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf; }
     void ReadPkt(mshMsg_t *Ptr)     { *Ptr = *PRPkt++; if(PRPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PRPkt = PktBuf; FilledCount--;}
 
@@ -71,7 +44,8 @@ public:
 #define MESH_TIM                TIM7
 #define MESH_TIM_IRQ            TIM7_IRQn
 #define MESH_TIM_IRQ_HANDLER    TIM7_IRQHandler
-#define RND_TBL_BUFFER_SZ       50
+
+#define RND_TBL_BUFFER_SZ       20
 
 class Mesh_t {
 private:
