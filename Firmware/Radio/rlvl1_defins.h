@@ -42,7 +42,6 @@ struct rPkt_t {
     } __attribute__ ((__packed__));
 } __attribute__ ((__packed__));
 #define RPKT_SZ     sizeof(rPkt_t)
-//#define RPKT_LEN    (sizeof(rPkt_t)-1)  // Exclude RSSI
 #endif
 #endif
 
