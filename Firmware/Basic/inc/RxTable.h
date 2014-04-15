@@ -13,6 +13,8 @@
 #include "ch.h"
 #include "evt_mask.h"
 #include "rlvl1_defins.h"
+#include "peripheral.h"
+#include "sequences.h"
 
 struct Row_t {
     uint8_t ID;
@@ -72,17 +74,21 @@ public:
         for(uint32_t i=0; i < PTable->Size; i++) {
             int32_t Rssi = PTable->Row[i].Rssi;
             if(Rssi < -100) Rssi = -100;
-            else if(Rssi > -35) Rssi = -35;
-            Rssi += 100;    // 0...65
+            else if(Rssi > -15) Rssi = -15;
+            Rssi += 100;    // 0...85
             PTable->Row[i].Rssi  = dBm2Percent1000Tbl[Rssi];
         }
     }
 
     void Print() {
         if(PTable->Size == 0) return;
-        Uart.Printf("ID; Type; Rssi;\r");
+//        Uart.Printf("ID; Type; Rssi;\r");
         for(uint32_t i=0; i < PTable->Size; i++) {
-            Uart.Printf("%u; %u; %d\r", PTable->Row[i].ID, PTable->Row[i].Type, PTable->Row[i].Rssi);
+            if(PTable->Row[i].Rssi > 700) {
+                Uart.Printf("%u; %u; %d\r", PTable->Row[i].ID, PTable->Row[i].Type, PTable->Row[i].Rssi);
+                Beeper.Beep(BeepShort);
+            }
+
         }
     }
 };

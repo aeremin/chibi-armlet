@@ -154,7 +154,7 @@ void App_t::ITableHandler() {
     }
 
     // Demonstrate
-    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r", LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
+//    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r", LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
     if(TopLvl > 0) IDemonstrate(TopLvl, TopType);
 }
 
@@ -165,11 +165,11 @@ const VibroChunk_t *PVibroTable[3][4] = {
 };
 
 void App_t::IDemonstrate(int32_t Level, DeviceType_t AType) {
-    Uart.Printf("Lvl=%u; Type=%u\r", Level, AType);
+//    Uart.Printf("Lvl=%u; Type=%u\r", Level, AType);
     uint8_t TypeID = (uint8_t)AType - 1;
     Level--;    // 1...4 => 0...3
     if((TypeID > 2) or (Level > 3)) return;
-    Vibro.Flinch(PVibroTable[TypeID][Level]);
+//    Vibro.Flinch(PVibroTable[TypeID][Level]);
 }
 
 void App_t::Init() {

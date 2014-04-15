@@ -115,7 +115,7 @@ const VibroChunk_t BrrBrr[] = {
 };
 
 
-#define BRR_MS          99
+#define BRR_MS          45
 #define BRR_PAUSE_MS    180
 const VibroChunk_t Brr1[] = {
         {stOn,  BRR_MS, ckStop},
