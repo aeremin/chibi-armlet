@@ -48,10 +48,10 @@ enum DeviceType_t {
     dtDetector=7
 };
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
-
 #define RLVL_NEVER              10000
 #define RLVL_2M                 800
 #define RLVL_4M                 700
+#define RLVL_10M                600
 #define RLVL_50M                1
 
 // ==== Table of sensitivity constants ====

@@ -169,7 +169,7 @@ void App_t::IDemonstrate(int32_t Level, DeviceType_t AType) {
     uint8_t TypeID = (uint8_t)AType - 1;
     Level--;    // 1...4 => 0...3
     if((TypeID > 2) or (Level > 3)) return;
-//    Vibro.Flinch(PVibroTable[TypeID][Level]);
+    Vibro.Flinch(PVibroTable[TypeID][Level]);
 }
 
 void App_t::Init() {
