@@ -70,8 +70,8 @@ void App_t::IPillHandler() {
         Beeper.Beep(BeepPillOk);
     } // if pill ok
     // Will be here in case of bad pill
-    Beeper.Beep(BeepPillBad);
-    Led.StartBlink(LedPillBad);
+    else Beeper.Beep(BeepPillBad);
+//    Led.StartBlink(LedPillBad);
 //    chThdSleep(2007);    // Let indication to complete
 }
 
