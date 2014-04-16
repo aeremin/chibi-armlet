@@ -31,12 +31,13 @@
 #endif
 
 #if 1 // ==== Timings ====
-#define TM_PILL_CHECK_MS        504     // Check if pill connected every TM_PILL_CHECK
+#define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
+#define TM_DEMONSTRATE_MS   2007   // Delay between demonstration
 #endif
 
 
 #if 1 // ==== Pill ====
-#define PILL_TYPEID_SETTYPE         0x0020
+#define PILL_TYPEID_SETTYPE 0x0020
 
 struct Pill_t {
     uint16_t TypeID;
@@ -93,6 +94,14 @@ struct TypeLvl_t {
         Level = ALvl;
         chSysUnlock();
     }
+    bool IsNotEmpty() {
+        bool r;
+        chSysLock();
+        r = (Type != dtNothing) and (Level >= 1) and (Level <= 4);
+        chSysUnlock();
+        return r;
+    }
+    void Clear() { Type = dtNothing; Level = 0; }
 };
 
 // ==== Application class ====
@@ -101,7 +110,7 @@ private:
     Pill_t Pill;
     void IPillHandler();
     inline void ITableHandler();
-    inline void IDemonstrate(int32_t Level, DeviceType_t AType);
+    inline void IDemonstrate();
     TypeLvl_t Demo; // What to demonstrate
 public:
     uint32_t ID;

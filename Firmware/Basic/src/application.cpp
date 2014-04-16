@@ -32,6 +32,13 @@ const LedChunk_t TypeColorTbl[8] = {
         {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}  // dtDetector
 };
 
+const VibroChunk_t *PVibroTable[3][4] = {
+        {Brr1, Brr2, Brr3, Brr4},   // dtFieldWeak
+        {Brr4, Brr5, Brr6, Brr7},   // dtFieldNature
+        {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
+};
+
+
 class LvlSumm_t {
 private:
     int32_t tm, Sum, IThreshold;
@@ -78,11 +85,17 @@ void App_t::IPillHandler() {
 #endif
 
 #if 1 // ============================ Timers ===================================
-static VirtualTimer ITmrPillCheck;
+static VirtualTimer ITmrPillCheck, ITmrDemo;
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
-    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+void TmrDemoCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_DEMONSTRATE);
+    chVTSetI(&ITmrDemo, MS2ST(TM_DEMONSTRATE_MS), TmrDemoCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -109,6 +122,8 @@ void App_t::ITask() {
         // ==== RX table ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
 
+        // ==== Demonstrate ====
+        if(EvtMsk & EVTMSK_DEMONSTRATE) if(Demo.IsNotEmpty()) IDemonstrate();
     } // while 1
 }
 
@@ -150,22 +165,18 @@ void App_t::ITableHandler() {
         else if(LvlS[1].Output > 0) Demo.Set(dtFieldNature, LvlS[1].Output);
         else if(LvlS[0].Output > 0) Demo.Set(dtFieldWeak,   LvlS[0].Output);
     } // if not detector
-    Uart.Printf("DLvl=%d; DType=%u\r", Demo.Level, Demo.Type);
+//    Uart.Printf("DLvl=%d; DType=%u\r", Demo.Level, Demo.Type);
 //    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r", LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
 }
 
-const VibroChunk_t *PVibroTable[3][4] = {
-        {Brr1, Brr2, Brr3, Brr4},   // dtFieldWeak
-        {Brr4, Brr5, Brr6, Brr7},   // dtFieldNature
-        {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
-};
-
-void App_t::IDemonstrate(int32_t Level, DeviceType_t AType) {
-//    Uart.Printf("Lvl=%u; Type=%u\r", Level, AType);
-    uint8_t TypeID = (uint8_t)AType - 1;
-    Level--;    // 1...4 => 0...3
-    if((TypeID > 2) or (Level > 3)) return;
-    Vibro.Flinch(PVibroTable[TypeID][Level]);
+void App_t::IDemonstrate() {
+    Uart.Printf("Demo Lvl=%u; Type=%u\r", Demo.Level, Demo.Type);
+    chSysLock();
+    uint8_t FTypeID = (uint8_t)Demo.Type - 1; // 1...7 => 0...6
+    uint8_t FLevel = Demo.Level - 1;          // 1...4 => 0...3
+    Demo.Clear();
+    chSysUnlock();
+    Vibro.Flinch(PVibroTable[FTypeID][FLevel]);
 }
 
 void App_t::Init() {
@@ -177,7 +188,7 @@ void App_t::Init() {
 
     // Timers init
     chSysLock();
-//    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chVTSetI(&ITmrDemo, MS2ST(TM_DEMONSTRATE_MS), TmrDemoCallback, nullptr);
 //    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlock();

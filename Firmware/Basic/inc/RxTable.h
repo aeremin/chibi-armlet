@@ -85,8 +85,8 @@ public:
 //        Uart.Printf("ID; Type; Rssi;\r");
         for(uint32_t i=0; i < PTable->Size; i++) {
             if(PTable->Row[i].Rssi > 500) {
-                Uart.Printf("%u; %u; %d\r", PTable->Row[i].ID, PTable->Row[i].Type, PTable->Row[i].Rssi);
-                Beeper.Beep(BeepShort);
+//                Uart.Printf("%u; %u; %d\r", PTable->Row[i].ID, PTable->Row[i].Type, PTable->Row[i].Rssi);
+//                Beeper.Beep(BeepShort);
             }
 
         }
