@@ -47,17 +47,10 @@ public:
 static LvlSumm_t LvlS[3];   // Three types of fields
 
 #if 1 // ================================ Pill =================================
-struct Pill_t {
-    uint16_t ID;
-    uint16_t Charge;
-    uint32_t Value;
-} __attribute__ ((__packed__));
-static Pill_t Pill;
-
 void App_t::IPillHandler() {
     // Read med
     if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
-    //Uart.Printf("Pill: %u, %X, %u\r", Pill.ID, Pill.Charge, Pill.Value);
+    Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceType);
 //    if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
 //        bool Rslt = OK;
 //        // Lower charges if not infinity
@@ -234,30 +227,39 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-        // ==== Pills ====
+#if 1 // ==== Pills ====
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
-            if(b <= 7) SBuf[1] = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
-            SBuf[0] = b;
-            Uart.Cmd(RPL_PILL_STATE, SBuf, 2);
+            if(b <= 7) {
+                SBuf[1] = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
+                SBuf[0] = b;
+                Uart.Cmd(RPL_PILL_STATE, SBuf, 2);
+            }
+            else Ack(CMD_ERROR);
             break;
         case CMD_PILL_WRITE:
-            b = PData[0];
-            if(b <= 7) SBuf[1] = PillMgr.Write(PILL_I2C_ADDR, &PData[1], Length-1);
-            SBuf[0] = b;
-            Uart.Cmd(RPL_PILL_WRITE, SBuf, 2);
+            b = PData[0];   // Pill address
+            if(b <= 7) {
+                SBuf[0] = b;    // Pill address
+                SBuf[1] = PillMgr.Write(PILL_I2C_ADDR, &PData[1], Length-1); // Write result
+                Uart.Cmd(RPL_PILL_WRITE, SBuf, 2);
+            }
+            else Ack(CMD_ERROR);
             break;
         case CMD_PILL_READ:
             b = PData[0];           // Pill address
             b2 = PData[1];          // Data size to read
             if(b2 > (UART_RPL_BUF_SZ-2)) b2 = (UART_RPL_BUF_SZ-2);  // Check data size
-            if(b <= 7) SBuf[1] = PillMgr.Read(PILL_I2C_ADDR, &SBuf[2], b2);
-            SBuf[0] = b;
-            if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
-            else Uart.Cmd(RPL_PILL_READ, SBuf, 2);
+            if(b <= 7) {
+                SBuf[0] = b;                                            // Pill address
+                SBuf[1] = PillMgr.Read(PILL_I2C_ADDR, &SBuf[2], b2);    // Read result
+                if(SBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, SBuf, b2+2);
+                else Uart.Cmd(RPL_PILL_READ, SBuf, 2);
+            }
+            else Ack(CMD_ERROR);
             break;
-
-        default: break;
+#endif
+        default: Ack(CMD_ERROR); break;
     } // switch
 }
 #endif

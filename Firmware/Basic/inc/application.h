@@ -36,7 +36,13 @@
 
 
 #if 1 // ==== Pill ====
-#define PILL_ID_CURE        0x09
+#define PILL_TYPEID_SETTYPE         0x0020
+
+struct Pill_t {
+    uint16_t TypeID;
+    uint8_t DeviceType;
+} __attribute__ ((__packed__));
+#define PILL_SZ     sizeof(Pill_t)
 
 #endif
 
@@ -80,9 +86,11 @@ extern const VibroChunk_t *PVibroTable[3][4];
 // ==== Application class ====
 class App_t {
 private:
+    Pill_t Pill;
     void IPillHandler();
     inline void ITableHandler();
     inline void IDemonstrate(int32_t Level, DeviceType_t AType);
+    void Dummy();
 public:
     uint32_t ID;
     DeviceType_t Type;

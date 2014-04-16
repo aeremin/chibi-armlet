@@ -75,7 +75,7 @@ public:
         }
     }
     void Init(uint32_t ABaudrate);
-    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, 0); }
+    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
     // Inner use
     void IRQDmaTxHandler();
     void IPutChar(char c);
