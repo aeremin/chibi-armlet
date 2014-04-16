@@ -119,36 +119,39 @@ void App_t::ITableHandler() {
     RxTable.dBm2Percent();
     RxTable.Print();
 
-    // Init signal levels with thresholds
-    for(uint8_t i=0; i<3; i++) LvlS[i].Init(SnsTable[Type][i]);
-    // Summ all signals by type
-    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
-        Row_t *PRow = &RxTable.PTable->Row[i];
-        switch(PRow->Type) {
-            case dtFieldWeak:   LvlS[0].ProcessValue(PRow->Rssi); break;
-            case dtFieldNature: LvlS[1].ProcessValue(PRow->Rssi); break;
-            case dtFieldStrong: LvlS[2].ProcessValue(PRow->Rssi); break;
-            default: break;
-        }
-    } // for
-    // Calculate output levels
-    for(uint8_t i=0; i<3; i++) LvlS[i].CalculateLevel(LVL_STEPS_N);
-
-    // Find top level and type
-    DeviceType_t TopType = dtFieldWeak;
-    int32_t TopLvl = LvlS[0].Output;
-    if(LvlS[1].Output > TopLvl) {
-        TopType = dtFieldNature;
-        TopLvl = LvlS[1].Output;
+    if(Type == dtDetector) {
+        TypeLvl_t TopTL;
+        // Find top level and type
+        for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
+            Row_t *PRow = &RxTable.PTable->Row[i];
+            if(PRow->Rssi > TopTL.Level) TopTL.Set((DeviceType_t)PRow->Type, PRow->Rssi);
+        } // for
+        if(TopTL.Level > 0) Demo = TopTL;
     }
-    if(LvlS[2].Output > TopLvl) {
-        TopType = dtFieldStrong;
-        TopLvl = LvlS[2].Output;
-    }
-
-    // Demonstrate
+    else {
+        // Init signal levels with thresholds
+        for(uint8_t i=0; i<3; i++) LvlS[i].Init(SnsTable[Type][i]);
+        // Summ all signals by type
+        for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
+            Row_t *PRow = &RxTable.PTable->Row[i];
+            switch(PRow->Type) {
+                case dtFieldWeak:   LvlS[0].ProcessValue(PRow->Rssi); break;
+                case dtFieldNature: LvlS[1].ProcessValue(PRow->Rssi); break;
+                case dtFieldStrong: LvlS[2].ProcessValue(PRow->Rssi); break;
+                default: break;
+            }
+        } // for
+        // Calculate output levels
+        for(uint8_t i=0; i<3; i++) LvlS[i].CalculateLevel(LVL_STEPS_N);
+        // ==== Find top level and type ====
+        // Ignore other fields if dtFieldStrong exists
+        if     (LvlS[2].Output > 0) Demo.Set(dtFieldStrong, LvlS[2].Output);
+        // Otherwise, ignore dtFieldWeak if dtFieldNature exists
+        else if(LvlS[1].Output > 0) Demo.Set(dtFieldNature, LvlS[1].Output);
+        else if(LvlS[0].Output > 0) Demo.Set(dtFieldWeak,   LvlS[0].Output);
+    } // if not detector
+    Uart.Printf("DLvl=%d; DType=%u\r", Demo.Level, Demo.Type);
 //    Uart.Printf("Lvl1=%u; Lvl2=%u; Lvl3=%u; Top=%u; Type=%u\r", LvlS[0].Output, LvlS[1].Output, LvlS[2].Output, TopLvl, TopType);
-    if(TopLvl > 0) IDemonstrate(TopLvl, TopType);
 }
 
 const VibroChunk_t *PVibroTable[3][4] = {

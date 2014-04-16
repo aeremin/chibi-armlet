@@ -64,6 +64,7 @@ enum DeviceType_t {
 // 8 types of device, 3 nypes of field
 const int32_t SnsTable[8][3] = {
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtNothing
+
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldWeak
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldNature
         {RLVL_NEVER, RLVL_NEVER, RLVL_NEVER}, // dtFieldStrong
@@ -83,6 +84,17 @@ extern const VibroChunk_t *PVibroTable[3][4];
 #define EE_DEVICE_ID_ADDR       0
 #define EE_DEVICE_TYPE_ADDR     4
 
+struct TypeLvl_t {
+    DeviceType_t Type = dtNothing;
+    int32_t Level = 0;
+    void Set(DeviceType_t AType, int32_t ALvl) {
+        chSysLock();
+        Type = AType;
+        Level = ALvl;
+        chSysUnlock();
+    }
+};
+
 // ==== Application class ====
 class App_t {
 private:
@@ -90,7 +102,7 @@ private:
     void IPillHandler();
     inline void ITableHandler();
     inline void IDemonstrate(int32_t Level, DeviceType_t AType);
-    void Dummy();
+    TypeLvl_t Demo; // What to demonstrate
 public:
     uint32_t ID;
     DeviceType_t Type;

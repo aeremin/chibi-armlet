@@ -31,6 +31,7 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Uart.Printf("Shiko AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    //if(ClkResult) Uart.Printf("Clock failure\r");
     Led.Init();
 
     Beeper.Init();
@@ -43,7 +44,6 @@ int main(void) {
     App.PThd = chThdSelf();
     App.Init();
 
-//    if(ClkResult) Uart.Printf("Clock failure\r");
 
     while(1) App.ITask();
 }
