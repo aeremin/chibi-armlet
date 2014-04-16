@@ -39,17 +39,27 @@ static void MeshLvlThread(void *arg) {
     while(1) Mesh.ITask();
 }
 
+static WORKING_AREA(waMeshPktBucket, 128);
+static void MeshPktBucket(void *arg) {
+    chRegSetThreadName("MeshBkt");
+    while(1) {
+        chEvtWaitAny(EVT_MSK_BKT_EXTRACT);
+        Mesh.IPktHandler();
+    }
+}
+
 void Mesh_t::ITask() {
     uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
 
     if(EvtMsk & EVTMSK_NEW_CYCLE) NewCycle();
 
     if(EvtMsk & EVTMSK_UPDATE_CYCLE) {
-        uint32_t NewAbsTime=0;
-        uint32_t NextCycleStart=0;
-        NeedUpdateTime = DispatchPkt(&NewAbsTime, &NextCycleStart);
+//        uint32_t NewAbsTime=0;
+//        uint32_t NextCycleStart=0;
+        Uart.Printf("ShouldUpdate\r");
+//        NeedUpdateTime = DispatchPkt(&NewAbsTime, &NextCycleStart);
 //        TableSend();
-        UpdateTimer(NeedUpdateTime, NewAbsTime, NextCycleStart);
+//        UpdateTimer(NeedUpdateTime, NewAbsTime, NextCycleStart);
     }
 }
 
@@ -62,7 +72,10 @@ void Mesh_t::NewCycle() {
         Radio.SendEvt(EVTMSK_MESH_RX);
         mshMsg_t MeshPkt;
         do {
-            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) PktBucket.WritePkt(MeshPkt);
+            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
+                PktHandlerStart();
+                PktBucket.WritePkt(MeshPkt);
+            }
         } while(Radio.IMeshRx);
     }
     // ==== TX ====
@@ -72,39 +85,46 @@ void Mesh_t::NewCycle() {
     }
 }
 
-bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
-    bool GetPrimaryPkt = false;
-
-
-    if(PktBucket.GetFilledSlots() != 0) {
-        uint8_t PriorityID = GetMeshID();
-        mshMsg_t MeshMsg;
-        do {
-            PktBucket.ReadPkt(&MeshMsg);
-            Uart.Printf("Msh: ID=%u, CycleN=%u, TimOwnID=%u\r", MeshMsg.MeshPayload.SelfID, MeshMsg.MeshPayload.CycleN, MeshMsg.MeshPayload.TimeOwnerID);
-            if(PriorityID > MeshMsg.MeshPayload.TimeOwnerID) GetPrimaryPkt = true;
-            else if(PriorityID == MeshMsg.MeshPayload.TimeOwnerID) {
-                if(GetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
-                    GetPrimaryPkt = true;                   /* need to update */
-                }
-            }
-
-            if(GetPrimaryPkt) {
-                CycleTmr.Disable();
-                *PTime = MeshMsg.MeshPayload.CycleN + 1;
-                PriorityID = MeshMsg.MeshPayload.TimeOwnerID;
-                ResetTimeAge(PriorityID);
-                *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
-            }
-//            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
-//            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
-//            MeshMsg.RSSI += 100;    // 0...65
-//            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
-//            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
-        } while(PktBucket.GetFilledSlots() != 0);
-    }
-    return GetPrimaryPkt;
+void Mesh_t::IPktHandler(){
+    mshMsg_t MeshMsg;
+    do {
+        Uart.Printf("ExtractPkt\r");
+        PktBucket.ReadPkt(&MeshMsg);
+        Uart.Printf("Msh: ID=%u, CycleN=%u, TimOwnID=%u\r", MeshMsg.MeshPayload.SelfID, MeshMsg.MeshPayload.CycleN, MeshMsg.MeshPayload.TimeOwnerID);
+    } while(PktBucket.GetFilledSlots() != 0);
 }
+
+//bool Mesh_t::DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime) {
+//    bool GetPrimaryPkt = false;
+//
+//    if(PktBucket.GetFilledSlots() != 0) {
+//        uint8_t PriorityID = GetMeshID();
+//        do {
+//            PktBucket.ReadPkt(&MeshMsg);
+//            Uart.Printf("Msh: ID=%u, CycleN=%u, TimOwnID=%u\r", MeshMsg.MeshPayload.SelfID, MeshMsg.MeshPayload.CycleN, MeshMsg.MeshPayload.TimeOwnerID);
+//            if(PriorityID > MeshMsg.MeshPayload.TimeOwnerID) GetPrimaryPkt = true;
+//            else if(PriorityID == MeshMsg.MeshPayload.TimeOwnerID) {
+//                if(GetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
+//                    GetPrimaryPkt = true;                   /* need to update */
+//                }
+//            }
+//
+//            if(GetPrimaryPkt) {
+//                CycleTmr.Disable();
+//                *PTime = MeshMsg.MeshPayload.CycleN + 1;
+//                PriorityID = MeshMsg.MeshPayload.TimeOwnerID;
+//                ResetTimeAge(PriorityID);
+//                *PWakeUpSysTime = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
+//            }
+////            if(MeshMsg.RSSI < -100) MeshMsg.RSSI = -100;
+////            else if(MeshMsg.RSSI > -35) MeshMsg.RSSI = -35;
+////            MeshMsg.RSSI += 100;    // 0...65
+////            uint32_t Lvl = DbTranslate[MeshMsg.RSSI]; //1 + (uint32_t)(((int32_t)MeshMsg.RSSI * 99) / 65);
+////            SnsTable.PutSnsInfo(MeshMsg.PktRx.ID, Lvl);   /* Put Information in SensTable */
+//        } while(PktBucket.GetFilledSlots() != 0);
+//    }
+//    return GetPrimaryPkt;
+//}
 
 void Mesh_t::UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime) {
     if(NeedUpdateTime) {
@@ -135,6 +155,7 @@ void Mesh_t::Init(uint32_t ID) {
     }
     // Init Thread
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
+    IPBktHanlder = chThdCreateStatic(waMeshPktBucket, sizeof(waMeshPktBucket), NORMALPRIO, (tfunc_t)MeshPktBucket, NULL);
     SelfID = (uint8_t)ID;
     SleepTime = ((SelfID-1)*SLOT_TIME);
     MsgBox.Init();

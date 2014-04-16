@@ -75,6 +75,9 @@ private:
     uint8_t GetTimeAge()              { return Radio.GetTimeAge(); }
     uint8_t GetMeshID()               { return Radio.GetTimeOwner(); }
 
+    void PktHandlerStart() {
+        chEvtSignal(IPBktHanlder, EVT_MSK_BKT_EXTRACT);
+    }
 public:
     Mesh_t() :  PRndTable(RndTableBuf),
                 AbsCycle(0),
@@ -85,10 +88,11 @@ public:
                 SelfID(0),
 //                NeedToSendTable(0),
                 IPThread(NULL),
+                IPBktHanlder(NULL),
                 LedColor(clCyan),
                 INeedColor(clBlack) {}
 
-    Thread *IPThread;
+    Thread *IPThread, *IPBktHanlder;
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
@@ -114,6 +118,7 @@ public:
 
     void ITask();
     void IIrqHandler();
+    void IPktHandler();
     void SendEvent(eventmask_t mask)  { chEvtSignal(IPThread,mask); }
 };
 

@@ -97,7 +97,7 @@ void rLevel1_t::ITask() {
                 Time = chTimeNow();
                 uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
                 if(RxRslt == OK) { // Pkt received correctly
-                    Uart.Printf("ID=%u:%u, %ddBm\r", PktRx.SelfID, PktRx.CycleN, RSSI);
+//                    Uart.Printf("ID=%u:%u, %ddBm\r", PktRx.SelfID, PktRx.CycleN, RSSI);
                     Payload.WriteInfo(PktRx.SelfID, RSSI, &PktRx.PktPayload);
                     Mesh.MsgBox.Post({chTimeNow(), PktRx.MeshPayload}); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
