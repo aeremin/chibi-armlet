@@ -18,6 +18,20 @@ App_t App;
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
 
+// Table of colors depending on type
+#define DEVICETYPE_BLINK_T_MS   999
+
+const LedChunk_t TypeColorTbl[8] = {
+        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
+        {clYellow,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtFieldWeak
+        {clGreen,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtFieldNature
+        {clRed,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtFieldStrong
+        {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtXtraNormal
+        {clBlue,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtXtraWeak
+        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtUfo
+        {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}  // dtDetector
+};
+
 class LvlSumm_t {
 private:
     int32_t tm, Sum, IThreshold;
@@ -51,28 +65,14 @@ void App_t::IPillHandler() {
     // Read med
     if(PillMgr.Read(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t)) != OK) return;
     Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceType);
-//    if((Pill.ID == PILL_ID_CURE) and (Pill.Charge != 0)) {
-//        bool Rslt = OK;
-//        // Lower charges if not infinity
-//        if(Pill.Charge != INFINITY16) {
-//            Pill.Charge--;
-//            Rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
-//        }
-//        if(Rslt == OK) {
-//            Beeper.Beep(BeepPillOk);
-//            Led.StartBlink(LedPillOk);
-//            // Decrease dose if not dead, or if this is panacea
-//            if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
-//            chThdSleep(2007);    // Let indication to complete
-//            Dose.ChangeIndication();
-//            return;
-//        }
-//    } // if Cure
-    // Will be here in case of strange/discharged pill
+    if((Pill.TypeID == PILL_TYPEID_SETTYPE) and (Pill.DeviceType >= 1) and (Pill.DeviceType <= 7)) {
+        SetType(Pill.DeviceType);
+        Beeper.Beep(BeepPillOk);
+    } // if pill ok
+    // Will be here in case of bad pill
     Beeper.Beep(BeepPillBad);
     Led.StartBlink(LedPillBad);
 //    chThdSleep(2007);    // Let indication to complete
-//    Dose.ChangeIndication();
 }
 
 #endif
@@ -183,6 +183,7 @@ void App_t::Init() {
 uint8_t App_t::SetType(uint8_t AType) {
     if(AType > 7) return FAILURE;
     Type = (DeviceType_t)AType;
+    Led.StartBlink(&TypeColorTbl[AType]);   // Blink with correct color
     // Save in EE if not equal
     uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
     uint8_t rslt = OK;

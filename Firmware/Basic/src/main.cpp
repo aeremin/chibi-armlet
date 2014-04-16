@@ -32,13 +32,6 @@ int main(void) {
     Uart.Init(115200);
     Uart.Printf("Shiko AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
-    Led.SetColor(clRed);
-    chThdSleepMilliseconds(108);
-    Led.SetColor(clGreen);
-    chThdSleepMilliseconds(108);
-    Led.SetColor(clBlue);
-    chThdSleepMilliseconds(108);
-    Led.SetColor(clBlack);
 
     Beeper.Init();
     Beeper.Beep(BeepBeep);
