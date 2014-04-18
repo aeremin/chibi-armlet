@@ -81,7 +81,7 @@ void rLevel1_t::ITask() {
                     CC.SetChannel(i);
                     RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
                     if(RxRslt == OK) {
-//                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
                         App.RxTable.PutInfo(i, PktRx.Type, Rssi);
                     }
                 } // for
