@@ -53,9 +53,15 @@ private:
     uint32_t CurrCycle;
     uint32_t RxCycleN;
     uint32_t SleepTime;
-    bool NeedUpdateTime;
+//    bool NeedUpdateTime;
     uint16_t SelfID;
 //    uint8_t NeedToSendTable;
+
+    // Synchronization
+    bool GetPrimaryPkt;
+    uint16_t PriorityID;
+    uint32_t NewCycleN, *PNewCycleN;
+    uint32_t TimeToWakeUp, *PTimeToWakeUp;
 
     Timer_t CycleTmr;
     CircBufPkt_t PktBucket;
@@ -68,9 +74,7 @@ private:
     }
 
     void NewCycle();
-//    void TableSend();
-    void UpdateTimer(bool NeedUpdate, uint32_t NewTime, uint32_t WakeUpSysTime);
-    bool DispatchPkt(uint32_t *PTime, uint32_t *PWakeUpSysTime);
+    void UpdateTimer();
     void ResetTimeAge(uint8_t ID)     { Radio.ResetTimeAge(ID); }
     uint8_t GetTimeAge()              { return Radio.GetTimeAge(); }
     uint8_t GetMeshID()               { return Radio.GetTimeOwner(); }
@@ -84,8 +88,14 @@ public:
                 CurrCycle(COUNT_OF_CYCLES),
                 RxCycleN(*PRndTable),
                 SleepTime(0),
-                NeedUpdateTime(false),
+//                NeedUpdateTime(false),
                 SelfID(0),
+                GetPrimaryPkt(false),
+                PriorityID(0),
+                NewCycleN(0),
+                PNewCycleN(&NewCycleN),
+                TimeToWakeUp(0),
+                PTimeToWakeUp(&TimeToWakeUp),
 //                NeedToSendTable(0),
                 IPThread(NULL),
                 IPBktHanlder(NULL),

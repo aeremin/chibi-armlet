@@ -50,7 +50,7 @@ void Init() {
     Uart.Init(57600);
     Uart.Printf("ChibiArmlet\r");
     Led.Init();
-//    Beeper.Init();
+    Beeper.Init();
 //    Beeper.Beep(BeepBeep);
 //    Vibro.Init();
 //    Vibro.Flinch(BrrBrr);

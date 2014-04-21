@@ -72,6 +72,7 @@ public:
     void ResetTimeAge(uint8_t ID)     { PktTx.TimeAge = 0; PktTx.TimeOwnerID = ID; }
     uint8_t GetTimeAge()              { return PktTx.TimeAge;     }
     uint8_t GetTimeOwner()            { return PktTx.TimeOwnerID; }
+    void SetTimeOwner(uint16_t ID)    { PktTx.TimeOwnerID = ID; }
     bool IMeshRx;
 #endif
 };
