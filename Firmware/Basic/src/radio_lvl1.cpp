@@ -34,7 +34,7 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-//#define TX
+#define TX
 //#define LED_RX
 __attribute__((noreturn))
 void rLevel1_t::ITask() {
@@ -43,7 +43,7 @@ void rLevel1_t::ITask() {
     while(true) {
         PktTx.Type = App.Type;
 
-#if 1 // ======== TX cycle ========
+#if 0 // ======== TX cycle ========
         switch(App.Type) {
             case dtFieldWeak:
             case dtFieldNature:
@@ -60,7 +60,7 @@ void rLevel1_t::ITask() {
         } // switch
 #endif
 
-#if 1 // ======== RX cycle ========
+#if 0 // ======== RX cycle ========
         switch(App.Type) {
             case dtFieldWeak:
             case dtFieldNature:
@@ -85,7 +85,6 @@ void rLevel1_t::ITask() {
                         App.RxTable.PutInfo(i, PktRx.Type, Rssi);
                     }
                 } // for
-                App.RxTable.SendEvtReady();
                 break;
 
             default:
@@ -97,13 +96,13 @@ void rLevel1_t::ITask() {
 #ifdef TX
         // Transmit
         DBG1_SET();
-        CC.TransmitSync(&PktTx, RPKT_LEN);
+        CC.TransmitSync(&PktTx);
         DBG1_CLR();
-        chThdSleepMilliseconds(99);
+        //chThdSleepMilliseconds(99);
 #elif defined LED_RX
         Color_t Clr;
         int8_t Rssi;
-        RxRslt = CC.ReceiveSync(306, &PktRx, RPKT_LEN, &Rssi);
+        RxRslt = CC.ReceiveSync(306, &PktRx, &Rssi);
         if(RxRslt == OK) {
             Uart.Printf("%d\r", Rssi);
             Clr = clWhite;
@@ -128,8 +127,8 @@ void rLevel1_t::Init() {
 #endif
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(CC_Pwr0dBm);
-    CC.SetChannel(0);
+    CC.SetTxPower(CC_PwrPlus12dBm);
+    CC.SetChannel(90);
     CC.SetPktSize(RPKT_LEN);
     // Variables
     PktTx.Check[0] = CHECK_0;

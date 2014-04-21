@@ -119,11 +119,12 @@ void App_t::ITask() {
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
 
-        // ==== RX table ====
-        if(EvtMsk & EVTMSK_RX_TABLE_READY) if(RxTable.PTable->Size != 0) ITableHandler();
-
         // ==== Demonstrate ====
-        if(EvtMsk & EVTMSK_DEMONSTRATE) if(Demo.IsNotEmpty()) IDemonstrate();
+        if(EvtMsk & EVTMSK_DEMONSTRATE) {
+            RxTable.SwitchTable();
+            if(RxTable.PTable->Size != 0) ITableHandler();
+            if(Demo.IsNotEmpty()) IDemonstrate();
+        }
     } // while 1
 }
 
@@ -141,7 +142,7 @@ void App_t::ITableHandler() {
             Row_t *PRow = &RxTable.PTable->Row[i];
             if(PRow->Rssi > TopTL.Level) TopTL.Set((DeviceType_t)PRow->Type, PRow->Rssi);
         } // for
-        if(TopTL.Level > 0) Demo = TopTL;
+        if(TopTL.Level > 0) Demo.Set(TopTL.Type, TopTL.Level);
     }
     else {
         // Init signal levels with thresholds
@@ -180,7 +181,6 @@ void App_t::IDemonstrate() {
 }
 
 void App_t::Init() {
-    RxTable.RegisterAppThd(PThd);
     // Read device ID and type
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);

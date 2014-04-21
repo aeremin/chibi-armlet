@@ -9,8 +9,7 @@
 #define EVT_MASK_H_
 
 // Event masks
-#define EVTMSK_PILL_CHECK       EVENT_MASK(2)
-#define EVTMSK_RX_TABLE_READY   EVENT_MASK(3)
-#define EVTMSK_DEMONSTRATE      EVENT_MASK(4)
+#define EVTMSK_PILL_CHECK       EVENT_MASK(1)
+#define EVTMSK_DEMONSTRATE      EVENT_MASK(2)
 
 #endif /* EVT_MASK_H_ */
