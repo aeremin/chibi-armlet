@@ -58,14 +58,9 @@ public:
 //        chSysUnlock();
 //    }
 
-    void dBm2Percent() {
-        for(uint32_t i=0; i < PTable->Size; i++) {
-            int32_t Rssi = PTable->Row[i].Rssi;
-            if(Rssi < -100) Rssi = -100;
-            else if(Rssi > -15) Rssi = -15;
-            Rssi += 100;    // 0...85
-            PTable->Row[i].Rssi  = dBm2Percent1000Tbl[Rssi];
-        }
+    void dBm2PercentAll() {
+        for(uint32_t i=0; i < PTable->Size; i++)
+            PTable->Row[i].Rssi = dBm2Percent(PTable->Row[i].Rssi);
     }
 
     void Print() {

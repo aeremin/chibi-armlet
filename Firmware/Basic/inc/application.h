@@ -34,7 +34,7 @@
 #define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
 // Delay between demonstration
 #define TM_DEMO_COMMON_MS   2007
-#define TM_DEMO_DETECTOR_MS 450
+#define TM_DEMO_DETECTOR_MS 702
 #endif
 
 
@@ -62,6 +62,8 @@ enum DeviceType_t {
 #define RLVL_4M                 700
 #define RLVL_10M                600
 #define RLVL_50M                1
+
+#define RLVL_DETECTOR           RLVL_10M
 
 // ==== Table of sensitivity constants ====
 // 8 types of device, 3 nypes of field
@@ -122,6 +124,7 @@ public:
     RxTable_t RxTable;
     void Init();
     uint8_t SetType(uint8_t AType);
+    void DetectorFound(int8_t RssiPercent);
     // Inner use
     void ITask();
 };

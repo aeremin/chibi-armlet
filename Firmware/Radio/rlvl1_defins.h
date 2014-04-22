@@ -24,6 +24,13 @@ const int32_t dBm2Percent1000Tbl[86] = {
         970, 976, 982, 988, 994, 1000
 };
 
+static inline int32_t dBm2Percent(int32_t Rssi) {
+    if(Rssi < -100) Rssi = -100;
+    else if(Rssi > -15) Rssi = -15;
+    Rssi += 100;    // 0...85
+    return dBm2Percent1000Tbl[Rssi];
+}
+
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
     uint8_t Type;
@@ -37,7 +44,7 @@ struct rPkt_t {
 
 #if 1 // ======================= Address space =================================
 #define FIELD_RX_CHNL    9
-#define RCHNL_MIN       FIELD_RX_CHNL
+#define RCHNL_MIN       10
 #define RCHNL_MAX       60
 #endif
 

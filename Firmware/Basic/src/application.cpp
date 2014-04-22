@@ -20,7 +20,6 @@ static uint8_t SBuf[UART_RPL_BUF_SZ];
 
 // Table of colors depending on type
 #define DEVICETYPE_BLINK_T_MS   999
-
 const LedChunk_t TypeColorTbl[8] = {
         {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
         {clYellow,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtFieldWeak
@@ -32,15 +31,26 @@ const LedChunk_t TypeColorTbl[8] = {
         {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}  // dtDetector
 };
 
+#define DEVICETYPE_PELENG_T_MS   9999
+const LedChunk_t TypeColorTbl10s[8] = {
+        {clBlack,   DEVICETYPE_PELENG_T_MS, ckStop}, // dtNothing
+        {clYellow,  DEVICETYPE_PELENG_T_MS, ckStop}, // dtFieldWeak
+        {clGreen,   DEVICETYPE_PELENG_T_MS, ckStop}, // dtFieldNature
+        {clRed,     DEVICETYPE_PELENG_T_MS, ckStop}, // dtFieldStrong
+        {clCyan,    DEVICETYPE_PELENG_T_MS, ckStop}, // dtXtraNormal
+        {clBlue,    DEVICETYPE_PELENG_T_MS, ckStop}, // dtXtraWeak
+        {clMagenta, DEVICETYPE_PELENG_T_MS, ckStop}, // dtUfo
+        {clWhite,   DEVICETYPE_PELENG_T_MS, ckStop}  // dtDetector
+};
+
 const VibroChunk_t *PVibroTable[3][4] = {
         {Brr1, Brr2, Brr3, Brr4},   // dtFieldWeak
         {Brr4, Brr5, Brr6, Brr7},   // dtFieldNature
         {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
 };
 
-const BeepChunk_t BeepClicks[] = {
-        {BEEP_VOLUME, 1975, 11, ckStop},
-};
+// Detector beeps
+const BeepChunk_t *PBeepClicks[4] = { Beep1, Beep2, Beep3, Beep4 };
 
 #if 1 // =========================== Summing ===================================
 class LvlSumm_t {
@@ -97,6 +107,7 @@ void TmrPillCheckCallback(void *p) {
 void TmrDemoCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DEMONSTRATE);
+    // Set delay depending on device type
     uint32_t Period = (App.Type == dtDetector)? TM_DEMO_DETECTOR_MS : TM_DEMO_COMMON_MS;
     chVTSetI(&ITmrDemo, MS2ST(Period), TmrDemoCallback, nullptr);
     chSysUnlockFromIsr();
@@ -131,11 +142,15 @@ void App_t::ITask() {
     } // while 1
 }
 
+void App_t::DetectorFound(int8_t RssiPercent) {
+    if(RssiPercent > RLVL_DETECTOR)
+        Led.StartBlink(&TypeColorTbl10s[(uint8_t)Demo.Type]);
+}
 
 void App_t::ITableHandler() {
     // Convert dBm to values 1...1000
 //    RxTable.Print();
-    RxTable.dBm2Percent();
+    RxTable.dBm2PercentAll();
     RxTable.Print();
 
     if(Type == dtDetector) {
@@ -146,7 +161,10 @@ void App_t::ITableHandler() {
             if(PRow->Rssi > TopTL.Level) TopTL.Set((DeviceType_t)PRow->Type, PRow->Rssi);
         } // for
         Uart.Printf("Top: %u, %u\r", TopTL.Level, TopTL.Type);
-        if(TopTL.Level > 0) Demo.Set(TopTL.Type, TopTL.Level);
+        LvlS[0].Init(RLVL_DETECTOR);
+        LvlS[0].ProcessValue(TopTL.Level);
+        LvlS[0].CalculateLevel(LVL_STEPS_N);
+        Demo.Set(TopTL.Type, LvlS[0].Output);
     }
     else {
         // Init signal levels with thresholds
@@ -176,18 +194,18 @@ void App_t::ITableHandler() {
 
 void App_t::IDemonstrate() {
     Uart.Printf("Demo Lvl=%u; Type=%u\r", Demo.Level, Demo.Type);
+    // Prepare data and clear demo
+    chSysLock();
+    uint8_t FTypeID = (uint8_t)Demo.Type - 1; // 1...7 => 0...6
+    uint8_t FLevel = Demo.Level - 1;          // 1...4 => 0...3
+    Demo.Clear();
+    chSysUnlock();
+    // ==== Show ====
     if(Type == dtDetector) {
-        Led.StartBlink(&TypeColorTbl[(uint8_t)Demo.Type]);
-
+        Led.StartBlink(&TypeColorTbl[FTypeID+1]);
+        Beeper.Beep(PBeepClicks[FLevel]);
     }
-    else {
-        chSysLock();
-        uint8_t FTypeID = (uint8_t)Demo.Type - 1; // 1...7 => 0...6
-        uint8_t FLevel = Demo.Level - 1;          // 1...4 => 0...3
-        Demo.Clear();
-        chSysUnlock();
-        Vibro.Flinch(PVibroTable[FTypeID][FLevel]);
-    }
+    else Vibro.Flinch(PVibroTable[FTypeID][FLevel]);
 }
 
 void App_t::Init() {
