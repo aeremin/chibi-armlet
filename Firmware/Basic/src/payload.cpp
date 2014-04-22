@@ -7,15 +7,19 @@
 
 
 #include "payload.h"
+#include "mesh_lvl.h"
 
 Payload_t Payload;
 
 
-uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t TimeStampValue, PayloadString_t *Ptr) {
+uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp, PayloadString_t *Ptr) {
     uint8_t Rslt = FAILURE;
-    Ptr->Hops += 1;
-    Ptr->Timestamp = TimeStampValue;
-    InfoBuf[ID] = *Ptr;
+    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
+        Ptr->Hops += 1;
+        Ptr->TimeDiff =  CurrentTimeStamp - Ptr->Timestamp;
+        Ptr->Timestamp = CurrentTimeStamp;
+        InfoBuf[ID] = *Ptr;
+    }
 //    Uart.Printf("Pld: %u, %u\r", ID, Ptr->Hops);
     return Rslt;
 }
@@ -23,12 +27,10 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t TimeStampValue, 
 uint8_t Payload_t::PrintNextInfo() {
     do {
         PStr++;
-        if(PStr >= InfoBuf + INFO_BUF_SIZE) {
-            PStr = InfoBuf;
-            return LAST;
-        }
-    } while(PStr->Hops == 0);
-    Uart.Printf("%u,%u,%u,%u,%u,%u,%u\r",
+        if(PStr == InfoBuf + SELF_MESH_ID)  break;
+        else if(PStr >= InfoBuf + INFO_BUF_SIZE) PStr = InfoBuf;
+    } while (PStr->Hops == 0);
+    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
             (uint16_t)(PStr - InfoBuf),
             PStr->Hops,
             PStr->Timestamp,
@@ -39,19 +41,29 @@ uint8_t Payload_t::PrintNextInfo() {
     return OK;
 }
 
-PayloadString_t* Payload_t::GetNextInfo(uint16_t *P) {
+uint16_t Payload_t::GetNextInfoID() {
     do {
         PNext++;
         if(PNext >= InfoBuf + INFO_BUF_SIZE) {
             PNext = InfoBuf;
-            *P = SELF_MESH_ID;
-            return (&SelfInfo); // Self Info
+            return (uint16_t)SELF_MESH_ID; // Self Info
         }
     } while(PNext->Hops == 0);
-    *P = (uint16_t)(PNext - InfoBuf);
-    return PNext;
+    return (uint16_t)(PNext - InfoBuf);
 }
 
+void Payload_t::WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
+    PayloadString_t *p = &InfoBuf[IDv];
+    p->Timestamp = TimeStampValue;
+    p->Location = NewLocation;
+    p->Reason = NewReason;
+    p->Emotion = NewEmotion;
+}
+
+
+void Payload_t::UpdateSelf() {
+    InfoBuf[SELF_MESH_ID].Timestamp = Mesh.GetCycleN();
+}
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValue) {
     Uart.Printf("Correct to %u\r", CorrValue);
 //    for(uint16_t i=0; i<INFO_BUF_SIZE; i++) {

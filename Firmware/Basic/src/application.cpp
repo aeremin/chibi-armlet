@@ -213,7 +213,7 @@ static void AppThread(void *arg) {
         if(EvtMsk & EVTMSK_LED_UPD) Led.SetColor(Mesh.LedColor); /* Set color if need*/
 
         if(EvtMsk & EVT_MSK_PAYLOAD_SEND) { /* Send Payload to Console */
-//            Payload.PrintNextInfo();
+            Payload.PrintNextInfo();
         }
 
     } // while 1

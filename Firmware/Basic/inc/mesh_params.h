@@ -15,7 +15,7 @@
  *  |_____________________..._________________|   SUPER_CYCLE
  */
 
-#define SELF_MESH_ID        1
+#define SELF_MESH_ID        2
 
 #define TABLE_SEND_N        3     /* send SnsTable after n cycles */
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
@@ -31,7 +31,7 @@
 //#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
 #define GET_RND_VALUE(Top)    ( ((rand() % Top) + 1) )
 //#define END_OF_EPOCH        4294967295 // ms = 2^32
-#define END_OF_EPOCH        65536       // max cycle counter
+//#define END_OF_EPOCH        65536       // max cycle counter
 
 
 #define TIME_AGE_THRESHOLD  20 /* Cycles */

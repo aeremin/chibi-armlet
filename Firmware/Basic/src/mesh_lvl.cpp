@@ -60,6 +60,8 @@ void Mesh_t::NewCycle() {
 //    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
+    /* Update Self Payload */
+    Payload.UpdateSelf();
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         Radio.SendEvt(EVTMSK_MESH_RX);
@@ -77,9 +79,10 @@ void Mesh_t::NewCycle() {
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
         Radio.SendEvt(EVTMSK_MESH_TX);
         PayloadString_t *PlStr;
-        uint16_t IDtoTx = 0;
-        PlStr = Payload.GetNextInfo(&IDtoTx);
-        Radio.FillPayload(IDtoTx, PlStr);
+        uint16_t NextID = 0;
+        NextID = Payload.GetNextInfoID();
+        PlStr = Payload.GetInfoByID(NextID);
+        Radio.FillPayload(NextID, PlStr);
     }
 }
 

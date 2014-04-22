@@ -19,7 +19,7 @@
 struct PayloadString_t {
     uint8_t Hops;
     uint32_t Timestamp;
-    uint32_t TimeDiff;
+    int32_t TimeDiff;
     uint8_t Location;
     uint8_t Reason;
     uint8_t Emotion;
@@ -34,16 +34,12 @@ public:
     Payload_t(): PStr(InfoBuf),
                  PNext(InfoBuf)   {}
     PayloadString_t *PStr, *PNext;
-    uint8_t WriteInfo(uint16_t ID, int8_t RSSI, uint32_t TimeStampValue, PayloadString_t *Ptr);
-    void FillSelfPayload(uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
-        SelfInfo.Timestamp = TimeStampValue;
-        SelfInfo.Location = NewLocation;
-        SelfInfo.Reason   = NewReason;
-        SelfInfo.Emotion  = NewEmotion;
-    }
+    uint8_t WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp, PayloadString_t *Ptr);
+    void WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion);
     PayloadString_t* GetInfoByID(uint16_t ID) { return (PayloadString_t*)&InfoBuf[ID]; }
-    PayloadString_t* GetNextInfo(uint16_t *P);
+    uint16_t GetNextInfoID();
     uint8_t PrintNextInfo();
+    void UpdateSelf();
     void CorrectionTimeStamp(uint32_t CorrValue);
 };
 

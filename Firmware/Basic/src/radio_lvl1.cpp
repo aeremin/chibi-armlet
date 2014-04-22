@@ -83,7 +83,7 @@ void rLevel1_t::ITask() {
         TimeAgeKeeper();
         if(EvtMsk & EVTMSK_MESH_TX) {
             Led.StartBlink(LedBlueOneBlink);
-            Uart.Printf("PktTx %u:%u,h%u,%u,%u,%u\r", PktTx.SelfID, PktTx.ID, PktTx.Hops, PktTx.Location, PktTx.Reason, PktTx.Emotion);
+//            Uart.Printf("PktTx %u:%u,%u,%u,%u,%u,%u\r", PktTx.SelfID, PktTx.ID, PktTx.Hops, PktTx.TimeStamp, PktTx.Location, PktTx.Reason, PktTx.Emotion);
             CC.TransmitSync(&PktTx); /* Pkt was prepared in Mesh Thd */
         }
         if(EvtMsk & EVTMSK_MESH_RX) {
@@ -134,8 +134,7 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     PktTx.TimeOwnerID = PktTx.SelfID;
     ResetTimeAge(PktTx.SelfID);
     // PayLoad
-    PktTx.ID = SELF_MESH_ID;
-    Payload.FillSelfPayload(Mesh.GetCycleN(), 0xFF, 0, 0);
+    Payload.WritePayloadByID((uint16_t)SELF_MESH_ID, Mesh.GetCycleN(), 0xFF, 0, 0);
 #endif
 
 
