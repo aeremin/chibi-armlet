@@ -13,6 +13,8 @@
 #include "cmd_uart.h"
 #include "mesh_params.h"
 
+#define INFO_BUF_SIZE   MAX_ABONENTS-1
+
 
 struct PayloadString_t {
     uint8_t Hops;
@@ -26,11 +28,23 @@ struct PayloadString_t {
 
 struct Payload_t {
 private:
-    PayloadString_t InfoBuf[MAX_ABONENTS-1];
+    PayloadString_t InfoBuf[INFO_BUF_SIZE];
+    PayloadString_t SelfInfo;
 public:
-    Payload_t(): PStr(InfoBuf) {}
-    PayloadString_t* PStr;
-    uint8_t WriteInfo(uint16_t ID, int8_t RSSI, PayloadString_t *Ptr);
+    Payload_t(): PStr(InfoBuf),
+                 PNext(InfoBuf)   {}
+    PayloadString_t *PStr, *PNext;
+    uint8_t WriteInfo(uint16_t ID, int8_t RSSI, uint32_t TimeStampValue, PayloadString_t *Ptr);
+    void FillSelfPayload(uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
+        SelfInfo.Timestamp = TimeStampValue;
+        SelfInfo.Location = NewLocation;
+        SelfInfo.Reason   = NewReason;
+        SelfInfo.Emotion  = NewEmotion;
+    }
+    PayloadString_t* GetInfoByID(uint16_t ID) { return (PayloadString_t*)&InfoBuf[ID]; }
+    PayloadString_t* GetNextInfo(uint16_t *P);
+    uint8_t PrintNextInfo();
+    void CorrectionTimeStamp(uint32_t CorrValue);
 };
 
 extern Payload_t Payload;

@@ -13,6 +13,7 @@
 #include "kl_lib_L15x.h"
 #include "cmd_uart.h"
 #include "cc1101.h"
+#include "payload.h"
 
 class rLevel1_t {
 private:
@@ -60,6 +61,12 @@ private:
         Damage = NaturalDmg + RadioDmg;
         chSysUnlock();
     }
+
+    void TimeAgeKeeper() {
+        if(PktTx.SelfID != PktTx.TimeOwnerID) PktTx.TimeAge++;
+        if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.SelfID); }
+    }
+
 public:
     Thread *PrThd;
     uint32_t Damage;
@@ -73,8 +80,11 @@ public:
     uint8_t GetTimeAge()              { return PktTx.TimeAge;     }
     uint8_t GetTimeOwner()            { return PktTx.TimeOwnerID; }
     void SetTimeOwner(uint16_t ID)    { PktTx.TimeOwnerID = ID; }
+    void PutCycle(uint32_t NewV)      { PktTx.CycleN = NewV;    }
     bool IMeshRx;
 #endif
+
+    void FillPayload(uint16_t AbbID, PayloadString_t *PayloadData);
 };
 
 extern rLevel1_t Radio;

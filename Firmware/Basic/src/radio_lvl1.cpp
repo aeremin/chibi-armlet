@@ -79,13 +79,12 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh ====
         CC.SetChannel(MESH_CHANNEL);
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        PktTx.TimeAge++;
+
+        TimeAgeKeeper();
         if(EvtMsk & EVTMSK_MESH_TX) {
-            PktTx.CycleN = Mesh.GetCycleN();
-//            Uart.Printf("RadioTx\r");
-            if(PktTx.TimeAge > TIME_AGE_THRESHOLD) { ResetTimeAge(PktTx.SelfID); }
             Led.StartBlink(LedBlueOneBlink);
-            CC.TransmitSync(&PktTx);
+            Uart.Printf("PktTx %u:%u,h%u,%u,%u,%u\r", PktTx.SelfID, PktTx.ID, PktTx.Hops, PktTx.Location, PktTx.Reason, PktTx.Emotion);
+            CC.TransmitSync(&PktTx); /* Pkt was prepared in Mesh Thd */
         }
         if(EvtMsk & EVTMSK_MESH_RX) {
             int8_t RSSI = 0;
@@ -98,7 +97,7 @@ void rLevel1_t::ITask() {
                 uint8_t RxRslt = CC.ReceiveSync(RxTmt, &PktRx, &RSSI);
                 if(RxRslt == OK) { // Pkt received correctly
 //                    Uart.Printf("ID=%u:%u, %ddBm\r", PktRx.SelfID, PktRx.CycleN, RSSI);
-                    Payload.WriteInfo(PktRx.SelfID, RSSI, &PktRx.PktPayload);
+                    Payload.WriteInfo(PktRx.SelfID, RSSI, Mesh.GetCycleN(), &PktRx.PktPayload);
                     Mesh.MsgBox.Post({chTimeNow(), PktRx.MeshPayload}); /* SendMsg to MeshThd with PktRx structure */
                 } // Pkt Ok
                 RxTmt = ((chTimeNow() - Time) > 0)? RxTmt - (chTimeNow() - Time) : 0;
@@ -111,6 +110,12 @@ void rLevel1_t::ITask() {
 }
 
 #endif
+
+void rLevel1_t::FillPayload(uint16_t AbbID, PayloadString_t *PayloadData) {
+    PktTx.ID = AbbID;
+    PktTx.PktPayload = *PayloadData;
+}
+
 
 #if 1 // ============================
 void rLevel1_t::Init(uint16_t ASelfID) {
@@ -129,13 +134,8 @@ void rLevel1_t::Init(uint16_t ASelfID) {
     PktTx.TimeOwnerID = PktTx.SelfID;
     ResetTimeAge(PktTx.SelfID);
     // PayLoad
-    PktTx.ID = 45;
-    PktTx.PktPayload.Hops = 6;
-    PktTx.PktPayload.Timestamp = 65432;
-    PktTx.PktPayload.TimeDiff = 9870;
-    PktTx.PktPayload.Location = 1;
-    PktTx.PktPayload.Reason = 5;
-    PktTx.PktPayload.Emotion = 8;
+    PktTx.ID = SELF_MESH_ID;
+    Payload.FillSelfPayload(Mesh.GetCycleN(), 0xFF, 0, 0);
 #endif
 
 

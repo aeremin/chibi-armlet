@@ -36,6 +36,7 @@
 #define TM_DOSE_INCREASE_MS     999
 #define TM_DOSE_SAVE_MS         2007
 #define TM_PILL_CHECK_MS        504     // Check if pill connected every TM_PILL_CHECK
+#define TM_PAYLOAD_SEND_MS      999
 #endif
 
 #if 1 // ==== Dose constants ====

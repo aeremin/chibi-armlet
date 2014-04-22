@@ -13,7 +13,7 @@
 #include "application.h"
 #include "real_time.h"
 
-#define MESH_DBG        // On/Off Debug Message in MeshLvl
+//#define MESH_DBG        // On/Off Debug Message in MeshLvl
 
 //pyton translation for db
 //[22:19:36] Jolaf: str(tuple(1 + int(sqrt(float(i) / 65) * 99) for i in xrange(0, 65 + 1)))
@@ -73,8 +73,13 @@ void Mesh_t::NewCycle() {
     }
     // ==== TX ====
     else {
+        Radio.PutCycle(GetCycleN());
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
         Radio.SendEvt(EVTMSK_MESH_TX);
+        PayloadString_t *PlStr;
+        uint16_t IDtoTx = 0;
+        PlStr = Payload.GetNextInfo(&IDtoTx);
+        Radio.FillPayload(IDtoTx, PlStr);
     }
 }
 
@@ -83,7 +88,9 @@ void Mesh_t::IPktHandler(){
     PriorityID = Radio.GetTimeOwner();
     do {
         PktBucket.ReadPkt(&MeshMsg);
+#ifdef MESH_DBG
         Uart.Printf("Msh: ID=%u, CycleN=%u, TimOwnID=%u\r", MeshMsg.MeshPayload.SelfID, MeshMsg.MeshPayload.CycleN, MeshMsg.MeshPayload.TimeOwnerID);
+#endif
         if(PriorityID > MeshMsg.MeshPayload.TimeOwnerID) GetPrimaryPkt = true;
         else if(PriorityID == MeshMsg.MeshPayload.TimeOwnerID) {
             if(GetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
@@ -120,6 +127,7 @@ void Mesh_t::UpdateTimer() {
         }
         while (*PTimeToWakeUp < timeNow);
         SetCurrCycleN(*PNewCycleN);
+        Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
         GetPrimaryPkt = false;
 #ifdef MESH_DBG
