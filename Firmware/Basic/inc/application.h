@@ -32,7 +32,9 @@
 
 #if 1 // ==== Timings ====
 #define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
-#define TM_DEMONSTRATE_MS   2007   // Delay between demonstration
+// Delay between demonstration
+#define TM_DEMO_COMMON_MS   2007
+#define TM_DEMO_DETECTOR_MS 450
 #endif
 
 

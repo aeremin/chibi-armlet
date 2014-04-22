@@ -33,6 +33,7 @@ int main(void) {
     Uart.Printf("Shiko AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     //if(ClkResult) Uart.Printf("Clock failure\r");
     Led.Init();
+    Led.SetColor(clGreen);
 
     Beeper.Init();
     Beeper.Beep(BeepBeep);

@@ -84,7 +84,6 @@ const BeepChunk_t BeepPillBad[] = {
         {BEEP_VOLUME, 1975, 180, ckStop},
 };
 
-
 // Health states
 const BeepChunk_t BeepDeath[] = {
         {BEEP_VOLUME, 1975, 2000, ckNormal},

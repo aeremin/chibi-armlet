@@ -34,8 +34,8 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-#define TX
-//#define LED_RX
+//#define TX
+#define LED_RX
 __attribute__((noreturn))
 void rLevel1_t::ITask() {
     int8_t Rssi;
@@ -115,6 +115,7 @@ void rLevel1_t::ITask() {
         }
         else Clr = clBlack;
         Led.SetColor(Clr);
+        chThdSleepMilliseconds(99);
 #endif
     } // while true
 }
@@ -127,7 +128,7 @@ void rLevel1_t::Init() {
 #endif
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(CC_PwrPlus12dBm);
+    CC.SetTxPower(CC_Pwr0dBm);
     CC.SetChannel(90);
     CC.SetPktSize(RPKT_LEN);
     // Variables

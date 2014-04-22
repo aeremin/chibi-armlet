@@ -38,7 +38,11 @@ const VibroChunk_t *PVibroTable[3][4] = {
         {Brr7, Brr8, Brr9, Brr10}   // dtFieldStrong
 };
 
+const BeepChunk_t BeepClicks[] = {
+        {BEEP_VOLUME, 1975, 11, ckStop},
+};
 
+#if 1 // =========================== Summing ===================================
 class LvlSumm_t {
 private:
     int32_t tm, Sum, IThreshold;
@@ -66,6 +70,7 @@ public:
 };
 
 static LvlSumm_t LvlS[3];   // Three types of fields
+#endif
 
 #if 1 // ================================ Pill =================================
 void App_t::IPillHandler() {
@@ -78,10 +83,7 @@ void App_t::IPillHandler() {
     } // if pill ok
     // Will be here in case of bad pill
     else Beeper.Beep(BeepPillBad);
-//    Led.StartBlink(LedPillBad);
-//    chThdSleep(2007);    // Let indication to complete
 }
-
 #endif
 
 #if 1 // ============================ Timers ===================================
@@ -95,7 +97,8 @@ void TmrPillCheckCallback(void *p) {
 void TmrDemoCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DEMONSTRATE);
-    chVTSetI(&ITmrDemo, MS2ST(TM_DEMONSTRATE_MS), TmrDemoCallback, nullptr);
+    uint32_t Period = (App.Type == dtDetector)? TM_DEMO_DETECTOR_MS : TM_DEMO_COMMON_MS;
+    chVTSetI(&ITmrDemo, MS2ST(Period), TmrDemoCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -142,6 +145,7 @@ void App_t::ITableHandler() {
             Row_t *PRow = &RxTable.PTable->Row[i];
             if(PRow->Rssi > TopTL.Level) TopTL.Set((DeviceType_t)PRow->Type, PRow->Rssi);
         } // for
+        Uart.Printf("Top: %u, %u\r", TopTL.Level, TopTL.Type);
         if(TopTL.Level > 0) Demo.Set(TopTL.Type, TopTL.Level);
     }
     else {
@@ -172,12 +176,18 @@ void App_t::ITableHandler() {
 
 void App_t::IDemonstrate() {
     Uart.Printf("Demo Lvl=%u; Type=%u\r", Demo.Level, Demo.Type);
-    chSysLock();
-    uint8_t FTypeID = (uint8_t)Demo.Type - 1; // 1...7 => 0...6
-    uint8_t FLevel = Demo.Level - 1;          // 1...4 => 0...3
-    Demo.Clear();
-    chSysUnlock();
-    Vibro.Flinch(PVibroTable[FTypeID][FLevel]);
+    if(Type == dtDetector) {
+        Led.StartBlink(&TypeColorTbl[(uint8_t)Demo.Type]);
+
+    }
+    else {
+        chSysLock();
+        uint8_t FTypeID = (uint8_t)Demo.Type - 1; // 1...7 => 0...6
+        uint8_t FLevel = Demo.Level - 1;          // 1...4 => 0...3
+        Demo.Clear();
+        chSysUnlock();
+        Vibro.Flinch(PVibroTable[FTypeID][FLevel]);
+    }
 }
 
 void App_t::Init() {
@@ -188,7 +198,7 @@ void App_t::Init() {
 
     // Timers init
     chSysLock();
-    chVTSetI(&ITmrDemo, MS2ST(TM_DEMONSTRATE_MS), TmrDemoCallback, nullptr);
+    chVTSetI(&ITmrDemo, MS2ST(TM_DEMO_COMMON_MS), TmrDemoCallback, nullptr);
 //    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlock();
