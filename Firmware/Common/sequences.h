@@ -26,7 +26,7 @@ const LedChunk_t LedPillBad[] = {
 };
 
 const LedChunk_t LedDischarged[] = {
-        {clRed,  360, ckStop},
+        {clRed,  180, ckStop},
 };
 
 // Health states

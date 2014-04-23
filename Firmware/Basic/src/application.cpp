@@ -12,9 +12,9 @@
 #include "evt_mask.h"
 #include "eestore.h"
 #include "radio_lvl1.h"
+#include "adc15x.h"
 
 App_t App;
-Adc_t Adc;
 
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
@@ -115,7 +115,7 @@ void TmrDemoCallback(void *p) {
 }
 void TmrMeasurementCallback(void *p) {
     chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_MEASUREMENT);
+    chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
     chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlockFromIsr();
 }
@@ -149,23 +149,19 @@ void App_t::ITask() {
         }
 
         // ==== Measure battery ====
-        if(EvtMsk & EVTMSK_MEASUREMENT) {
-            Adc.Enable();
-            Adc.Calibrate();
-            Adc.StartConversion();
-        }
-        if(EvtMsk & EVTMSK_ADC_DONE) {
-            uint32_t AdcRslt = Adc.Result();
-            Adc.Disable();
+        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
+        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
+            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
+            Uart.Printf("Adc=%u\r", AdcRslt);
             // Blink Red if discharged
-            if(false) Led.StartBlink(LedDischarged);
+            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartBlink(LedDischarged);
         }
     } // while 1
 }
 
 void App_t::DetectorFound(int32_t RssiPercent) {
 //    Uart.Printf("RP=%d\r", RssiPercent);
-    if(RssiPercent > RLVL_DETECTOR)
+    if(RssiPercent > RLVL_DETECTOR_RX)
         Led.StartBlink(&TypeColorTbl10s[(uint8_t)Type]);
 }
 
@@ -183,7 +179,7 @@ void App_t::ITableHandler() {
             if(PRow->Rssi > TopTL.Level) TopTL.Set((DeviceType_t)PRow->Type, PRow->Rssi);
         } // for
         Uart.Printf("Top: %u, %u\r", TopTL.Level, TopTL.Type);
-        LvlS[0].Init(RLVL_DETECTOR);
+        LvlS[0].Init(RLVL_50M);
         LvlS[0].ProcessValue(TopTL.Level);
         LvlS[0].CalculateLevel(LVL_STEPS_N);
         Demo.Set(TopTL.Type, LvlS[0].Output);
@@ -235,6 +231,10 @@ void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);
     SetType(t);
+    // Battery measurement
+    PinSetupAnalog(GPIOA, 0);
+    Adc.InitHardware();
+    Adc.PThreadToSignal = PThd;
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDemo, MS2ST(TM_DEMO_COMMON_MS), TmrDemoCallback, nullptr);

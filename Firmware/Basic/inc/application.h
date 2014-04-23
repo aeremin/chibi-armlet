@@ -32,7 +32,7 @@
 
 #if 1 // ==== Timings ====
 #define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
-#define TM_MEASUREMENT_MS   2007
+#define TM_MEASUREMENT_MS   5004
 // Delay between demonstration
 #define TM_DEMO_COMMON_MS   2007
 #define TM_DEMO_DETECTOR_MS 702
@@ -59,12 +59,12 @@ enum DeviceType_t {
 };
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
 #define RLVL_NEVER              10000
-#define RLVL_2M                 800
-#define RLVL_4M                 700
+#define RLVL_2M                 800     // 0...4m
+#define RLVL_4M                 700     // 1...20m
 #define RLVL_10M                600
 #define RLVL_50M                1
 
-#define RLVL_DETECTOR           RLVL_10M
+#define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
 
 // ==== Table of sensitivity constants ====
 // 8 types of device, 3 nypes of field
@@ -83,8 +83,8 @@ const int32_t SnsTable[8][3] = {
 };
 
 // ==== Indication constants ====
-#define LVL_STEPS_N             4 // 0 is nothing, 1...3 is level of indication
-extern const VibroChunk_t *PVibroTable[3][4];
+#define LVL_STEPS_N             4   // 0 is nothing, 1...3 is level of indication
+#define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
 
 // ==== Eeprom addresses ====
 #define EE_DEVICE_ID_ADDR       0
