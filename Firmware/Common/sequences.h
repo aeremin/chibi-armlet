@@ -25,6 +25,10 @@ const LedChunk_t LedPillBad[] = {
         {clRed,  540, ckStop},
 };
 
+const LedChunk_t LedDischarged[] = {
+        {clRed,  360, ckStop},
+};
+
 // Health states
 const LedChunk_t LedRedFast[] = {
         {clRed,   36, ckNormal},

@@ -42,9 +42,8 @@ void rLevel1_t::ITask() {
     int8_t Rssi;
     uint8_t RxRslt;
     while(true) {
-        PktTx.Type = App.Type;
-
 #ifdef SHIKO_DEVICE // ======== TX cycle ========
+        PktTx.Type = App.Type;
         switch(App.Type) {
             case dtFieldWeak:
             case dtFieldNature:
@@ -66,7 +65,7 @@ void rLevel1_t::ITask() {
         CC.SetChannel(FIELD_RX_CHNL);
         RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
         if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
-            //Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
+//            Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
             int32_t RssiPercent = dBm2Percent(Rssi);
             App.DetectorFound(RssiPercent);
         }
@@ -83,7 +82,7 @@ void rLevel1_t::ITask() {
                 } // for
             } // if any of
         } // if detector found
-        Uart.Printf("***\r");
+//        Uart.Printf("***\r");
 #endif
 
 #ifdef TX

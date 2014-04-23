@@ -17,6 +17,8 @@
 #include "application.h"
 #include "radio_lvl1.h"
 
+extern Adc_t Adc;
+
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V2);
@@ -41,10 +43,10 @@ int main(void) {
     Vibro.Flinch(BrrBrr);
     PillMgr.Init();
     Radio.Init();
+    Adc.Init();
 
     App.PThd = chThdSelf();
     App.Init();
-
 
     while(1) App.ITask();
 }

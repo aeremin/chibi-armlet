@@ -32,6 +32,7 @@
 
 #if 1 // ==== Timings ====
 #define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
+#define TM_MEASUREMENT_MS   2007
 // Delay between demonstration
 #define TM_DEMO_COMMON_MS   2007
 #define TM_DEMO_DETECTOR_MS 702
@@ -124,7 +125,7 @@ public:
     RxTable_t RxTable;
     void Init();
     uint8_t SetType(uint8_t AType);
-    void DetectorFound(int8_t RssiPercent);
+    void DetectorFound(int32_t RssiPercent);
     // Inner use
     void ITask();
 };

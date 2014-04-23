@@ -14,6 +14,7 @@
 #include "radio_lvl1.h"
 
 App_t App;
+Adc_t Adc;
 
 #define UART_RPL_BUF_SZ     36
 static uint8_t SBuf[UART_RPL_BUF_SZ];
@@ -97,7 +98,7 @@ void App_t::IPillHandler() {
 #endif
 
 #if 1 // ============================ Timers ===================================
-static VirtualTimer ITmrPillCheck, ITmrDemo;
+static VirtualTimer ITmrPillCheck, ITmrDemo, ITmrMeasurement;
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
@@ -112,6 +113,13 @@ void TmrDemoCallback(void *p) {
     chVTSetI(&ITmrDemo, MS2ST(Period), TmrDemoCallback, nullptr);
     chSysUnlockFromIsr();
 }
+void TmrMeasurementCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_MEASUREMENT);
+    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+
 #endif
 
 #if 1 // ========================= Application =================================
@@ -139,12 +147,26 @@ void App_t::ITask() {
             if(RxTable.PTable->Size != 0) ITableHandler();
             if(Demo.IsNotEmpty()) IDemonstrate();
         }
+
+        // ==== Measure battery ====
+        if(EvtMsk & EVTMSK_MEASUREMENT) {
+            Adc.Enable();
+            Adc.Calibrate();
+            Adc.StartConversion();
+        }
+        if(EvtMsk & EVTMSK_ADC_DONE) {
+            uint32_t AdcRslt = Adc.Result();
+            Adc.Disable();
+            // Blink Red if discharged
+            if(false) Led.StartBlink(LedDischarged);
+        }
     } // while 1
 }
 
-void App_t::DetectorFound(int8_t RssiPercent) {
+void App_t::DetectorFound(int32_t RssiPercent) {
+//    Uart.Printf("RP=%d\r", RssiPercent);
     if(RssiPercent > RLVL_DETECTOR)
-        Led.StartBlink(&TypeColorTbl10s[(uint8_t)Demo.Type]);
+        Led.StartBlink(&TypeColorTbl10s[(uint8_t)Type]);
 }
 
 void App_t::ITableHandler() {
@@ -213,11 +235,10 @@ void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);
     uint32_t t = EE.Read32(EE_DEVICE_TYPE_ADDR);
     SetType(t);
-
     // Timers init
     chSysLock();
     chVTSetI(&ITmrDemo, MS2ST(TM_DEMO_COMMON_MS), TmrDemoCallback, nullptr);
-//    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
     chSysUnlock();
 }
