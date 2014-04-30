@@ -279,7 +279,7 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 
         case CMD_SET_TIME:
-            uint8_t Rslt, *p; p = PData;
+            uint8_t *p; p = PData;
             uint32_t c; c = 0;
             do {
                 c *= 10;
@@ -288,17 +288,19 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
                 c += ((*p++) & 0x0F);
             } while (p < PData + Length);
 //            Uart.Printf("NewCycleN = %u\r", c);
-            Rslt = OK;
+            int32_t CycDiff;
+            CycDiff = Mesh.GetCycleN();
+            CycDiff = c - CycDiff;
             Mesh.SetCurrCycleN(c);
-            Ack(Rslt);
+            Uart.Printf("#%u,%d\r", CMD_SET_TIME_RPL, CycDiff);
             break;
 
 //            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
 //            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
 //            else Uart.Printf(" OK\r");
 
-        case GET_CYCLE_TIME:
-            Uart.Printf("#82,%u\r", CYCLE_TIME);
+        case CMD_GET_CYCLE_TIME:
+            Uart.Printf("#%u,%u\r", CMD_GET_CYCLE_TIME_RPL, CYCLE_TIME);
 //            Ack(OK);
             break;
 
