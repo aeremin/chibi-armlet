@@ -20,7 +20,14 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp
         Ptr->Timestamp = CurrentTimeStamp;
         InfoBuf[ID] = *Ptr;
     }
-//    Uart.Printf("Pld: %u, %u\r", ID, Ptr->Hops);
+    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
+            ID,
+            Ptr->Hops,
+            Ptr->Timestamp,
+            Ptr->TimeDiff,
+            Ptr->Location,
+            Ptr->Reason,
+            Ptr->Emotion);
     return Rslt;
 }
 
@@ -63,6 +70,14 @@ void Payload_t::WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t 
 
 void Payload_t::UpdateSelf() {
     InfoBuf[SELF_MESH_ID].Timestamp = Mesh.GetCycleN();
+    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
+            SELF_MESH_ID,
+            InfoBuf[SELF_MESH_ID].Hops,
+            InfoBuf[SELF_MESH_ID].Timestamp,
+            InfoBuf[SELF_MESH_ID].TimeDiff,
+            InfoBuf[SELF_MESH_ID].Location,
+            InfoBuf[SELF_MESH_ID].Reason,
+            InfoBuf[SELF_MESH_ID].Emotion);
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValue) {
     Uart.Printf("Correct to %u\r", CorrValue);

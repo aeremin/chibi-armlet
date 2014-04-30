@@ -29,7 +29,6 @@ struct PayloadString_t {
 struct Payload_t {
 private:
     PayloadString_t InfoBuf[INFO_BUF_SIZE];
-    PayloadString_t SelfInfo;
 public:
     Payload_t(): PStr(InfoBuf),
                  PNext(InfoBuf)   {}

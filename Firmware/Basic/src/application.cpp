@@ -147,7 +147,7 @@ void App_t::IPillHandler() {
 #endif
 
 #if 1 // ============================ Timers ===================================
-static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck, ITmrPayloadSend;
+static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck;
 void TmrDoseCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
@@ -167,12 +167,6 @@ void TmrPillCheckCallback(void *p) {
     chSysUnlockFromIsr();
 }
 
-void TmrPayloadTableSend(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVT_MSK_PAYLOAD_SEND);
-    chVTSetI(&ITmrPayloadSend, MS2ST(TM_PAYLOAD_SEND_MS), TmrPayloadTableSend, nullptr);
-    chSysUnlockFromIsr();
-}
 #endif
 
 #if 1 // ========================= Application =================================
@@ -212,10 +206,6 @@ static void AppThread(void *arg) {
 
         if(EvtMsk & EVTMSK_LED_UPD) Led.SetColor(Mesh.LedColor); /* Set color if need*/
 
-        if(EvtMsk & EVT_MSK_PAYLOAD_SEND) { /* Send Payload to Console */
-            Payload.PrintNextInfo();
-        }
-
     } // while 1
 }
 
@@ -228,7 +218,6 @@ void App_t::Init() {
     chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
     chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
-    chVTSetI(&ITmrPayloadSend, MS2ST(TM_PAYLOAD_SEND_MS), TmrPayloadTableSend, nullptr);
     chSysUnlock();
 
 }

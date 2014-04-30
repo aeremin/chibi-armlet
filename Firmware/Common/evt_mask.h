@@ -23,6 +23,5 @@
 #define EVTMSK_LED_UPD              EVENT_MASK(13)
 
 #define EVT_MSK_BKT_EXTRACT         EVENT_MASK(14)
-#define EVT_MSK_PAYLOAD_SEND        EVENT_MASK(15)
 
 #endif /* EVT_MASK_H_ */
