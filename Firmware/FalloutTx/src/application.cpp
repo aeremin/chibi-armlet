@@ -14,8 +14,6 @@
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
-//static uint8_t SBuf[UART_RPL_BUF_SZ];
-
 
 #if 1 // ============================ Timers ===================================
 #endif
@@ -33,7 +31,6 @@ static void AppThread(void *arg) {
 }
 
 void App_t::Init() {
-    PThd = chThdCreateStatic(waAppThread, sizeof(waAppThread), NORMALPRIO, (tfunc_t)AppThread, NULL);
 }
 #endif
 

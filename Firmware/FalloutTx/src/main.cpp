@@ -14,40 +14,24 @@
 #include "radio_lvl1.h"
 #include "application.h"
 
-static inline void Init();
-
-#define LED_N       0
-
-#define LED_ON()    PinSet(GPIOB, LED_N)
-#define LED_OFF()   PinClear(GPIOB, LED_N)
-
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V8);
-    //Clk.SetupFlashLatency(24);  // Setup Flash Latency for clock in MHz
-//    Clk.SetupBusDividers(ahbDiv1, apbDiv1, apbDiv1);
     Clk.UpdateFreqValues();
 
     // ==== Init OS ====
     halInit();
     chSysInit();
     // ==== Init Hard & Soft ====
-    Init();
 //    if(ClkResult) Uart.Printf("Clock failure\r");
+    Uart.Init(115200);
+    Uart.Printf("CheckTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
+    PinSetupOut(GPIOB, 5, omPushPull);
+    PinSet(GPIOB, 5);
+
+    Radio.Init();
 
     while(1) {
-        //chThdSleepMilliseconds(999);
-        chSysLock();
-        chThdSleepS(TIME_INFINITE); // Forever
-        chSysUnlock();
+        chThdSleep(TIME_INFINITE); // Forever
     } // while
-}
-
-void Init() {
-    Uart.Init(115200);
-    Uart.Printf("FalloutTX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
-    PinSetupOut(GPIOB, LED_N, omPushPull);
-    LED_ON();
-
-    Radio.Init(0);  // FIXME: read ID somehow
 }

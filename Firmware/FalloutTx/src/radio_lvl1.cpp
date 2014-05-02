@@ -20,43 +20,37 @@
 #endif
 
 rLevel1_t Radio;
+rPkt_t PktTx;
 
 #if 1 // ================================ Task =================================
 static WORKING_AREA(warLvl1Thread, 256);
 __attribute__((noreturn))
 static void rLvl1Thread(void *arg) {
     chRegSetThreadName("rLvl1");
-    while(true) Radio.ITask();
-}
-
-void rLevel1_t::ITask() {
-//    chThdSleepMilliseconds(99);
-    CC.Recalibrate();   // Recalibrate manually every cycle, as auto recalibration disabled
-    // Transmit
-    DBG1_SET();
-    CC.TransmitSync(&PktTx);
-    DBG1_CLR();
+    while(true) {
+        DBG1_SET();
+        CC.TransmitSync(&PktTx);
+        DBG1_CLR();
+    }
 }
 #endif
 
 #if 1 // ============================
-void rLevel1_t::Init(uint16_t ASelfID) {
+void rLevel1_t::Init() {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
 #endif
     // Init RadioPkt
-    PktTx.ID = ASelfID;
-    PktTx.MinLvl = 10;
-    PktTx.MaxLvl = 90;
-    PktTx.DmgMin = 0;
-    PktTx.DmgMax = 10;
+    PktTx.Type = 18;
+    PktTx.Check[0] = CHECK_0;
+    PktTx.Check[1] = CHECK_1;
+    PktTx.Check[2] = CHECK_2;
 
     // Init radioIC
     CC.Init();
-    //CC.SetTxPower(CC_PwrMinus30dBm);
-    CC.SetTxPower(CC_PwrPlus5dBm);
-    CC.SetChannel(CHANNEL_ZERO);
-    // Variables
+    CC.SetTxPower(CC_PwrMinus10dBm);
+    CC.SetChannel(0);
+    CC.SetPktSize(RPKT_LEN);
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
