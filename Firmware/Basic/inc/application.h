@@ -97,6 +97,8 @@ private:
     uint8_t UartRplBuf[UART_RPL_BUF_SZ];
     Eeprom_t EE;
     Dose_t Dose;
+    void LoadConsts() { EE.ReadBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR); }
+    void SaveConsts() { EE.WriteBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR); }
 public:
     uint32_t ID;
     Thread *PThd;

@@ -110,6 +110,7 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
         case CMD_SET_CONSTS:
             if(Length == DOSE_CONSTS_SZ) {
                 memcpy(&Dose.Consts, PData, DOSE_CONSTS_SZ);
+                SaveConsts();
                 Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             }
             else Uart.Ack(CMD_ERROR);
@@ -169,7 +170,7 @@ void App_t::OnDoseStoreTime() {
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     // Read dose constants
-    EE.ReadBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR);
+    LoadConsts();
     // Setup default constants
     if(Dose.Consts.Top == 0) Dose.Consts.Top = DOSE_DEF_TOP;
     if(Dose.Consts.Red == 0) Dose.Consts.Red = DOSE_DEF_RED;
