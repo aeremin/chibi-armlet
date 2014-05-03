@@ -20,7 +20,20 @@
 #include "evt_mask.h"
 
 #if 1 // ============================ Timers ===================================
-static VirtualTimer ITmrPillCheck, ITmrMeasurement;
+static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck, ITmrMeasurement;
+void TmrDoseCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
+    chVTSetI(&ITmrDose, MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+void TmrDoseSaveCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
+    chVTSetI(&ITmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
@@ -46,18 +59,18 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
+    Uart.Printf("Fallout AHB=%u\r", Clk.AHBFreqHz);
     Led.Init();
-    Led.SetColor(clWhite);
-    chThdSleepMilliseconds(540);
-    Led.SetColor(clBlack);
+//    Led.SetColor(clWhite);
+//    chThdSleepMilliseconds(540);
+//    Led.SetColor(clBlack);
 
     Beeper.Init();
-    Beeper.Beep(BeepBeep);
+//    Beeper.Beep(BeepBeep);
     PillMgr.Init();
     Radio.Init();
 
     App.Init();
-    Uart.Printf("TestingRX AHB=%u; ID=%u\r", Clk.AHBFreqHz, App.ID);
     App.PThd = chThdSelf();
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
@@ -68,6 +81,8 @@ int main(void) {
     chSysLock();
     chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+//    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
@@ -85,6 +100,10 @@ int main(void) {
             }
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
+
+        // ==== Dose ====
+        if(EvtMsk & EVTMSK_DOSE_INC) App.OnDoseIncTime();
+        if(EvtMsk & EVTMSK_DOSE_STORE) App.OnDoseStoreTime();
 
         // ==== Measure battery ====
 //        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();

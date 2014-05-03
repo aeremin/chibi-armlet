@@ -408,88 +408,31 @@ uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
 }
 
 void Eeprom_t::ReadBuf(void *PDst, uint32_t Sz, uint32_t Addr) {
-//    Sz = Sz / 4;  // Size in words32
-//    while(Sz--) {
-//        *((uint32_t*)PDst) = Read32(Addr);
-//        PDst += 4;
-//        Addr += 4;
-//    }
+    uint32_t *p32 = (uint32_t*)PDst;
+    Sz = Sz / 4;  // Size in words32
+    while(Sz--) {
+        *p32 = Read32(Addr);
+        p32++;
+        Addr += 4;
+    }
 }
 
-//uint8_t Eeprom_t::WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr) {
-//    Sz = (Sz + 3) / 4;  // Size in words32
-//}
-
-// ==== EEStore ====
-//uint8_t EEStore_t::Get(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt) {
-//    uint32_t Addr, AddrPrev = ZeroAddr;
-//    uint16_t Cnt, CntPrev;
-//    // ==== Read first occurence ====
-//    uint32_t w = Read32(ZeroAddr);
-//    // Check sign
-//    if((w & 0xFFFF) != EE_STORE_SIGN) return FAILURE;   // nothing is stored
-//    CntPrev = w >> 16;
-//    uint32_t SzRounded = (Sz & 0x3)? (Sz + 4) & (~(uint32_t)0x3) : Sz;   // Round sz
-//    // ==== Read the storage until correct address found ====
-//    for(uint32_t i=1; i < StoreCnt; i++) {
-//        Addr = ZeroAddr + i * (4 + SzRounded);
-//        w = Read32(Addr);
-//        uint32_t Sign = w & 0xFFFF;
-//        Cnt = w >> 16;
-//        // Check sign and counter: if nothing is written, or difference is not 1, return data
-//        if((Sign != EE_STORE_SIGN) or ((CntPrev + 1) != Cnt)) {
-//            ReadBuf(Ptr, Sz, AddrPrev + 4);
-//            return OK;
-//        }
-//        CntPrev = Cnt;
-//        AddrPrev = Addr;
-//    }
-//    // Will be here if counter diff was 1 all the way. Return Last value.
-//    ReadBuf(Ptr, Sz, AddrPrev + 4);
-//    return OK;
-//}
-
-//uint8_t EEStore_t::Put(void *Ptr, uint32_t Sz, uint32_t ZeroAddr, uint16_t StoreCnt) {
-//    uint8_t r;
-//    // ==== Read first occurence ====
-//    uint32_t w = Read32(ZeroAddr);
-//    // Check sign
-//    if((w & 0xFFFF) != EE_STORE_SIGN) { // nothing is stored
-//        Unlock();
-//        w = EE_STORE_SIGN;
-//        r = Write32(ZeroAddr, w);
-//        if(r == OK) r = WriteBuf(Ptr, Sz, ZeroAddr + 4);
-//        Lock();
-//        return r;
-//    }
-//
-//    return FAILURE;
-    /*
-    uint32_t Addr, AddrPrev = ZeroAddr;
-    uint16_t Cnt, CntPrev;
-
-
-        return FAILURE;
-    CntPrev = w >> 16;
-    uint32_t SzRounded = (Sz & 0x3)? (Sz + 4) & (~(uint32_t)0x3) : Sz;   // Round sz
-    // ==== Read the storage until correct address found ====
-    for(uint32_t i=1; i < StoreCnt; i++) {
-        Addr = ZeroAddr + i * (4 + SzRounded);
-        w = Read32(Addr);
-        uint32_t Sign = w & 0xFFFF;
-        Cnt = w >> 16;
-        // Check sign and counter: if nothing is written, or difference is not 1, return data
-        if((Sign != EE_STORE_SIGN) or ((CntPrev + 1) != Cnt)) {
-            ReadBuf(Ptr, Sz, AddrPrev + 4);
-            return OK;
-        }
-        CntPrev = Cnt;
-        AddrPrev = Addr;
+uint8_t Eeprom_t::WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr) {
+    uint32_t *p32 = (uint32_t*)PSrc;
+    Addr += EEPROM_BASE_ADDR;
+    Sz = (Sz + 3) / 4;  // Size in words32
+    UnlockEE();
+    // Wait for last operation to be completed
+    uint8_t status = WaitForLastOperation();
+    while((status == OK) and (Sz > 0))  {
+        *(volatile uint32_t*)Addr = *p32;
+        status = WaitForLastOperation();
+        p32++;
+        Addr += 4;
+        Sz--;
     }
-    // Will be here if counter diff was 1 all the way. Return Last value.
-    ReadBuf(Ptr, Sz, AddrPrev + 4);
-    return OK;
-   */
-//}
+    LockEE();
+    return status;
+}
 
 #endif

@@ -13,6 +13,7 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "adc15x.h"
+#include <cstring>  // for memcpy
 
 App_t App;
 
@@ -43,6 +44,33 @@ void App_t::OnPillConnect() {
                 Led.StartBlink(LedPillIdNotSet);
                 Beeper.Beep(BeepPillBad);
             }
+            chThdSleepMilliseconds(1800);
+            break;
+
+        // ==== Cure ====
+        case PILL_TYPEID_CURE:
+            switch(Pill.Charge) {
+                case 0: rslt = FAILURE; break;      // Discharged pill
+                case INFINITY16: rslt = OK; break;  // Panacea
+                default:
+                    Pill.Charge--;
+                    rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
+                    break;
+            } // switch charge
+
+            if(rslt == OK) {
+                Beeper.Beep(BeepPillOk);
+                Led.StartBlink(LedPillOk);
+                // Decrease dose if not dead, or if this is panacea
+                if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
+                chThdSleepMilliseconds(2007);    // Let indication to complete
+                Dose.RenewIndication();
+            }
+            else {
+                Beeper.Beep(BeepPillBad);
+                Led.StartBlink(LedPillBad);
+                chThdSleepMilliseconds(2007);    // Let indication to complete
+            }
             break;
 
         default:
@@ -50,7 +78,7 @@ void App_t::OnPillConnect() {
             Beeper.Beep(BeepPillBad);
             break;
     } // switch
-    chThdSleepMilliseconds(1800);
+
     Radio.Enabled = true;
 }
 #endif
@@ -58,15 +86,15 @@ void App_t::OnPillConnect() {
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
-    uint16_t w;
+    uint16_t *p16;
     switch(CmdCode) {
         case CMD_PING: Uart.Ack(OK); break;
 
 #if 1 // ==== ID ====
         case CMD_SET_ID:
             if(Length == 2) {
-                w = (PData[0] << 8) | PData[1];
-                b = ISetID(w);
+                p16 = (uint16_t*)PData;
+                b = ISetID(*p16);
                 Uart.Ack(b);
             }
             else Uart.Ack(CMD_ERROR);
@@ -75,6 +103,16 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             UartRplBuf[0] = (ID >> 8) & 0xFF;
             UartRplBuf[1] = ID & 0xFF;
             Uart.Cmd(RPL_GET_ID, UartRplBuf, 2);
+            break;
+#endif
+
+#if 1 // ==== Constants ====
+        case CMD_SET_CONSTS:
+            if(Length == DOSE_CONSTS_SZ) {
+                memcpy(&Dose.Consts, PData, DOSE_CONSTS_SZ);
+                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            }
+            else Uart.Ack(CMD_ERROR);
             break;
 #endif
 
@@ -115,11 +153,30 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 }
 #endif
 
+// ==== Dose ====
+void App_t::OnDoseIncTime() {
+    // Check if radio damage occured. Will return 1 if no.
+    uint32_t FDamage = 1; //Radio.Damage;
+    //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
+    Dose.Increase(FDamage, diUsual);
+    //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
+}
+void App_t::OnDoseStoreTime() {
+    //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // disabled for DEBUG
+}
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
-    // Read device ID and type
-    ID = EE.Read32(EE_DEVICE_ID_ADDR);
+    ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
+    // Read dose constants
+    EE.ReadBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR);
+    // Setup default constants
+    if(Dose.Consts.Top == 0) Dose.Consts.Top = DOSE_DEF_TOP;
+    if(Dose.Consts.Red == 0) Dose.Consts.Red = DOSE_DEF_RED;
+    if(Dose.Consts.Yellow == 0) Dose.Consts.Yellow = DOSE_DEF_YELLOW;
+    Uart.Printf("ID=%u; Top=%u; Red=%u; Yellow=%u\r", ID, Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+
+    //Dose.Load();
 }
 uint8_t App_t::ISetID(uint32_t NewID) {
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
