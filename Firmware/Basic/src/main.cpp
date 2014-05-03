@@ -46,7 +46,6 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Uart.Printf("TestingRX AHB=%u; APB1=%u; APB2=%u\r", Clk.AHBFreqHz, Clk.APB1FreqHz, Clk.APB2FreqHz);
     Led.Init();
     Led.SetColor(clWhite);
     chThdSleepMilliseconds(540);
@@ -58,6 +57,7 @@ int main(void) {
     Radio.Init();
 
     App.Init();
+    Uart.Printf("TestingRX AHB=%u; ID=%u\r", Clk.AHBFreqHz, App.ID);
     App.PThd = chThdSelf();
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);

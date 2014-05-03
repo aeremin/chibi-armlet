@@ -91,19 +91,24 @@ void rLevel1_t::ITask() {
 #elif defined LED_RX
         Color_t Clr;
         int8_t Rssi;
-        RxRslt = CC.ReceiveSync(306, &PktRx, &Rssi);
-        if(RxRslt == OK) {
-            Uart.Printf("%d\r", Rssi);
-            Clr = clWhite;
-            if     (Rssi < -100) Clr = clRed;
-            else if(Rssi < -90) Clr = clYellow;
-            else if(Rssi < -80) Clr = clGreen;
-            else if(Rssi < -70) Clr = clCyan;
-            else if(Rssi < -60) Clr = clBlue;
-            else if(Rssi < -50) Clr = clMagenta;
+        if(Enabled) {
+            RxRslt = CC.ReceiveSync(306, &PktRx, &Rssi);
+            if(RxRslt == OK) {
+                Uart.Printf("%d\r", Rssi);
+                Clr = clWhite;
+                if     (Rssi < -100) Clr = clRed;
+                else if(Rssi < -90) Clr = clYellow;
+                else if(Rssi < -80) Clr = clGreen;
+                else if(Rssi < -70) Clr = clCyan;
+                else if(Rssi < -60) Clr = clBlue;
+                else if(Rssi < -50) Clr = clMagenta;
+            }
+            else {
+                Clr = clBlack;
+    //            Uart.Printf("Halt\r");
+            }
+            Led.SetColor(Clr);
         }
-        else Clr = clBlack;
-        Led.SetColor(Clr);
         chThdSleepMilliseconds(99);
 #endif
     } // while true
@@ -121,7 +126,7 @@ void rLevel1_t::Init() {
     CC.SetChannel(0);
     CC.SetPktSize(RPKT_LEN);
     // Variables
-
+//    Enabled = true;
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

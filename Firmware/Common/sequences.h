@@ -26,10 +26,10 @@ const LedChunk_t LedPillBad[] = {
 };
 
 const LedChunk_t LedPillIdSet[] = {
-        {clCyan,  540, ckStop},
+        {clCyan,  999, ckStop},
 };
 const LedChunk_t LedPillIdNotSet[] = {
-        {clYellow,  540, ckStop},
+        {clYellow,  999, ckStop},
 };
 
 
