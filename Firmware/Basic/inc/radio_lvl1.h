@@ -15,10 +15,11 @@
 
 class rLevel1_t {
 private:
-
+    rPkt_t PktRx;
 public:
-
     void Init();
+    // Inner use
+    void ITask();
 };
 
 extern rLevel1_t Radio;

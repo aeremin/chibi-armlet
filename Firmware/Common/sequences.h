@@ -25,7 +25,16 @@ const LedChunk_t LedPillBad[] = {
         {clRed,  540, ckStop},
 };
 
-const LedChunk_t LedDischarged[] = {
+const LedChunk_t LedPillIdSet[] = {
+        {clCyan,  540, ckStop},
+};
+const LedChunk_t LedPillIdNotSet[] = {
+        {clYellow,  540, ckStop},
+};
+
+
+// Battery
+const LedChunk_t LedBatteryDischarged[] = {
         {clRed,  180, ckStop},
 };
 
@@ -68,35 +77,6 @@ const BeepChunk_t BeepBeep[] = {
 
 const BeepChunk_t BeepShort[] = {
         {BEEP_VOLUME, 1975, 54, ckStop},
-};
-
-// Detector
-#define BEEP_DUR_MS     9
-#define BEEP_PAUSE_MS   54
-#define BEEP_FREQ_HZ    1975
-const BeepChunk_t Beep1[] = {
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckStop},
-};
-const BeepChunk_t Beep2[] = {
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckStop},
-};
-const BeepChunk_t Beep3[] = {
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckStop},
-};
-const BeepChunk_t Beep4[] = {
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckNormal},
-        {0, 0, BEEP_PAUSE_MS, ckNormal},
-        {BEEP_VOLUME, BEEP_FREQ_HZ, BEEP_DUR_MS, ckStop},
 };
 
 // Pill

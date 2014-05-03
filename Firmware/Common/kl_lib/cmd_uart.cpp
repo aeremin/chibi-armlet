@@ -7,6 +7,7 @@
 
 #include "cmd_uart.h"
 #include <string.h>
+#include "application.h"
 
 CmdUart_t Uart;
 
@@ -73,41 +74,41 @@ void CmdUart_t::IRxTask() {
 }
 
 void CmdUart_t::IProcessByte(uint8_t b) {
-    uint8_t d=0;
+    uint8_t digit=0;
     if(b == '#') RxState = rsCmdCode1; // If # is received anywhere, start again
     else switch(RxState) {
         case rsCmdCode1:
-            if(TryConvertToDigit(b, &d)) {
-                CmdCode = d << 4;
+            if(TryConvertToDigit(b, &digit)) {
+                CmdCode = digit << 4;
                 RxState = rsCmdCode2;
             }
             else IResetCmd();
             break;
 
         case rsCmdCode2:
-            if(TryConvertToDigit(b, &d)) {
-                CmdCode |= d;
+            if(TryConvertToDigit(b, &digit)) {
+                CmdCode |= digit;
                 RxState = rsData1;
             }
             else IResetCmd();
             break;
 
         case rsData1:
-            if(TryConvertToDigit(b, &d)) {
-                *PCmdWrite = d << 4;
+            if(TryConvertToDigit(b, &digit)) {
+                *PCmdWrite = digit << 4;
                 RxState = rsData2;
             }
             else if(IsDelimiter(b)) return; // skip delimiters
             else if(IsEnd(b)) {
-                UartCmdCallback(CmdCode, CmdData, (PCmdWrite - CmdData));
+                App.OnUartCmd(CmdCode, CmdData, (PCmdWrite - CmdData));
                 IResetCmd();
             }
             else IResetCmd();
             break;
 
         case rsData2:
-            if(TryConvertToDigit(b, &d)) {
-                *PCmdWrite |= d;
+            if(TryConvertToDigit(b, &digit)) {
+                *PCmdWrite |= digit;
                 RxState = rsData1;  // Prepare to rx next byte
                 if(PCmdWrite < (CmdData + (UART_CMDDATA_SZ-1))) PCmdWrite++;
             }

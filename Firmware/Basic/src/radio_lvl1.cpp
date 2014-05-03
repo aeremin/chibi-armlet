@@ -17,12 +17,11 @@
 #define DBG_PINS
 
 #ifdef DBG_PINS
-#define DBG_GPIO1   GPIOB
-#define DBG_PIN1    14
+#define DBG_GPIO1   GPIOC
+#define DBG_PIN1    15
 #define DBG1_SET()  PinSet(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinClear(DBG_GPIO1, DBG_PIN1)
 #endif
-
 
 rLevel1_t Radio;
 
@@ -35,11 +34,9 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TX
-//#define LED_RX
-#define SHIKO_DEVICE
+#define LED_RX
 __attribute__((noreturn))
 void rLevel1_t::ITask() {
-    int8_t Rssi;
     uint8_t RxRslt;
     while(true) {
 #ifdef SHIKO_DEVICE // ======== TX cycle ========
@@ -121,13 +118,11 @@ void rLevel1_t::Init() {
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
-    CC.SetChannel(90);
+    CC.SetChannel(0);
     CC.SetPktSize(RPKT_LEN);
     // Variables
-    PktTx.Check[0] = CHECK_0;
-    PktTx.Check[1] = CHECK_1;
-    PktTx.Check[2] = CHECK_2;
+
     // Thread
-    PThread = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+    chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

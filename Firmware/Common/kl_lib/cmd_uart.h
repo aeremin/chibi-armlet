@@ -75,7 +75,9 @@ public:
         }
     }
     void Init(uint32_t ABaudrate);
+    // Command and reply
     void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
+    void Ack(uint8_t Result) { Cmd(0x90, &Result, 1); }
     // Inner use
     void IRQDmaTxHandler();
     void IPutChar(char c);
@@ -88,9 +90,5 @@ public:
 };
 
 extern CmdUart_t Uart;
-
-#if UART_RX_ENABLED
-extern void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length);
-#endif
 
 #endif /* CMD_UART_H_ */

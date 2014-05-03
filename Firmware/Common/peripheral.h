@@ -116,8 +116,8 @@ public:
 extern LedRGB_t Led;
 #endif
 
-#if 1 // ================================ Vibro ================================
-#define VIBRO_ENABLED   TRUE
+#define VIBRO_ENABLED   FALSE
+#if VIBRO_ENABLED // ========================= Vibro ===========================
 #define VIBRO_GPIO      GPIOB
 #define VIBRO_PIN       6
 

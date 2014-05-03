@@ -13,7 +13,7 @@
 #define DBG_PINS
 
 #ifdef DBG_PINS
-#define DBG_GPIO1   GPIOA
+#define DBG_GPIO1   GPIOC
 #define DBG_PIN1    15
 #define DBG1_SET()  PinSet(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinClear(DBG_GPIO1, DBG_PIN1)
