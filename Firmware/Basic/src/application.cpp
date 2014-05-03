@@ -24,6 +24,7 @@ void App_t::OnPillConnect() {
 //    Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceID);
     Radio.Enabled = false;
     switch(Pill.TypeID) {
+#if 1 // ==== Set ID ====
         case PILL_TYPEID_SET_ID:
             if(ID == 0) {
                 Pill.DeviceID++;
@@ -46,8 +47,9 @@ void App_t::OnPillConnect() {
             }
             chThdSleepMilliseconds(1800);
             break;
+#endif
 
-        // ==== Cure ====
+#if 1 // ==== Cure ====
         case PILL_TYPEID_CURE:
             switch(Pill.Charge) {
                 case 0: rslt = FAILURE; break;      // Discharged pill
@@ -60,7 +62,7 @@ void App_t::OnPillConnect() {
 
             if(rslt == OK) {
                 Beeper.Beep(BeepPillOk);
-                Led.StartBlink(LedPillOk);
+                Led.StartBlink(LedPillCureOk);
                 // Decrease dose if not dead, or if this is panacea
                 if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
                 chThdSleepMilliseconds(2007);    // Let indication to complete
@@ -72,7 +74,18 @@ void App_t::OnPillConnect() {
                 chThdSleepMilliseconds(2007);    // Let indication to complete
             }
             break;
+#endif
 
+#if 1 // ==== Set consts ====
+        case PILL_TYPEID_SET_CONSTS:
+            memcpy(&Dose.Consts, &Pill.Consts, DOSE_CONSTS_SZ);
+            SaveConsts();
+            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            Led.StartBlink(LedPillSetupOk);
+            Beeper.Beep(BeepPillOk);
+            chThdSleepMilliseconds(2007);
+            break;
+#endif
         default:
             Uart.Printf("Unknown Pill: 0x%04X\r", Pill.TypeID);
             Beeper.Beep(BeepPillBad);
@@ -87,6 +100,7 @@ void App_t::OnPillConnect() {
 void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
     uint16_t *p16;
+
     switch(CmdCode) {
         case CMD_PING: Uart.Ack(OK); break;
 
@@ -114,6 +128,10 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
                 Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             }
             else Uart.Ack(CMD_ERROR);
+            break;
+        case CMD_GET_CONSTS:
+            memcpy(UartRplBuf, &Dose.Consts, DOSE_CONSTS_SZ);
+            Uart.Cmd(RPL_GET_CONSTS, UartRplBuf, DOSE_CONSTS_SZ);
             break;
 #endif
 
@@ -157,9 +175,9 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 // ==== Dose ====
 void App_t::OnDoseIncTime() {
     // Check if radio damage occured. Will return 1 if no.
-    uint32_t FDamage = 1; //Radio.Damage;
+//    uint32_t FDamage = 1; //Radio.Damage;
     //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-    Dose.Increase(FDamage, diUsual);
+//    Dose.Increase(FDamage, diUsual);
     //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
 }
 void App_t::OnDoseStoreTime() {

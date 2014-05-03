@@ -27,7 +27,7 @@
 
 #define RPL_ACK             0x90    // Acknowledge
 #define RPL_GET_ID          0xA1
-#define RPL_GETCONSTS       0xB1
+#define RPL_GET_CONSTS      0xB1
 #define RPL_PILL_STATE      0xC0
 #define RPL_PILL_WRITE      0xC1
 #define RPL_PILL_READ       0xC2

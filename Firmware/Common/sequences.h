@@ -18,7 +18,7 @@
 
 #if 1 // ============================ LED RGB ==================================
 // Pill
-const LedChunk_t LedPillOk[] = {
+const LedChunk_t LedPillCureOk[] = {
         {clBlue,  540, ckStop},
 };
 const LedChunk_t LedPillBad[] = {
@@ -31,7 +31,9 @@ const LedChunk_t LedPillIdSet[] = {
 const LedChunk_t LedPillIdNotSet[] = {
         {clYellow,  999, ckStop},
 };
-
+const LedChunk_t LedPillSetupOk[] = {
+        {clGreen,  999, ckStop},
+};
 
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
