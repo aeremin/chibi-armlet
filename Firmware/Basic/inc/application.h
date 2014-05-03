@@ -44,10 +44,9 @@
 #endif
 
 // ========= Device types =========
-//#define DEVTYPE_UMVOS
+#define DEVTYPE_UMVOS
 //#define DEVTYPE_DETECTOR
 //#define DEVTYPE_LUSTRA
-//#define DEVTYPE_GUL
 //#define DEVTYPE_PILLPROG
 //#define DEVTYPE_TUNER
 

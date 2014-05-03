@@ -100,6 +100,7 @@ void App_t::OnPillConnect() {
 void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
     uint16_t *p16;
+    uint32_t *p32;
 
     switch(CmdCode) {
         case CMD_PING: Uart.Ack(OK); break;
@@ -167,6 +168,23 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             else Uart.Ack(CMD_ERROR);
             break;
 #endif
+
+#if 1 // ==== Dose ====
+        case CMD_DOSE_GET:
+            p32 = (uint32_t*)UartRplBuf;
+            *p32 = Dose.Get();
+            Uart.Cmd(RPL_DOSE_GET, UartRplBuf, 4);
+            break;
+        case CMD_DOSE_SET:
+            p32 = (uint32_t*)PData;
+            if(*p32 <= Dose.Consts.Top) {
+                Dose.Set(*p32, diAlwaysIndicate);
+                Uart.Ack(OK);
+            }
+            else Uart.Ack(FAILURE);
+            break;
+#endif
+
         default: Uart.Ack(CMD_ERROR); break;
     } // switch
 }
@@ -175,9 +193,9 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 // ==== Dose ====
 void App_t::OnDoseIncTime() {
     // Check if radio damage occured. Will return 1 if no.
-//    uint32_t FDamage = 1; //Radio.Damage;
+    uint32_t FDamage = 1; //Radio.Damage;
     //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-//    Dose.Increase(FDamage, diUsual);
+    Dose.Increase(FDamage, diUsual);
     //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
 }
 void App_t::OnDoseStoreTime() {
