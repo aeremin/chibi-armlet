@@ -12,7 +12,7 @@
 #include "sequences.h"
 #include "Dose.h"
 
-# if 1 // Uart Command Codes. See https://docs.google.com/document/d/1pGQf9CrQ016ObS0w7PhPLAy92MRPhdBriICflt1YGXA/edit
+# if 1 // Uart Command Codes. See https://docs.google.com/document/d/14pGuFv6KsG5tB4OmI0qc9f37cWdUVqZpTvvds2y46VY/edit
 #define CMD_PING            0x01
 #define CMD_SET_ID          0x10
 #define CMD_GET_ID          0x11
