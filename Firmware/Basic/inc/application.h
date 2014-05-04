@@ -16,8 +16,8 @@
 #define CMD_PING            0x01
 #define CMD_SET_ID          0x10
 #define CMD_GET_ID          0x11
-#define CMD_SET_CONSTS      0x20
-#define CMD_GET_CONSTS      0x21
+#define CMD_SET_DOSETOP     0x20
+#define CMD_GET_DOSETOP     0x21
 #define CMD_PILL_STATE      0x30
 #define CMD_PILL_WRITE      0x31
 #define CMD_PILL_READ       0x32
@@ -27,7 +27,7 @@
 
 #define RPL_ACK             0x90    // Acknowledge
 #define RPL_GET_ID          0xA1
-#define RPL_GET_CONSTS      0xB1
+#define RPL_GET_DOSETOP     0xB1
 #define RPL_PILL_STATE      0xC0
 #define RPL_PILL_WRITE      0xC1
 #define RPL_PILL_READ       0xC2
@@ -65,13 +65,13 @@
 #if 1 // ==== Eeprom ====
 // Addresses
 #define EE_DEVICE_ID_ADDR       0
-#define EE_CONSTS_ADDR          (sizeof(uint32_t))  // ID is uint32_t
+#define EE_DOSETOP_ADDR         (sizeof(uint32_t))  // ID is uint32_t
 #endif
 
 #if 1 // ==== Pill ====
 #define PILL_TYPEID_SET_ID      0x0001
 #define PILL_TYPEID_CURE        0x0009
-#define PILL_TYPEID_SET_CONSTS  0x0011
+#define PILL_TYPEID_SET_DOSETOP 0x0011
 
 struct Pill_t {
     uint16_t TypeID;
@@ -79,10 +79,10 @@ struct Pill_t {
         uint16_t DeviceID;
         // Cure
         struct {
-            uint16_t Charge;
+            uint16_t ChargeCnt;
             uint32_t Value;
         } __attribute__ ((__packed__));
-        DoseConsts_t Consts;
+        uint32_t DoseTop;
     };
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
@@ -96,8 +96,7 @@ private:
     uint8_t UartRplBuf[UART_RPL_BUF_SZ];
     Eeprom_t EE;
     Dose_t Dose;
-    void LoadConsts() { EE.ReadBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR); }
-    void SaveConsts() { EE.WriteBuf(&Dose.Consts, DOSE_CONSTS_SZ, EE_CONSTS_ADDR); }
+    void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
 public:
     uint32_t ID;
     Thread *PThd;

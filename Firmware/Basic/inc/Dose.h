@@ -12,17 +12,18 @@
 
 struct DoseConsts_t {
     uint32_t Top;       // Death; top value
+    uint32_t RedFast;   // Near death
     uint32_t Red;       // Yellow if lower
     uint32_t Yellow;    // Green if lower
+    void Setup(uint32_t NewTop) {
+        Top = NewTop;
+        RedFast = Top - 7;
+        Red = (Top * 2) / 3;
+        Yellow = Top / 3;
+    }
 };
-#define DOSE_CONSTS_SZ      sizeof(DoseConsts_t)
-#define DOSE_RED_FAST_DIF   7  // Near death
-
-#if 1 // ==== Default Dose constants ====
-#define DOSE_DEF_TOP        300
-#define DOSE_DEF_RED        200
-#define DOSE_DEF_YELLOW     100
-#endif
+// Default Dose constants
+#define DOSE_DEFAULT_TOP    300
 
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
@@ -32,11 +33,11 @@ private:
     uint32_t IDose;
     EEStore_t EEStore;   // EEPROM storage for dose
     void ConvertDoseToState() {
-        if     (IDose >= Consts.Top)    State = hsDeath;
-        else if(IDose >= (Consts.Top - DOSE_RED_FAST_DIF)) State = hsRedFast;
-        else if(IDose >= Consts.Red)    State = hsRedSlow;
-        else if(IDose >= Consts.Yellow) State = hsYellow;
-        else                            State = hsGreen;
+        if     (IDose >= Consts.Top)     State = hsDeath;
+        else if(IDose >= Consts.RedFast) State = hsRedFast;
+        else if(IDose >= Consts.Red)     State = hsRedSlow;
+        else if(IDose >= Consts.Yellow)  State = hsYellow;
+        else                             State = hsGreen;
     }
 public:
     DoseConsts_t Consts;
@@ -80,10 +81,9 @@ public:
     uint32_t Get() { return IDose; }
     void Increase(uint32_t Amount, DoIndication_t DoIndication) {
         uint32_t Dz = IDose;
-        uint32_t RedFast = Consts.Top - DOSE_RED_FAST_DIF;
         // Increase no more than up to near death
-        if(Dz < RedFast) {
-            if(((Dz + Amount) > RedFast) or (Amount == INFINITY32)) Dz = RedFast;
+        if(Dz < Consts.RedFast) {
+            if(((Dz + Amount) > Consts.RedFast) or (Amount == INFINITY32)) Dz = Consts.RedFast;
             else Dz += Amount;
         }
         // Near death, increase no more than 1 at a time

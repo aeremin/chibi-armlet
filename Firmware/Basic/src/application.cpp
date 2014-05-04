@@ -50,11 +50,11 @@ void App_t::OnPillConnect() {
 
 #if 1 // ==== Cure ====
         case PILL_TYPEID_CURE:
-            switch(Pill.Charge) {
+            switch(Pill.ChargeCnt) {
                 case 0: rslt = FAILURE; break;      // Discharged pill
-                case INFINITY16: rslt = OK; break;  // Panacea
+                case INFINITY16: rslt = OK; break;  // Infinite count of charges, do not decrease
                 default:
-                    Pill.Charge--;
+                    Pill.ChargeCnt--;
                     rslt = PillMgr.Write(PILL_I2C_ADDR, (uint8_t*)&Pill, sizeof(Pill_t));
                     break;
             } // switch charge
@@ -63,7 +63,7 @@ void App_t::OnPillConnect() {
                 Beeper.Beep(BeepPillOk);
                 Led.StartBlink(LedPillCureOk);
                 // Decrease dose if not dead, or if this is panacea
-                if((Dose.State != hsDeath) or (Pill.Charge == INFINITY16)) Dose.Decrease(Pill.Value, diNeverIndicate);
+                if((Dose.State != hsDeath) or (Pill.Value == INFINITY32)) Dose.Decrease(Pill.Value, diNeverIndicate);
                 chThdSleepMilliseconds(2007);    // Let indication to complete
                 Dose.RenewIndication();
             }
@@ -76,9 +76,9 @@ void App_t::OnPillConnect() {
 #endif
 
 #if 1 // ==== Set consts ====
-        case PILL_TYPEID_SET_CONSTS:
-            memcpy(&Dose.Consts, &Pill.Consts, DOSE_CONSTS_SZ);
-            SaveConsts();
+        case PILL_TYPEID_SET_DOSETOP:
+            Dose.Consts.Setup(Pill.DoseTop);
+            SaveDoseTop();
             Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             Led.StartBlink(LedPillSetupOk);
             Beeper.Beep(BeepPillOk);
@@ -118,18 +118,20 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-#if 1 // ==== Constants ====
-        case CMD_SET_CONSTS:
-            if(Length == DOSE_CONSTS_SZ) {
-                memcpy(&Dose.Consts, PData, DOSE_CONSTS_SZ);
-                SaveConsts();
+#if 1 // ==== DoseTop ====
+        case CMD_SET_DOSETOP:
+            if(Length == sizeof(Dose.Consts.Top)) {
+                p32 = (uint32_t*)PData;
+                Dose.Consts.Setup(*p32);
+                SaveDoseTop();
                 Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             }
             else Uart.Ack(CMD_ERROR);
             break;
-        case CMD_GET_CONSTS:
-            memcpy(UartRplBuf, &Dose.Consts, DOSE_CONSTS_SZ);
-            Uart.Cmd(RPL_GET_CONSTS, UartRplBuf, DOSE_CONSTS_SZ);
+        case CMD_GET_DOSETOP:
+            p32 = (uint32_t*)UartRplBuf;
+            *p32 = Dose.Consts.Top;
+            Uart.Cmd(RPL_GET_DOSETOP, UartRplBuf, sizeof(Dose.Consts.Top));
             break;
 #endif
 
@@ -203,14 +205,12 @@ void App_t::OnDoseStoreTime() {
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     // Read dose constants
-    LoadConsts();
-    // Setup default constants
-    if(Dose.Consts.Top == 0) Dose.Consts.Top = DOSE_DEF_TOP;
-    if(Dose.Consts.Red == 0) Dose.Consts.Red = DOSE_DEF_RED;
-    if(Dose.Consts.Yellow == 0) Dose.Consts.Yellow = DOSE_DEF_YELLOW;
+    uint32_t FTop = EE.Read32(EE_DOSETOP_ADDR);
+    if(FTop == 0) FTop = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
+    Dose.Consts.Setup(FTop);
     Uart.Printf("ID=%u; Top=%u; Red=%u; Yellow=%u\r", ID, Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
 
-    //Dose.Load();
+    //Dose.Load();  // DEBUG
 }
 uint8_t App_t::ISetID(uint32_t NewID) {
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);

@@ -23,10 +23,10 @@ RRDse
 
 
 
-GetCnsts
+GetDose
 ##21#010#013
-SetCnsts
-##20,2C010000,C8000000,64000000#010#013
+SetDose
+##20,58020000#010#013
 
 
 Cure
