@@ -64,6 +64,8 @@ private:
     uint8_t IRxBuf[UART_RXBUF_SZ];
     uint8_t CmdCode;
     uint8_t CmdData[UART_CMDDATA_SZ], *PCmdWrite;
+    void IProcessByte(uint8_t b);
+    void IResetCmd() { RxState = rsStart; PCmdWrite = CmdData; }
 #endif
 public:
     void Printf(const char *S, ...);
@@ -82,10 +84,7 @@ public:
     void IRQDmaTxHandler();
     void IPutChar(char c);
 #if UART_RX_ENABLED
-    // Inner use
-    void IRxTask();
-    void IProcessByte(uint8_t b);
-    void IResetCmd() { RxState = rsStart; PCmdWrite = CmdData; }
+    void PollRx();
 #endif
 };
 

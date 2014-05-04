@@ -20,6 +20,16 @@
 #include "evt_mask.h"
 
 #if 1 // ============================ Timers ===================================
+#if UART_RX_ENABLED
+static VirtualTimer ITmrUartRx;
+void TmrUartRxCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_UART_RX_POLL);
+    chVTSetI(&ITmrUartRx, MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+#endif
+
 static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck, ITmrMeasurement;
 void TmrDoseCallback(void *p) {
     chSysLockFromIsr();
@@ -79,16 +89,22 @@ int main(void) {
     // ==== Init event generating framework ====
     // Timers init
     chSysLock();
-    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
-    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
-    chVTSetI(&ITmrDose,      MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
-    chVTSetI(&ITmrDoseSave,  MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+#if UART_RX_ENABLED
+    chVTSetI(&ITmrUartRx,      MS2ST(UART_RX_POLLING_MS),  TmrUartRxCallback, nullptr);
+#endif
+    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
+    chVTSetI(&ITmrPillCheck,   MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+    chVTSetI(&ITmrDose,        MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+    chVTSetI(&ITmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
     bool PillConnected = false;
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+        // ==== Uart cmd ====
+        if(EvtMsk & EVTMSK_UART_RX_POLL) Uart.PollRx(); // Check if new cmd received
+
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
             // Check if new connection occured

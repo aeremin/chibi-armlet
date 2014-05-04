@@ -114,4 +114,27 @@ public:
     }
 };
 
+#if 1 // ============================ Radio damage =============================
+//inline void GetDmgOutOfPkt() {
+//    int32_t prc = RSSI_DB2PERCENT(PktRx.RSSI);
+////      Uart.Printf("%u\r", PktRx.ID);
+//    if(prc >= PktRx.MinLvl) {   // Only if signal level is enough
+//        if((PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0; // "Clean zone" emanator
+//        else {  // Ordinal emanator
+//            int32_t EmDmg = 0;
+//            if(prc >= PktRx.MaxLvl) EmDmg = PktRx.DmgMax;
+//            else {
+//                int32_t DifDmg = PktRx.DmgMax - PktRx.DmgMin;
+//                int32_t DifLvl = PktRx.MaxLvl - PktRx.MinLvl;
+//                EmDmg = (prc * DifDmg + PktRx.DmgMax * DifLvl - PktRx.MaxLvl * DifDmg) / DifLvl;
+//                if(EmDmg < 0) EmDmg = 0;
+//            }
+//            RadioDmg += EmDmg;
+//        }
+//    }
+//}
+
+
+#endif
+
 #endif /* DOSE_H_ */

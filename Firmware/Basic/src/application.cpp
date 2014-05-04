@@ -22,7 +22,6 @@ void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
     uint8_t rslt;
 //    Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceID);
-    Radio.Enabled = false;
     switch(Pill.TypeID) {
 #if 1 // ==== Set ID ====
         case PILL_TYPEID_SET_ID:
@@ -91,8 +90,6 @@ void App_t::OnPillConnect() {
             Beeper.Beep(BeepPillBad);
             break;
     } // switch
-
-    Radio.Enabled = true;
 }
 #endif
 

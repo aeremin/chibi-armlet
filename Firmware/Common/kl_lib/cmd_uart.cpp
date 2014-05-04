@@ -38,29 +38,21 @@ void CmdUart_t::Printf(const char *format, ...) {
 }
 
 #if UART_RX_ENABLED
-static inline bool TryConvertToDigit(uint8_t b, uint8_t *p) {
+static inline uint8_t TryConvertToDigit(uint8_t b, uint8_t *p) {
     if((b >= '0') and (b <= '9')) {
         *p = b - '0';
-        return true;
+        return OK;
     }
     else if((b >= 'A') and (b <= 'F')) {
         *p = 0x0A + b - 'A';
-        return true;
+        return OK;
     }
-    else return false;
+    else return FAILURE;
 }
 static inline bool IsDelimiter(uint8_t b) { return (b == ','); }
 static inline bool IsEnd(uint8_t b) { return (b == '\r') or (b == '\n'); }
 
-static WORKING_AREA(waUartRxThread, 256);
-__attribute__ ((__noreturn__))
-static void UartRxThread(void *arg) {
-    chRegSetThreadName("UartRx");
-    while(true) Uart.IRxTask();
-}
-
-void CmdUart_t::IRxTask() {
-    chThdSleepMilliseconds(UART_RX_POLLING_MS);
+void CmdUart_t::PollRx() {
     int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart
     if(Sz != SzOld) {
         int32_t ByteCnt = Sz - SzOld;
@@ -78,7 +70,7 @@ void CmdUart_t::IProcessByte(uint8_t b) {
     if(b == '#') RxState = rsCmdCode1; // If # is received anywhere, start again
     else switch(RxState) {
         case rsCmdCode1:
-            if(TryConvertToDigit(b, &digit)) {
+            if(TryConvertToDigit(b, &digit) == OK) {
                 CmdCode = digit << 4;
                 RxState = rsCmdCode2;
             }
@@ -86,7 +78,7 @@ void CmdUart_t::IProcessByte(uint8_t b) {
             break;
 
         case rsCmdCode2:
-            if(TryConvertToDigit(b, &digit)) {
+            if(TryConvertToDigit(b, &digit) == OK) {
                 CmdCode |= digit;
                 RxState = rsData1;
             }
@@ -94,7 +86,7 @@ void CmdUart_t::IProcessByte(uint8_t b) {
             break;
 
         case rsData1:
-            if(TryConvertToDigit(b, &digit)) {
+            if(TryConvertToDigit(b, &digit) == OK) {
                 *PCmdWrite = digit << 4;
                 RxState = rsData2;
             }
@@ -107,7 +99,7 @@ void CmdUart_t::IProcessByte(uint8_t b) {
             break;
 
         case rsData2:
-            if(TryConvertToDigit(b, &digit)) {
+            if(TryConvertToDigit(b, &digit) == OK) {
                 *PCmdWrite |= digit;
                 RxState = rsData1;  // Prepare to rx next byte
                 if(PCmdWrite < (CmdData + (UART_CMDDATA_SZ-1))) PCmdWrite++;
@@ -157,8 +149,6 @@ void CmdUart_t::Init(uint32_t ABaudrate) {
     dmaStreamSetTransactionSize(UART_DMA_RX, UART_RXBUF_SZ);
     dmaStreamSetMode      (UART_DMA_RX, UART_DMA_RX_MODE);
     dmaStreamEnable       (UART_DMA_RX);
-    // Create and start thread
-    chThdCreateStatic(waUartRxThread, sizeof(waUartRxThread), NORMALPRIO, (tfunc_t)UartRxThread, NULL);
 #else
     UART->CR1 = USART_CR1_TE;     // Transmitter enabled
     UART->CR3 = USART_CR3_DMAT;   // Enable DMA at transmitter
