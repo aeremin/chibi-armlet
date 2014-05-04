@@ -15,6 +15,7 @@
 #include "radio_lvl1.h"
 #include "mesh_lvl.h"
 #include "real_time.h"
+#include "console.h"
 
 App_t App;
 #define UART_RPL_BUF_SZ     36
@@ -292,17 +293,14 @@ void UartCmdCallback(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             CycDiff = Mesh.GetCycleN();
             CycDiff = c - CycDiff;
             Mesh.SetCurrCycleN(c);
-            Uart.Printf("#%u,%d\r", CMD_SET_TIME_RPL, CycDiff);
+            Console_SetTime_Ack(CycDiff);
             break;
 
 //            Rslt = FwTime.SetTime(PData[0], PData[1], PData[2]);
 //            if(RTU.SetTimeBCD(PData[0], PData[1], PData[2]) == FAILURE) Uart.Printf("Fail\r");
 //            else Uart.Printf(" OK\r");
 
-        case CMD_GET_CYCLE_TIME:
-            Uart.Printf("#%u,%u\r", CMD_GET_CYCLE_TIME_RPL, CYCLE_TIME);
-//            Ack(OK);
-            break;
+        case CMD_GET_CYCLE_TIME: Console_GetTime_Ack(); break;
 
         default: break;
     } // switch

@@ -8,6 +8,7 @@
 
 #include "payload.h"
 #include "mesh_lvl.h"
+#include "console.h"
 
 Payload_t Payload;
 
@@ -20,14 +21,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp
         Ptr->Timestamp = CurrentTimeStamp;
         InfoBuf[ID] = *Ptr;
     }
-    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
-            ID,
-            Ptr->Hops,
-            Ptr->Timestamp,
-            Ptr->TimeDiff,
-            Ptr->Location,
-            Ptr->Reason,
-            Ptr->Emotion);
+    Console_Send_Info(ID, &InfoBuf[ID]);
     return Rslt;
 }
 
@@ -37,14 +31,7 @@ uint8_t Payload_t::PrintNextInfo() {
         if(PStr == InfoBuf + SELF_MESH_ID)  break;
         else if(PStr >= InfoBuf + INFO_BUF_SIZE) PStr = InfoBuf;
     } while (PStr->Hops == 0);
-    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
-            (uint16_t)(PStr - InfoBuf),
-            PStr->Hops,
-            PStr->Timestamp,
-            PStr->TimeDiff,
-            PStr->Location,
-            PStr->Reason,
-            PStr->Emotion);
+    Console_Send_Info((uint16_t)(PStr - InfoBuf), PStr);
     return OK;
 }
 
@@ -70,14 +57,7 @@ void Payload_t::WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t 
 
 void Payload_t::UpdateSelf() {
     InfoBuf[SELF_MESH_ID].Timestamp = Mesh.GetCycleN();
-    Uart.Printf("%u,%u,%u,%d,%u,%u,%u\r",
-            SELF_MESH_ID,
-            InfoBuf[SELF_MESH_ID].Hops,
-            InfoBuf[SELF_MESH_ID].Timestamp,
-            InfoBuf[SELF_MESH_ID].TimeDiff,
-            InfoBuf[SELF_MESH_ID].Location,
-            InfoBuf[SELF_MESH_ID].Reason,
-            InfoBuf[SELF_MESH_ID].Emotion);
+    Console_Send_Info(SELF_MESH_ID, &InfoBuf[SELF_MESH_ID]);
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValue) {
     Uart.Printf("Correct to %u\r", CorrValue);
