@@ -13,7 +13,6 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "adc15x.h"
-#include <cstring>  // for memcpy
 
 App_t App;
 
@@ -48,7 +47,7 @@ void App_t::OnPillConnect() {
             break;
 #endif
 
-#if 1 // ==== Cure ====
+#ifdef DEVTYPE_UMVOS // ==== Cure ====
         case PILL_TYPEID_CURE:
             switch(Pill.ChargeCnt) {
                 case 0: rslt = FAILURE; break;      // Discharged pill
@@ -75,7 +74,7 @@ void App_t::OnPillConnect() {
             break;
 #endif
 
-#if 1 // ==== Set consts ====
+#ifdef DEVTYPE_UMVOS // ==== Set consts ====
         case PILL_TYPEID_SET_DOSETOP:
             Dose.Consts.Setup(Pill.DoseTop);
             SaveDoseTop();
@@ -97,7 +96,7 @@ void App_t::OnPillConnect() {
 void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
     uint16_t *p16;
-    uint32_t *p32;
+    uint32_t *p32 __attribute__((unused));  // May be unused in some cofigurations
 
     switch(CmdCode) {
         case CMD_PING: Uart.Ack(OK); break;
@@ -118,7 +117,7 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-#if 1 // ==== DoseTop ====
+#ifdef DEVTYPE_UMVOS // ==== DoseTop ====
         case CMD_SET_DOSETOP:
             if(Length == sizeof(Dose.Consts.Top)) {
                 p32 = (uint32_t*)PData;
@@ -168,7 +167,7 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-#if 1 // ==== Dose ====
+#ifdef DEVTYPE_UMVOS // ==== Dose ====
         case CMD_DOSE_GET:
             p32 = (uint32_t*)UartRplBuf;
             *p32 = Dose.Get();
@@ -189,7 +188,7 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 }
 #endif
 
-// ==== Dose ====
+#ifdef DEVTYPE_UMVOS // ==== Dose ====
 void App_t::OnDoseIncTime() {
     // Check if radio damage occured. Will return 1 if no.
     uint32_t FDamage = 1; //Radio.Damage;
@@ -197,13 +196,17 @@ void App_t::OnDoseIncTime() {
     Dose.Increase(FDamage, diUsual);
     //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
 }
-void App_t::OnDoseStoreTime() {
-    //if(Dose.Save() != OK) Uart.Printf("EE Fail\r");   // disabled for DEBUG
+
+void App_t::OnRxTableReady() {
+    Uart.Printf("RxTbl: %u;  %u\r", RxTable.PTable->Size, chTimeNow());
+    RxTable.Print();
 }
+#endif
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
+#ifdef DEVTYPE_UMVOS
     // Read dose constants
     uint32_t FTop = EE.Read32(EE_DOSETOP_ADDR);
     if(FTop == 0) FTop = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
@@ -211,6 +214,7 @@ void App_t::Init() {
     Uart.Printf("ID=%u; Top=%u; Red=%u; Yellow=%u\r", ID, Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
 
     //Dose.Load();  // DEBUG
+#endif
 }
 uint8_t App_t::ISetID(uint32_t NewID) {
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);

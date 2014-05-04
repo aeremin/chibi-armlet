@@ -34,11 +34,37 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TX
-#define LED_RX
+//#define LED_RX
 __attribute__((noreturn))
 void rLevel1_t::ITask() {
-    uint8_t RxRslt;
     while(true) {
+#ifdef DEVTYPE_UMVOS
+        int8_t Rssi;
+        // Supercycle
+        for(uint32_t j=0; j<CYCLE_CNT; j++) {
+            // Iterate channels
+            for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                CC.SetChannel(i);
+                uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
+                if(RxRslt == OK) {
+//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                    App.RxTable.PutPkt(&PktRx, Rssi);
+                }
+            } // for i
+        } // for j
+        // Supercycle completed, switch table and inform application
+        chSysLock();
+        App.RxTable.SwitchTableI();
+        chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+        chSysUnlock();
+//        Uart.Printf("***\r");
+        chThdSleepMilliseconds(207);
+#elif defined DEVTYPE_LUSTRA
+        DBG1_SET();
+        CC.TransmitSync(&PktTx);
+        DBG1_CLR();
+#endif
+
 #ifdef SHIKO_DEVICE // ======== TX cycle ========
         PktTx.Type = App.Type;
         switch(App.Type) {
@@ -122,9 +148,17 @@ void rLevel1_t::Init() {
 #endif
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(CC_Pwr0dBm);
-    CC.SetChannel(0);
+    CC.SetTxPower(CC_PwrPlus5dBm);
     CC.SetPktSize(RPKT_LEN);
+#ifdef DEVTYPE_LUSTRA
+    // DEBUG
+    CC.SetChannel(RCHNL_MIN);
+    PktTx.ID = 200;
+    PktTx.DmgMin = 5;
+    PktTx.DmgMax = 5;
+    PktTx.LvlMin = 40;
+    PktTx.LvlMax = 50;
+#endif
     // Variables
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);

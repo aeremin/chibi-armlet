@@ -69,9 +69,16 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Uart.Printf("Fallout AHB=%u\r", Clk.AHBFreqHz);
     Led.Init();
-//    Led.SetColor(clWhite);
+#ifdef DEVTYPE_UMVOS
+    Uart.Printf("UMVOS AHB=%u\r", Clk.AHBFreqHz);
+#elif defined DEVTYPE_LUSTRA
+    Uart.Printf("Lustra AHB=%u\r", Clk.AHBFreqHz);
+    Led.SetColor((Color_t){0, 0, 1});
+#endif
+
+
+    //    Led.SetColor(clWhite);
 //    chThdSleepMilliseconds(540);
 //    Led.SetColor(clBlack);
 
@@ -92,10 +99,12 @@ int main(void) {
 #if UART_RX_ENABLED
     chVTSetI(&ITmrUartRx,      MS2ST(UART_RX_POLLING_MS),  TmrUartRxCallback, nullptr);
 #endif
-    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
     chVTSetI(&ITmrPillCheck,   MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+#ifdef DEVTYPE_UMVOS
+    chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
     chVTSetI(&ITmrDose,        MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
     chVTSetI(&ITmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+#endif
     chSysUnlock();
 
     // Event-generating framework
@@ -116,10 +125,15 @@ int main(void) {
             }
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
-
+#ifdef DEVTYPE_UMVOS
         // ==== Dose ====
         if(EvtMsk & EVTMSK_DOSE_INC) App.OnDoseIncTime();
-        if(EvtMsk & EVTMSK_DOSE_STORE) App.OnDoseStoreTime();
+        if(EvtMsk & EVTMSK_DOSE_STORE) {
+            //if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r");   // disabled for DEBUG
+        }
+
+        // ==== Radio ====
+        if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
 
         // ==== Measure battery ====
 //        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
@@ -129,6 +143,6 @@ int main(void) {
 //            // Blink Red if discharged
 //            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartBlink(LedDischarged);
 //        }
-
+#endif
     } // while true
 }

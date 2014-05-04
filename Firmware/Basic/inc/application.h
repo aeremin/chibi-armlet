@@ -11,6 +11,7 @@
 #include "kl_lib_L15x.h"
 #include "sequences.h"
 #include "Dose.h"
+#include "RxTable.h"
 
 # if 1 // Uart Command Codes. See https://docs.google.com/document/d/14pGuFv6KsG5tB4OmI0qc9f37cWdUVqZpTvvds2y46VY/edit
 #define CMD_PING            0x01
@@ -45,8 +46,8 @@
 
 // ========= Device types =========
 #define DEVTYPE_UMVOS
-//#define DEVTYPE_DETECTOR
 //#define DEVTYPE_LUSTRA
+//#define DEVTYPE_DETECTOR
 //#define DEVTYPE_PILLPROG
 //#define DEVTYPE_TUNER
 
@@ -95,19 +96,26 @@ private:
     uint8_t ISetID(uint32_t NewID);
     uint8_t UartRplBuf[UART_RPL_BUF_SZ];
     Eeprom_t EE;
+#ifdef DEVTYPE_UMVOS
     Dose_t Dose;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
+#endif
 public:
     uint32_t ID;
     Thread *PThd;
+#ifdef DEVTYPE_UMVOS
+    RxTable_t RxTable;
+#endif
     void Init();
     void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
-    void OnBatteryMeasured();
     void OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length);
+#ifdef DEVTYPE_UMVOS
+    void OnBatteryMeasured();
     void OnDoseIncTime();
-    void OnDoseStoreTime();
+    void OnRxTableReady();
+#endif
 };
 
 extern App_t App;
