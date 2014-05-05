@@ -17,4 +17,12 @@
 #define EVTMSK_MEASUREMENT_DONE EVENT_MASK(5)
 #define EVTMSK_UART_RX_POLL     EVENT_MASK(6)
 
+
+/* Radio and Mesh */
+#define EVTMSK_MESH_TX          EVENT_MASK(7)
+#define EVTMSK_MESH_RX          EVENT_MASK(8)
+#define EVTMSK_MESH_NEW_CYC     EVENT_MASK(9)
+#define EVTMSK_MESH_UPD_CYC     EVENT_MASK(10)
+#define EVTMSK_BKT_NOT_EMPTY    EVENT_MASK(11)
+
 #endif /* EVT_MASK_H_ */

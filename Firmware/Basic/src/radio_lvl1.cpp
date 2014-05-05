@@ -14,6 +14,8 @@
 #include "peripheral.h"
 #include "sequences.h"
 
+#include "mesh_params.h"
+
 #define DBG_PINS
 
 #ifdef DBG_PINS
@@ -39,27 +41,22 @@ __attribute__((noreturn))
 void rLevel1_t::ITask() {
     while(true) {
 #ifdef DEVTYPE_UMVOS
-        int8_t Rssi;
+
+        if(Mesh.IsInit) {
+            uint32_t EvtMsk = chEvtWaitAll(ALL_EVENTS); /* wait mesh cycle */
+
+            CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
+            if(EVTMSK_MESH_RX) {
+
+            }
+            if(EVTMSK_MESH_TX) {
+                CC.TransmitSync(&PktTx); /* Pkt was prepared in Mesh Thd */
+                IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
+            }
+        }
+        else IIterateChannels(); /* Mesh not Init */
 
 
-        /* Iterate Lustrs */
-        for(uint32_t j=0; j<CYCLE_CNT; j++) {
-            // Iterate channels
-            for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-                CC.SetChannel(i);
-                uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
-                if(RxRslt == OK) {
-//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                    App.RxTable.PutPkt(&PktRx, Rssi);
-                }
-            } // for i
-        } // for j
-        /* Iterate Lustrs completed, switch table and inform application */
-
-        chSysLock();
-        App.RxTable.SwitchTableI();
-        chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
-        chSysUnlock();
 //        Uart.Printf("***\r");
         chThdSleepMilliseconds(207);
 #elif defined DEVTYPE_LUSTRA
@@ -143,6 +140,30 @@ void rLevel1_t::ITask() {
     } // while true
 }
 #endif // task
+
+#if 1 // ==== Iterate Channels ====
+void rLevel1_t::IIterateChannels() {
+    int8_t Rssi;
+    /* Iterate Lustrs */
+    for(uint32_t j=0; j<CYCLE_CNT; j++) {
+        // Iterate channels
+        for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+            CC.SetChannel(i);
+            uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
+            if(RxRslt == OK) {
+//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                App.RxTable.PutPkt(&PktRx, Rssi);
+            }
+        } // for i
+    } // for j
+    /* Iterate Lustrs completed, switch table and inform application */
+
+    chSysLock();
+    App.RxTable.SwitchTableI();
+    chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+    chSysUnlock();
+}
+
 
 #if 1 // ============================
 void rLevel1_t::Init() {

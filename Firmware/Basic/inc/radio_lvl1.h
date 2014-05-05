@@ -20,6 +20,7 @@ public:
     void Init();
     // Inner use
     void ITask();
+    void IIterateChannels();
 };
 
 extern rLevel1_t Radio;
