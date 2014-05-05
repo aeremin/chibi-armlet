@@ -14,7 +14,7 @@
 #include "peripheral.h"
 #include "sequences.h"
 
-#include "mesh_params.h"
+#include "mesh_lvl.h"
 
 #define DBG_PINS
 
@@ -46,16 +46,14 @@ void rLevel1_t::ITask() {
             uint32_t EvtMsk = chEvtWaitAll(ALL_EVENTS); /* wait mesh cycle */
 
             CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
-            if(EVTMSK_MESH_RX) {
+            if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
 
-            }
-            if(EVTMSK_MESH_TX) {
+            if(EvtMsk & EVTMSK_MESH_TX) {
                 CC.TransmitSync(&PktTx); /* Pkt was prepared in Mesh Thd */
                 IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
             }
         }
         else IIterateChannels(); /* Mesh not Init */
-
 
 //        Uart.Printf("***\r");
         chThdSleepMilliseconds(207);
@@ -163,7 +161,34 @@ void rLevel1_t::IIterateChannels() {
     chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
     chSysUnlock();
 }
+#endif
 
+
+#if 1 // ==== Mesh Rx Cycle ====
+
+static void RxEnd(void *p) {
+//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+    Radio.Valets.InRx = false;
+}
+
+void rLevel1_t::IMeshRx() {
+    int8_t RSSI = 0;
+    Valets.RxTmt = CYCLE_TIME;
+    Valets.InRx = true;
+    chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
+    do {
+        Valets.CurrentTime = chTimeNow();
+        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &PktRx, &RSSI);
+        if(RxRslt == OK) { // Pkt received correctly
+//                    Uart.Printf("ID=%u:%u, %ddBm\r", PktRx.SelfID, PktRx.CycleN, RSSI);
+//            Payload.WriteInfo(PktRx.SelfID, RSSI, Mesh.GetCycleN(), &PktRx.PktPayload);
+//            Mesh.MsgBox.Post({chTimeNow(), PktRx.MeshPayload}); /* SendMsg to MeshThd with PktRx structure */
+        } // Pkt Ok
+        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
+    } while(Radio.Valets.InRx);
+    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
+}
+#endif
 
 #if 1 // ============================
 void rLevel1_t::Init() {

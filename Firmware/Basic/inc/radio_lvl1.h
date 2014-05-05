@@ -12,14 +12,18 @@
 #include "rlvl1_defins.h"
 #include "kl_lib_L15x.h"
 #include "cc1101.h"
+#include "mesh_params.h"
 
 class rLevel1_t {
 private:
     rPkt_t PktRx, PktTx;
+
 public:
     void Init();
     // Inner use
+    meshradio_t Valets; /* private for mesh */
     void ITask();
+    void IMeshRx();
     void IIterateChannels();
 };
 

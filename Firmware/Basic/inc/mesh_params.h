@@ -36,12 +36,12 @@
 
 #define TIME_AGE_THRESHOLD  20 /* Cycles */
 
-class meshradio_t {
-    uint8_t RxTmt;
-    bool IMeshRx;
+struct meshradio_t {
+    VirtualTimer RxVT;
+    uint16_t RxTmt;
+    bool InRx;
     uint32_t CurrentTime;
 };
-
 
 struct MeshPayload_t {
     uint8_t SelfID;
