@@ -22,9 +22,9 @@ void Console_Send_Info(uint16_t ID, PayloadString_t *Ptr) {
 }
 
 void Console_SetTime_Ack(int32_t NewCycDiff) {
-    Uart.Printf("#%u,%d\r", CMD_SET_TIME_RPL, NewCycDiff);
+    Uart.Printf("#%X,%d\r", CMD_SET_TIME_RPL, NewCycDiff);
 }
 
 void Console_GetTime_Ack() {
-    Uart.Printf("#%u,%u\r", CMD_GET_CYCLE_TIME_RPL, CYCLE_TIME);
+    Uart.Printf("#%X,%u\r", CMD_GET_CYCLE_TIME_RPL, CYCLE_TIME);
 }

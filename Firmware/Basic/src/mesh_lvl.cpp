@@ -58,7 +58,7 @@ void Mesh_t::ITask() {
 
 void Mesh_t::NewCycle() {
 //    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
-    Beeper.Beep(ShortBeep);
+//    Beeper.Beep(ShortBeep);
     IncCurrCycle();
     /* Update Self Payload */
     Payload.UpdateSelf();
@@ -124,11 +124,10 @@ void Mesh_t::UpdateTimer() {
         Uart.Printf("Msh: CycUpd=%u\r", *PNewCycleN);
 #endif
         uint32_t timeNow = chTimeNow();
-        do {
+        if(*PTimeToWakeUp < chTimeNow()) {
             *PTimeToWakeUp += CYCLE_TIME;
-//            NewTime++;  /* TODO: Thinking carefully about updating TimeAbs */
+            *PNewCycleN += 1;
         }
-        while (*PTimeToWakeUp < timeNow);
         SetCurrCycleN(*PNewCycleN);
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
