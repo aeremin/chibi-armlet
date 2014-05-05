@@ -40,7 +40,9 @@ void rLevel1_t::ITask() {
     while(true) {
 #ifdef DEVTYPE_UMVOS
         int8_t Rssi;
-        // Supercycle
+
+
+        /* Iterate Lustrs */
         for(uint32_t j=0; j<CYCLE_CNT; j++) {
             // Iterate channels
             for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
@@ -52,7 +54,8 @@ void rLevel1_t::ITask() {
                 }
             } // for i
         } // for j
-        // Supercycle completed, switch table and inform application
+        /* Iterate Lustrs completed, switch table and inform application */
+
         chSysLock();
         App.RxTable.SwitchTableI();
         chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
