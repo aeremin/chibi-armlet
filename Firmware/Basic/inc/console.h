@@ -18,6 +18,6 @@ void Console_Send_Info(uint16_t ID, PayloadString_t *Ptr);
 
 void Console_SetTime_Ack(int32_t NewCycDiff);
 
-void Console_GetTime_Ack();
+void Console_GetMeshInfo_Ack();
 
 #endif /* CONSOLE_H_ */

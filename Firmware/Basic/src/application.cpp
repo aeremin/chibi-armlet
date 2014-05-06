@@ -13,6 +13,8 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "adc15x.h"
+#include "mesh_lvl.h"
+#include "console.h"
 
 App_t App;
 
@@ -184,9 +186,23 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 #endif
 
         case CMD_SET_TIME:
+            uint8_t *p; p = PData;
+            uint32_t c; c = 0;
+            do {
+                c *= 10;
+                c += (((*p) & 0xF0) >> 4);
+                c *= 10;
+                c += ((*p++) & 0x0F);
+            } while (p < PData + Length);
+            int32_t CycDiff;
+            CycDiff = Mesh.GetCycleN();
+            CycDiff = c - CycDiff;
+            Mesh.SetCurrCycleN(c);
+            Console_SetTime_Ack(CycDiff);
             break;
 
         case CMD_GET_MESH_INFO:
+            Console_GetMeshInfo_Ack();
             break;
 
         default: Uart.Ack(CMD_ERROR); break;

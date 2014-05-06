@@ -22,9 +22,9 @@ void Console_Send_Info(uint16_t ID, PayloadString_t *Ptr) {
 }
 
 void Console_SetTime_Ack(int32_t NewCycDiff) {
-    Uart.Printf("#%X,%d\r", RPL_SET_TIME, NewCycDiff);
+    Uart.Printf("#%X,%X\r", RPL_SET_TIME, (uint16_t)NewCycDiff);
 }
 
-void Console_GetTime_Ack() {
-    Uart.Printf("#%X,%u\r", RPL_GET_MESH_INFO, CYCLE_TIME);
+void Console_GetMeshInfo_Ack() {
+    Uart.Printf("#%X,%u,%u\r", RPL_GET_MESH_INFO, MAX_ABONENTS, CYCLE_TIME);
 }
