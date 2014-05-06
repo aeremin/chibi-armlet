@@ -91,8 +91,7 @@ int main(void) {
     App.Init();
     App.PThd = chThdSelf();
 
-    Mesh.Init(1);
-
+    Mesh.Init(App.ID);
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
@@ -149,4 +148,5 @@ int main(void) {
 //        }
 #endif
     } // while true
+
 }

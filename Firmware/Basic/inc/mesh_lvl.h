@@ -15,6 +15,7 @@
 #include "stdlib.h"
 
 #include "mesh_params.h"
+#include "payload.h"
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
 #define CIRC_PKT_BUF_SZ     21 // MAX_ABONENTS FIXME: 5 size set to debug only
@@ -64,21 +65,24 @@ private:
 
     Timer_t CycleTmr;
     CircBufPkt_t PktBucket;
-    void NewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
-    void IncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; NewRxCycle(); } }
-    void GenerateRandomTable(uint32_t Size) {
+    void INewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
+    void IIncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; INewRxCycle(); } }
+    void IGenerateRandomTable(uint32_t Size) {
         for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
             RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
         }
     }
 
-    void NewCycle();
-    void UpdateTimer();
-//    void ResetTimeAge(uint8_t ID)     { Radio.ResetTimeAge(ID); }
-//    uint8_t GetTimeAge()              { return Radio.GetTimeAge(); }
-//    uint8_t GetMeshID()               { return Radio.GetTimeOwner(); }
+    void INewCycle();
+    void IUpdateTimer();
+    void IPktPutCycle(uint32_t NewCycle) { PktTx.MeshData.CycleN = NewCycle; }
+    void ITimeAgeCounter() {
+        if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) PktTx.MeshData.TimeAge++;
+        else IResetTimeAge();
+    }
+    void IResetTimeAge()                 { PktTx.MeshData.TimeAge = 0; PktTx.MeshData.TimeOwnerID = SelfID; }
 
-    void PktHandlerStart() {
+    void IPktHandlerStart() {
         chEvtSignal(IPBktHanlder, EVTMSK_BKT_NOT_EMPTY);
     }
 public:
@@ -98,7 +102,7 @@ public:
 //                NeedToSendTable(0),
                 IPThread(NULL),
                 IPBktHanlder(NULL),
-                IsInit(false) {}
+                IsInit(false)  {}
 
     Thread *IPThread, *IPBktHanlder;
     bool IsInit;
@@ -106,18 +110,23 @@ public:
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
-    void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; NewRxCycle(); }
+    void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; INewRxCycle(); }
     void Init(uint32_t ID);
-    MsgBox_t<mshMsg_t, MESH_PAYLOAD_SZ> MsgBox;
+
+    MeshPkt_t PktRx, PktTx;
+    MsgBox_t<mshMsg_t, MESH_PKT_SZ> MsgBox;
 
 
     void ITask();
     void IIrqHandler();
     void IPktHandler();
     void SendEvent(eventmask_t mask)  { chEvtSignal(IPThread,mask); }
+    void PreparePktPayload();
 };
 
 extern Mesh_t Mesh;
+
+
 #endif
 
 #endif /* MESH_LVL_H_ */

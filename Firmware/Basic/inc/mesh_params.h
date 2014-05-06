@@ -8,7 +8,6 @@
 #ifndef MESH_PARAMS_H_
 #define MESH_PARAMS_H_
 
-
 /*********************** MESH ******************************
  *  |_|_|_|_..._|_|_|_|_|_..._|_|_|_|_|_..._|_|   SLOTS
  *  |_____________|_______...___|_____________|   CYCLES
@@ -44,12 +43,27 @@ struct meshradio_t {
 };
 
 struct MeshPayload_t {
-    uint8_t SelfID;
+    uint16_t SelfID;
     uint32_t CycleN;
-    uint8_t TimeOwnerID;
+    uint16_t TimeOwnerID;
     uint8_t TimeAge;
 } __attribute__ ((__packed__));
 
-#define MESH_PAYLOAD_SZ sizeof(MeshPayload_t)
+struct PayloadString_t {
+    uint8_t Hops;
+    uint32_t Timestamp;
+    int32_t TimeDiff;
+    uint8_t Location;
+    uint8_t Reason;
+    uint8_t Emotion;
+} __attribute__ ((__packed__));
+
+struct MeshPkt_t {
+    MeshPayload_t MeshData;
+    uint16_t PayloadID;
+    PayloadString_t Payload;
+}__attribute__ ((__packed__));
+
+#define MESH_PKT_SZ sizeof(MeshPkt_t)
 
 #endif /* MESH_PARAMS_H_ */

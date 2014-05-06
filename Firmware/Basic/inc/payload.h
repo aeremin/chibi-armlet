@@ -16,16 +16,6 @@
 #define INFO_BUF_SIZE   MAX_ABONENTS-1
 
 
-struct PayloadString_t {
-    uint8_t Hops;
-    uint32_t Timestamp;
-    int32_t TimeDiff;
-    uint8_t Location;
-    uint8_t Reason;
-    uint8_t Emotion;
-} __attribute__ ((__packed__));
-
-
 struct Payload_t {
 private:
     PayloadString_t InfoBuf[INFO_BUF_SIZE];
