@@ -26,6 +26,9 @@
 #define CMD_DOSE_GET        0x60
 #define CMD_DOSE_SET        0x61
 
+#define CMD_SET_TIME        0x71
+#define CMD_GET_MESH_INFO   0x72
+
 #define RPL_ACK             0x90    // Acknowledge
 #define RPL_GET_ID          0xA1
 #define RPL_GET_DOSETOP     0xB1
@@ -33,6 +36,9 @@
 #define RPL_PILL_WRITE      0xC1
 #define RPL_PILL_READ       0xC2
 #define RPL_DOSE_GET        0xE0
+
+#define RPL_SET_TIME        0xD1
+#define RPL_GET_MESH_INFO   0xD2
 
 #define UART_RPL_BUF_SZ     36
 #endif

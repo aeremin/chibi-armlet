@@ -8,7 +8,7 @@
 #include "application.h"
 #include "payload.h"
 #include "mesh_lvl.h"
-//#include "console.h"
+#include "console.h"
 
 Payload_t Payload;
 
@@ -21,7 +21,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp
         Ptr->Timestamp = CurrentTimeStamp;
         InfoBuf[ID] = *Ptr;
     }
-//    Console_Send_Info(ID, &InfoBuf[ID]);
+    Console_Send_Info(ID, &InfoBuf[ID]);
     return Rslt;
 }
 
@@ -31,7 +31,7 @@ uint8_t Payload_t::PrintNextInfo() {
         if(PStr == InfoBuf + App.ID)  break;
         else if(PStr >= InfoBuf + INFO_BUF_SIZE) PStr = InfoBuf;
     } while (PStr->Hops == 0);
-//    Console_Send_Info((uint16_t)(PStr - InfoBuf), PStr);
+    Console_Send_Info((uint16_t)(PStr - InfoBuf), PStr);
     return OK;
 }
 
@@ -57,7 +57,7 @@ void Payload_t::WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t 
 
 void Payload_t::UpdateSelf() {
     InfoBuf[App.ID].Timestamp = Mesh.GetCycleN();
-//    Console_Send_Info(SELF_MESH_ID, &InfoBuf[SELF_MESH_ID]);
+    Console_Send_Info(App.ID, &InfoBuf[App.ID]);
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValue) {
     Uart.Printf("Correct to %u\r", CorrValue);

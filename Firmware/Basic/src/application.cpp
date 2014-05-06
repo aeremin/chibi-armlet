@@ -183,6 +183,12 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
+        case CMD_SET_TIME:
+            break;
+
+        case CMD_GET_MESH_INFO:
+            break;
+
         default: Uart.Ack(CMD_ERROR); break;
     } // switch
 }
