@@ -67,10 +67,10 @@ void Mesh_t::Init(uint32_t ID) {
     CycleTmr.EnableIrqOnUpdate();
     CycleTmr.Enable();
     nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
-    Uart.Printf("Msh: Init ID=%u\r", SelfID);
+    Uart.Printf("Msh Init ID=%u\r", SelfID);
 
     PktTx.MeshData.SelfID = SelfID;
-    IResetTimeAge();
+    IResetTimeAge(SelfID);
     IPktPutCycle(AbsCycle);
     PreparePktPayload();
     IsInit = true;
@@ -114,22 +114,21 @@ void Mesh_t::INewCycle() {
 
 void Mesh_t::IPktHandler(){
     mshMsg_t MeshMsg;
-//    PriorityID = Radio.GetTimeOwner();
+    PriorityID = IGetTimeOwner();
     do {
         PktBucket.ReadPkt(&MeshMsg);
         if(PriorityID > MeshMsg.MeshPayload.TimeOwnerID) GetPrimaryPkt = true;
         else if(PriorityID == MeshMsg.MeshPayload.TimeOwnerID) {
-//            if(GetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
+            if(IGetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
                 GetPrimaryPkt = true;                   /* need to update */
-//            }
+            }
         }
 
         if(GetPrimaryPkt) {
             CycleTmr.Disable();
             *PNewCycleN = MeshMsg.MeshPayload.CycleN + 1;
             PriorityID = MeshMsg.MeshPayload.TimeOwnerID;
-//            Radio.SetTimeOwner(PriorityID);
-//            ResetTimeAge(PriorityID);
+            IResetTimeAge(PriorityID);
             *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
     } while(PktBucket.GetFilledSlots() != 0);
@@ -158,15 +157,15 @@ void Mesh_t::PreparePktPayload() {
     PlStr = Payload.GetInfoByID(NextID);
     PktTx.PayloadID = NextID;
     PktTx.Payload = *PlStr;
-    Uart.Printf("MeshPkt: %u %u %u %d %u %u %u\r",
-            PktTx.PayloadID,
-            PktTx.Payload.Hops,
-            PktTx.Payload.Timestamp,
-            PktTx.Payload.TimeDiff,
-            PktTx.Payload.Reason,
-            PktTx.Payload.Location,
-            PktTx.Payload.Emotion
-            );
+//    Uart.Printf("MeshPkt: %u %u %u %d %u %u %u\r",
+//            PktTx.PayloadID,
+//            PktTx.Payload.Hops,
+//            PktTx.Payload.Timestamp,
+//            PktTx.Payload.TimeDiff,
+//            PktTx.Payload.Reason,
+//            PktTx.Payload.Location,
+//            PktTx.Payload.Emotion
+//            );
 }
 
 void Mesh_t::IIrqHandler() {

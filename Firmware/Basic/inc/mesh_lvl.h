@@ -75,12 +75,15 @@ private:
 
     void INewCycle();
     void IUpdateTimer();
-    void IPktPutCycle(uint32_t NewCycle) { PktTx.MeshData.CycleN = NewCycle; }
+    void IPktPutCycle(uint32_t NewCycle)            { PktTx.MeshData.CycleN = NewCycle; }
+    void IPktPutTimeOwner(uint16_t NewTimeOwner)    { PktTx.MeshData.TimeOwnerID = NewTimeOwner; }
+    uint16_t IGetTimeOwner()                        { return PktTx.MeshData.TimeOwnerID; }
     void ITimeAgeCounter() {
         if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) PktTx.MeshData.TimeAge++;
-        else IResetTimeAge();
+        else IResetTimeAge(SelfID);
     }
-    void IResetTimeAge()                 { PktTx.MeshData.TimeAge = 0; PktTx.MeshData.TimeOwnerID = SelfID; }
+    void IResetTimeAge(uint16_t NewID)              { PktTx.MeshData.TimeAge = 0; PktTx.MeshData.TimeOwnerID = NewID; }
+    uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
 
     void IPktHandlerStart() {
         chEvtSignal(IPBktHanlder, EVTMSK_BKT_NOT_EMPTY);

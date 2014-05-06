@@ -51,6 +51,7 @@ void rLevel1_t::ITask() {
 
             if(EvtMsk & EVTMSK_MESH_TX) {
                 CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
+
                 Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
                         Mesh.PktTx.MeshData.SelfID,
                         Mesh.PktTx.MeshData.CycleN,
@@ -64,6 +65,7 @@ void rLevel1_t::ITask() {
                         Mesh.PktTx.Payload.Location,
                         Mesh.PktTx.Payload.Emotion
                         );
+
                 IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
             }
         }
