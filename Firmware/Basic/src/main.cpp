@@ -29,8 +29,17 @@ void TmrUartRxCallback(void *p) {
     chSysUnlockFromIsr();
 }
 #endif
+// Pill check
+static VirtualTimer ITmrPillCheck;
+void TmrPillCheckCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
+    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
+    chSysUnlockFromIsr();
+}
 
-static VirtualTimer ITmrDose, ITmrDoseSave, ITmrPillCheck, ITmrMeasurement;
+#ifdef DEVTYPE_UMVOS
+static VirtualTimer ITmrDose, ITmrDoseSave, ITmrMeasurement;
 void TmrDoseCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
@@ -44,18 +53,14 @@ void TmrDoseSaveCallback(void *p) {
     chSysUnlockFromIsr();
 }
 
-void TmrPillCheckCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
-    chVTSetI(&ITmrPillCheck, MS2ST(TM_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
-    chSysUnlockFromIsr();
-}
 void TmrMeasurementCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
     chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlockFromIsr();
 }
+#endif
+
 #endif
 
 int main(void) {
@@ -75,17 +80,18 @@ int main(void) {
 #elif defined DEVTYPE_LUSTRA
     Uart.Printf("Lustra AHB=%u\r", Clk.AHBFreqHz);
     Led.SetColor((Color_t){0, 0, 1});
+#elif defined DEVTYPE_PILLPROG
+    Uart.Printf("PillProg AHB=%u\r", Clk.AHBFreqHz);
+    Led.SetColor((Color_t){0, 0, 1});
 #endif
 
-
-    //    Led.SetColor(clWhite);
-//    chThdSleepMilliseconds(540);
-//    Led.SetColor(clBlack);
-
     Beeper.Init();
-//    Beeper.Beep(BeepBeep);
+    Beeper.Beep(BeepBeep);
     PillMgr.Init();
+
+#ifndef DEVTYPE_PILLPROG
     Radio.Init();
+#endif
 
     App.Init();
     App.PThd = chThdSelf();

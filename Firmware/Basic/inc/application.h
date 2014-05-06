@@ -45,10 +45,10 @@
 #endif
 
 // ========= Device types =========
-#define DEVTYPE_UMVOS
+//#define DEVTYPE_UMVOS
 //#define DEVTYPE_LUSTRA
 //#define DEVTYPE_DETECTOR
-//#define DEVTYPE_PILLPROG
+#define DEVTYPE_PILLPROG
 //#define DEVTYPE_TUNER
 
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.

@@ -19,10 +19,11 @@ App_t App;
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
-    uint8_t rslt;
 //    Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceID);
+#ifndef DEVTYPE_PILLPROG
+    uint8_t rslt;
     switch(Pill.TypeID) {
-#if 1 // ==== Set ID ====
+#if 0 // ==== Set ID ====
         case PILL_TYPEID_SET_ID:
             if(ID == 0) {
                 Pill.DeviceID++;
@@ -89,7 +90,11 @@ void App_t::OnPillConnect() {
             Beeper.Beep(BeepPillBad);
             break;
     } // switch
+#else // DEVTYPE_PILLPROG
+    Led.StartBlink(LedPillSetupOk);
+    Beeper.Beep(BeepPillOk);
 }
+#endif
 #endif
 
 #if 1 // ======================= Command processing ============================
