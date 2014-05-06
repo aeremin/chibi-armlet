@@ -26,7 +26,7 @@
 
 #define COUNT_OF_CYCLES     5     /* count of cycles in supercycle */
 
-#define CYCLE_TIME          (uint32_t)(SLOT_TIME * MAX_ABONENTS)
+#define CYCLE_TIME          (uint32_t)((SLOT_TIME * MAX_ABONENTS))
 #define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
 
 

@@ -56,13 +56,13 @@ void Mesh_t::ITask() {
 }
 
 void Mesh_t::NewCycle() {
-//    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
+    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
 //    Beeper.Beep(ShortBeep);
     IncCurrCycle();
 //    Payload.UpdateSelf();  /* Update Self Payload */
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
-//        Radio.SendEvt(EVTMSK_MESH_RX);
+        chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
         mshMsg_t MeshPkt;
         do {
             if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
@@ -75,7 +75,7 @@ void Mesh_t::NewCycle() {
     else {
 //        Radio.PutCycle(GetCycleN());
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
-//        Radio.SendEvt(EVTMSK_MESH_TX);
+        chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
 //        PayloadString_t *PlStr;
 //        uint16_t NextID = 0;
 //        NextID = Payload.GetNextInfoID();

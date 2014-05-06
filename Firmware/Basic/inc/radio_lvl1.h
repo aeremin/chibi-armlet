@@ -21,6 +21,7 @@ private:
 public:
     void Init();
     // Inner use
+    Thread *rThd;
     meshradio_t Valets; /* private for mesh */
     void ITask();
     void IMeshRx();

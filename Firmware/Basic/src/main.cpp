@@ -18,6 +18,7 @@
 #include "radio_lvl1.h"
 #include "eestore.h"
 #include "evt_mask.h"
+#include "mesh_lvl.h"
 
 #if 1 // ============================ Timers ===================================
 #if UART_RX_ENABLED
@@ -89,6 +90,9 @@ int main(void) {
 
     App.Init();
     App.PThd = chThdSelf();
+
+    Mesh.Init(1);
+
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
