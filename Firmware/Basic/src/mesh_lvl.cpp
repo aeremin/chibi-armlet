@@ -20,7 +20,7 @@ const int DbTranslate[66] = {1, 13, 18, 22, 25, 28, 31, 33, 35, 37, 39, 41, 43, 
 
 Mesh_t Mesh;
 
-// ================================= Thread ====================================
+#if 1 // ================================= Thread ====================================
 extern "C" {
 CH_IRQ_HANDLER(MESH_TIM_IRQ_HANDLER) {
     CH_IRQ_PROLOGUE();
@@ -46,6 +46,7 @@ static void MeshPktBucket(void *arg) {
         Mesh.IPktHandler();
     }
 }
+#endif
 
 void Mesh_t::Init(uint32_t ID) {
     if(ID == 0) {
