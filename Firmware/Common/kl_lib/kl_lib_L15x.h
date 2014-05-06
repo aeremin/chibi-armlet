@@ -12,6 +12,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
+#include "core_cmInstr.h"
 
 #if 1 // ============================ General ==================================
 #define PACKED __attribute__ ((__packed__))
@@ -76,6 +77,42 @@ typedef void (*ftVoidVoid)(void);
 #define DMA_PRIORITY_MEDIUM     STM32_DMA_CR_PL(0b01)
 #define DMA_PRIORITY_HIGH       STM32_DMA_CR_PL(0b10)
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
+
+// Big-Endian Writing in array
+class Convert {
+public:
+    static void U16ToArrAsBE(uint8_t *PArr, uint16_t N) {
+        uint8_t *p8 = (uint8_t*)&N;
+        *PArr++ = *(p8 + 1);
+        *PArr   = *p8;
+    }
+    static void U32ToArrAsBE(uint8_t *PArr, uint32_t N) {
+        uint8_t *p8 = (uint8_t*)&N;
+        *PArr++ = *(p8 + 3);
+        *PArr++ = *(p8 + 2);
+        *PArr++ = *(p8 + 1);
+        *PArr   = *p8;
+    }
+    static uint16_t ArrToU16AsBE(uint8_t *PArr) {
+        uint16_t N;
+        uint8_t *p8 = (uint8_t*)&N;
+        *p8++ = *(PArr + 1);
+        *p8 = *PArr;
+        return N;
+    }
+    static uint32_t ArrToU32AsBE(uint8_t *PArr) {
+        uint32_t N;
+        uint8_t *p8 = (uint8_t*)&N;
+        *p8++ = *(PArr + 3);
+        *p8++ = *(PArr + 2);
+        *p8++ = *(PArr + 1);
+        *p8 = *PArr;
+        return N;
+    }
+    static void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
+    static void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
+};
+
 
 // Init, to calm compiler
 extern "C" {

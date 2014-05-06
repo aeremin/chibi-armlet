@@ -19,11 +19,14 @@ App_t App;
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
-//    Uart.Printf("Pill: %u, %u\r", Pill.TypeID, Pill.DeviceID);
+    Convert::U16ChangeEndianness(&Pill.TypeID);
+//    Convert::U32ChangeEndianness(&Pill.Value);
+    Uart.Printf("Pill: %u\r", Pill.TypeID);
 #ifndef DEVTYPE_PILLPROG
     uint8_t rslt;
     switch(Pill.TypeID) {
 #if 0 // ==== Set ID ====
+        // BEWARE! LittleEndian!
         case PILL_TYPEID_SET_ID:
             if(ID == 0) {
                 Pill.DeviceID++;
@@ -100,8 +103,8 @@ void App_t::OnPillConnect() {
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
     uint8_t b, b2;
-    uint16_t *p16;
-    uint32_t *p32 __attribute__((unused));  // May be unused in some cofigurations
+    uint16_t w16;
+    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
 
     switch(CmdCode) {
         case CMD_PING: Uart.Ack(OK); break;
@@ -109,15 +112,15 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 #if 1 // ==== ID ====
         case CMD_SET_ID:
             if(Length == 2) {
-                p16 = (uint16_t*)PData;
-                b = ISetID(*p16);
+                w16 = Convert::ArrToU16AsBE(PData);
+                b = ISetID(w16);
                 Uart.Ack(b);
             }
             else Uart.Ack(CMD_ERROR);
             break;
         case CMD_GET_ID:
-            UartRplBuf[0] = (ID >> 8) & 0xFF;
-            UartRplBuf[1] = ID & 0xFF;
+            Uart.Printf("%u\r", ID);
+            Convert::U16ToArrAsBE(UartRplBuf, (uint16_t)ID);
             Uart.Cmd(RPL_GET_ID, UartRplBuf, 2);
             break;
 #endif
@@ -125,16 +128,15 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 #ifdef DEVTYPE_UMVOS // ==== DoseTop ====
         case CMD_SET_DOSETOP:
             if(Length == sizeof(Dose.Consts.Top)) {
-                p32 = (uint32_t*)PData;
-                Dose.Consts.Setup(*p32);
+                dw32 = Convert::ArrToU32AsBE(PData);
+                Dose.Consts.Setup(w32);
                 SaveDoseTop();
                 Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             }
             else Uart.Ack(CMD_ERROR);
             break;
         case CMD_GET_DOSETOP:
-            p32 = (uint32_t*)UartRplBuf;
-            *p32 = Dose.Consts.Top;
+            Convert::U32ToArrAsBE(UartRplBuf, Dose.Consts.Top);
             Uart.Cmd(RPL_GET_DOSETOP, UartRplBuf, sizeof(Dose.Consts.Top));
             break;
 #endif
@@ -173,18 +175,20 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
 #endif
 
 #ifdef DEVTYPE_UMVOS // ==== Dose ====
-        case CMD_DOSE_GET:
-            p32 = (uint32_t*)UartRplBuf;
-            *p32 = Dose.Get();
-            Uart.Cmd(RPL_DOSE_GET, UartRplBuf, 4);
-            break;
         case CMD_DOSE_SET:
-            p32 = (uint32_t*)PData;
-            if(*p32 <= Dose.Consts.Top) {
-                Dose.Set(*p32, diAlwaysIndicate);
-                Uart.Ack(OK);
+            if(Length == sizeof(uint32_t)) {
+                dw32 = Convert::ArrToU32AsBE(PData);
+                if(dw32 <= Dose.Consts.Top) {
+                    Dose.Set(dw32, diAlwaysIndicate);
+                    Uart.Ack(OK);
+                }
+                else Uart.Ack(FAILURE);
             }
-            else Uart.Ack(FAILURE);
+            else Uart.Ack(CMD_ERROR);
+            break;
+        case CMD_DOSE_GET:
+            Convert::U32ToArrAsBE(UartRplBuf, Dose.Get());
+            Uart.Cmd(RPL_DOSE_GET, UartRplBuf, 4);
             break;
 #endif
 
