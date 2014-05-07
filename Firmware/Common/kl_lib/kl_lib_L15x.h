@@ -13,6 +13,7 @@
 #include "hal.h"
 #include "clocking_L1xx.h"
 #include "core_cmInstr.h"
+#include <cstdlib>
 
 #if 1 // ============================ General ==================================
 #define PACKED __attribute__ ((__packed__))
@@ -111,6 +112,11 @@ public:
     }
     static void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
     static void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
+    static uint8_t TryStrToNumber(char* S, int32_t *POutput) {
+        char *p;
+        *POutput = strtol(S, &p, 10);
+        return (*p == 0)? OK : FAILURE;
+    }
 };
 
 

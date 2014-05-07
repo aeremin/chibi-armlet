@@ -13,6 +13,7 @@
 #include "eestore.h"
 #include "radio_lvl1.h"
 #include "adc15x.h"
+#include <cstdlib>
 
 App_t App;
 
@@ -100,34 +101,30 @@ void App_t::OnPillConnect() {
 
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
-    Uart.Printf("%S  ", PCmd->Name);
-    for(uint8_t i=0; i < PCmd->ChunkCnt; i++) Uart.Printf("%S ", PCmd->Chunks[i]);
-    Uart.Printf("\r");
+    Uart.Printf("%S\r", PCmd->S);
+    char *S;
+    int32_t d;
+    uint8_t b;
+    //    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
+    // Get name
+    S = PCmd->GetNextToken();
+    if(S == NULL) return;
+//    Uart.Printf("%S\r", S);
+    if(strcasecmp(S, "#ping") == 0) Uart.Ack();
 
-//    if(strcm)
-
-//    uint8_t b, b2;
-//    uint16_t *p16;
-//    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
-
-//    switch(CmdCode) {
-//        case CMD_PING: Uart.Ack(OK); break;
-
-#if 0 // ==== ID ====
-        case CMD_SET_ID:
-            if(Length == 2) {
-                p16 = (uint16_t*)PData;
-                b = ISetID(*p16);
+#if 1 // ==== ID ====
+    else if(strcasecmp(S, "#SetID") == 0) {
+        if((S = PCmd->GetNextToken()) != NULL) {        // Next token exists
+            if(Convert::TryStrToNumber(S, &d) == OK) {  // Next token is number
+                b = ISetID(d);
                 Uart.Ack(b);
             }
             else Uart.Ack(CMD_ERROR);
-            break;
-        case CMD_GET_ID:
-            Uart.Printf("%u\r", ID);
-            p16 = (uint16_t*)UartRplBuf;
-            *p16 = (uint16_t)ID;
-            Uart.Cmd(RPL_GET_ID, UartRplBuf, 2);
-            break;
+        }
+        else Uart.Ack(CMD_ERROR);
+    }
+
+    else if(strcasecmp(S, "#GetID") == 0) Uart.Printf("#ID %u\r", ID);
 #endif
 
 #ifdef DEVTYPE_UMVOS // ==== DoseTop ====

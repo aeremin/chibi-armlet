@@ -38,20 +38,6 @@ void CmdUart_t::Printf(const char *format, ...) {
 }
 
 #if UART_RX_ENABLED
-static inline uint8_t TryConvertToDigit(uint8_t b, uint8_t *p) {
-    if((b >= '0') and (b <= '9')) {
-        *p = b - '0';
-        return OK;
-    }
-    else if((b >= 'A') and (b <= 'F')) {
-        *p = 0x0A + b - 'A';
-        return OK;
-    }
-    else return FAILURE;
-}
-static inline bool IsStart(char c) { return (c == '#'); }
-static inline bool IsEnd(char c) { return (c == '\r') or (c == '\n'); }
-
 void CmdUart_t::PollRx() {
     int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart
     if(Sz != SzOld) {
@@ -60,9 +46,9 @@ void CmdUart_t::PollRx() {
         SzOld = Sz;
         for(int32_t i=0; i<ByteCnt; i++) {          // Iterate received bytes
             char c = IRxBuf[RIndx++];
-            if(IsStart(c)) PCmdWrite->StartRx();
-            else if(IsEnd(c)) CompleteCmd();
-            else if(PCmdWrite->RxState == rsReceiving) PCmdWrite->PutChar(c);
+            if(c == '\b') PCmdWrite->Backspace();
+            else if((c == '\r') or (c == '\n')) CompleteCmd();
+            else PCmdWrite->PutChar(c);
             if(RIndx >= UART_RXBUF_SZ) RIndx = 0;
         }
     }
@@ -74,90 +60,10 @@ void CmdUart_t::CompleteCmd() {
     PCmdWrite->Finalize();
     PCmdRead = PCmdWrite;
     PCmdWrite = (PCmdWrite == &ICmd[0])? &ICmd[1] : &ICmd[0];
-    PCmdWrite->Reset();
+    PCmdWrite->Cnt = 0;
     chSysUnlock();
     App.OnUartCmd(PCmdRead);
 }
-
-// ==== Cmd ====
-void Cmd_t::PutChar(char c) {
-    if(WriteIndx >= UART_CMD_BUF_SZ) Reset();
-    // Check if delimiter
-    else if(c == ',') {
-        IBuf[WriteIndx++] = 0;
-        if(ChunkCnt < CHUNK_CNT) Chunks[ChunkCnt++] = &IBuf[WriteIndx];
-        WasComma = true;
-        WasSpace = false;
-    }
-    else if(c == ' ') {
-        if(!(WasComma or WasSpace)) {
-            IBuf[WriteIndx++] = 0;
-            if(ChunkCnt < CHUNK_CNT) Chunks[ChunkCnt++] = &IBuf[WriteIndx];
-        }
-        WasComma = false;
-        WasSpace = true;
-    }
-    else {
-        IBuf[WriteIndx++] = c;
-        WasSpace = false;
-        WasComma = false;
-    }
-}
-void Cmd_t::Finalize() {
-    if(WriteIndx == UART_CMD_BUF_SZ) IBuf[UART_CMD_BUF_SZ-1] = 0;
-    else IBuf[WriteIndx++] = 0;
-}
-
-
-/*
- *     uint8_t digit=0;
-    if(b == '#') RxState = rsCmdCode1; // If # is received anywhere, start again
-    else switch(RxState) {
-        case rsCmdCode1:
-            if(TryConvertToDigit(b, &digit) == OK) {
-                CmdCode = digit << 4;
-                RxState = rsCmdCode2;
-            }
-            else IResetCmd();
-            break;
-
-        case rsCmdCode2:
-            if(TryConvertToDigit(b, &digit) == OK) {
-                CmdCode |= digit;
-                RxState = rsData1;
-            }
-            else IResetCmd();
-            break;
-
-        case rsData1:
-            if(TryConvertToDigit(b, &digit) == OK) {
-                *PCmdWrite = digit << 4;
-                RxState = rsData2;
-            }
-            else if(IsDelimiter(b)) return; // skip delimiters
-            else if(IsEnd(b)) {
-                App.OnUartCmd(CmdCode, CmdData, (PCmdWrite - CmdData));
-                IResetCmd();
-            }
-            else IResetCmd();
-            break;
-
-        case rsData2:
-            if(TryConvertToDigit(b, &digit) == OK) {
-                *PCmdWrite |= digit;
-                RxState = rsData1;  // Prepare to rx next byte
-                if(PCmdWrite < (CmdData + (UART_CMDDATA_SZ-1))) PCmdWrite++;
-            }
-            else IResetCmd(); // Delimiters and End symbols are not allowed in the middle of byte
-            break;
-
-        default: break;
-    } // switch
- */
-
-//void CmdUart_t::IProcessByte(uint8_t b) {
-//
-//}
 #endif
 
 // ==== Init & DMA ====

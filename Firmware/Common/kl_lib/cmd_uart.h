@@ -13,6 +13,7 @@
 #include "hal.h"
 #include "kl_sprintf.h"
 #include "kl_lib_L15x.h"
+#include <cstring>
 
 // Set to true if RX needed
 #define UART_RX_ENABLED     TRUE
@@ -48,29 +49,27 @@
                             STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
                             STM32_DMA_CR_DIR_P2M |    /* Direction is peripheral to memory */ \
                             STM32_DMA_CR_CIRC         /* Circular buffer enable */
-// Cmd decode states
-enum RcvState_t {rsWaitingStart, rsReceiving};
-// Cmd struct
-#define CHUNK_CNT           8
+#endif
+
+#define DELIMITERS      " ,"
+
 class Cmd_t {
 private:
-    char IBuf[UART_CMD_BUF_SZ];
-    uint32_t WriteIndx;
-    bool WasSpace = false, WasComma = false;
-    RcvState_t RxState;
-    void PutChar(char c);
-    void StartRx() { RxState = rsReceiving;    WriteIndx = 0; ChunkCnt = 0; WasSpace = false; WasComma = false;}
-    void Reset()   { RxState = rsWaitingStart; WriteIndx = 0; }
-    void Finalize();
+    char *InnerS;
+    void Finalize() { InnerS = S; S[Cnt++] = 0; }
+    void Backspace() { if(Cnt > 0) Cnt--; }
 public:
-    char* Name = IBuf;
-    char* Chunks[CHUNK_CNT];
-    uint32_t ChunkCnt;
-    bool IsEmpty() { return (WriteIndx == 0); }
+    char S[UART_CMD_BUF_SZ];
+    uint32_t Cnt;
+    void PutChar(char c) { if(Cnt < UART_CMD_BUF_SZ-1) S[Cnt++] = c; }
+    bool IsEmpty() { return (Cnt == 0); }
+    char* GetNextToken() {
+        char *RS = strtok(InnerS, DELIMITERS);
+        InnerS = NULL;
+        return RS;
+    }
     friend class CmdUart_t;
 };
-
-#endif
 
 class CmdUart_t {
 private:
@@ -101,7 +100,10 @@ public:
     void PollRx();
     // Command and reply
 //    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
-//    void Ack(uint8_t Result) { Cmd(0x90, &Result, 1); }
+    void Ack(int Result = OK)  {
+        if(Result == OK) Printf("#Ack\r\n");
+        else Printf("#NAck %d\r\n", Result);
+    }
 #endif
 };
 
