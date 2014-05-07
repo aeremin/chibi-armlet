@@ -19,8 +19,6 @@ App_t App;
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
-    Convert::U16ChangeEndianness(&Pill.TypeID);
-//    Convert::U32ChangeEndianness(&Pill.Value);
     Uart.Printf("Pill: %u\r", Pill.TypeID);
 #ifndef DEVTYPE_PILLPROG
     uint8_t rslt;
@@ -101,26 +99,33 @@ void App_t::OnPillConnect() {
 #endif
 
 #if 1 // ======================= Command processing ============================
-void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
-    uint8_t b, b2;
-    uint16_t w16;
-    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
+void App_t::OnUartCmd(Cmd_t *PCmd) {
+    Uart.Printf("%S  ", PCmd->Name);
+    for(uint8_t i=0; i < PCmd->ChunkCnt; i++) Uart.Printf("%S ", PCmd->Chunks[i]);
+    Uart.Printf("\r");
 
-    switch(CmdCode) {
-        case CMD_PING: Uart.Ack(OK); break;
+//    if(strcm)
 
-#if 1 // ==== ID ====
+//    uint8_t b, b2;
+//    uint16_t *p16;
+//    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
+
+//    switch(CmdCode) {
+//        case CMD_PING: Uart.Ack(OK); break;
+
+#if 0 // ==== ID ====
         case CMD_SET_ID:
             if(Length == 2) {
-                w16 = Convert::ArrToU16AsBE(PData);
-                b = ISetID(w16);
+                p16 = (uint16_t*)PData;
+                b = ISetID(*p16);
                 Uart.Ack(b);
             }
             else Uart.Ack(CMD_ERROR);
             break;
         case CMD_GET_ID:
             Uart.Printf("%u\r", ID);
-            Convert::U16ToArrAsBE(UartRplBuf, (uint16_t)ID);
+            p16 = (uint16_t*)UartRplBuf;
+            *p16 = (uint16_t)ID;
             Uart.Cmd(RPL_GET_ID, UartRplBuf, 2);
             break;
 #endif
@@ -141,7 +146,7 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-#if 1 // ==== Pills ====
+#if 0 // ==== Pills ====
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
             if(b <= 7) {
@@ -192,8 +197,8 @@ void App_t::OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) {
             break;
 #endif
 
-        default: Uart.Ack(CMD_ERROR); break;
-    } // switch
+//        default: Uart.Ack(CMD_ERROR); break;
+//    } // switch
 }
 #endif
 

@@ -110,7 +110,7 @@ public:
     void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
-    void OnUartCmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length);
+    void OnUartCmd(Cmd_t *PCmd);
 #ifdef DEVTYPE_UMVOS
     void OnBatteryMeasured();
     void OnDoseIncTime();

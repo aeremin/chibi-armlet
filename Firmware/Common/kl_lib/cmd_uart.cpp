@@ -49,8 +49,8 @@ static inline uint8_t TryConvertToDigit(uint8_t b, uint8_t *p) {
     }
     else return FAILURE;
 }
-static inline bool IsDelimiter(uint8_t b) { return (b == ','); }
-static inline bool IsEnd(uint8_t b) { return (b == '\r') or (b == '\n'); }
+static inline bool IsStart(char c) { return (c == '#'); }
+static inline bool IsEnd(char c) { return (c == '\r') or (c == '\n'); }
 
 void CmdUart_t::PollRx() {
     int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart
@@ -59,14 +59,58 @@ void CmdUart_t::PollRx() {
         if(ByteCnt < 0) ByteCnt += UART_RXBUF_SZ;   // Handle buffer circulation
         SzOld = Sz;
         for(int32_t i=0; i<ByteCnt; i++) {          // Iterate received bytes
-            IProcessByte(IRxBuf[RIndx++]);
+            char c = IRxBuf[RIndx++];
+            if(IsStart(c)) PCmdWrite->StartRx();
+            else if(IsEnd(c)) CompleteCmd();
+            else if(PCmdWrite->RxState == rsReceiving) PCmdWrite->PutChar(c);
             if(RIndx >= UART_RXBUF_SZ) RIndx = 0;
         }
     }
 }
 
-void CmdUart_t::IProcessByte(uint8_t b) {
-    uint8_t digit=0;
+void CmdUart_t::CompleteCmd() {
+    if(PCmdWrite->IsEmpty()) return;
+    chSysLock();
+    PCmdWrite->Finalize();
+    PCmdRead = PCmdWrite;
+    PCmdWrite = (PCmdWrite == &ICmd[0])? &ICmd[1] : &ICmd[0];
+    PCmdWrite->Reset();
+    chSysUnlock();
+    App.OnUartCmd(PCmdRead);
+}
+
+// ==== Cmd ====
+void Cmd_t::PutChar(char c) {
+    if(WriteIndx >= UART_CMD_BUF_SZ) Reset();
+    // Check if delimiter
+    else if(c == ',') {
+        IBuf[WriteIndx++] = 0;
+        if(ChunkCnt < CHUNK_CNT) Chunks[ChunkCnt++] = &IBuf[WriteIndx];
+        WasComma = true;
+        WasSpace = false;
+    }
+    else if(c == ' ') {
+        if(!(WasComma or WasSpace)) {
+            IBuf[WriteIndx++] = 0;
+            if(ChunkCnt < CHUNK_CNT) Chunks[ChunkCnt++] = &IBuf[WriteIndx];
+        }
+        WasComma = false;
+        WasSpace = true;
+    }
+    else {
+        IBuf[WriteIndx++] = c;
+        WasSpace = false;
+        WasComma = false;
+    }
+}
+void Cmd_t::Finalize() {
+    if(WriteIndx == UART_CMD_BUF_SZ) IBuf[UART_CMD_BUF_SZ-1] = 0;
+    else IBuf[WriteIndx++] = 0;
+}
+
+
+/*
+ *     uint8_t digit=0;
     if(b == '#') RxState = rsCmdCode1; // If # is received anywhere, start again
     else switch(RxState) {
         case rsCmdCode1:
@@ -109,7 +153,11 @@ void CmdUart_t::IProcessByte(uint8_t b) {
 
         default: break;
     } // switch
-}
+ */
+
+//void CmdUart_t::IProcessByte(uint8_t b) {
+//
+//}
 #endif
 
 // ==== Init & DMA ====
@@ -140,7 +188,6 @@ void CmdUart_t::Init(uint32_t ABaudrate) {
     UART->CR1 = USART_CR1_TE | USART_CR1_RE;        // TX & RX enable
     UART->CR3 = USART_CR3_DMAT | USART_CR3_DMAR;    // Enable DMA at TX & RX
 
-    IResetCmd();
     PinSetupAlterFunc(UART_GPIO, UART_RX_PIN,  omOpenDrain, pudPullUp, UART_AF);
 
     dmaStreamAllocate     (UART_DMA_RX, IRQ_PRIO_LOW, nullptr, NULL);

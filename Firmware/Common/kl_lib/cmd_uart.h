@@ -35,8 +35,8 @@
                             STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */
 
 #if UART_RX_ENABLED // ==== RX ====
-#define UART_RXBUF_SZ       36 // unprocessed bytes
-#define UART_CMDDATA_SZ     16 // payload bytes
+#define UART_RXBUF_SZ       54 // unprocessed bytes
+#define UART_CMD_BUF_SZ     36 // payload bytes
 #define UART_RX_PIN         10
 #define UART_RX_REG         UART->DR
 
@@ -49,7 +49,27 @@
                             STM32_DMA_CR_DIR_P2M |    /* Direction is peripheral to memory */ \
                             STM32_DMA_CR_CIRC         /* Circular buffer enable */
 // Cmd decode states
-enum RcvState_t {rsStart, rsCmdCode1, rsCmdCode2, rsData1, rsData2};
+enum RcvState_t {rsWaitingStart, rsReceiving};
+// Cmd struct
+#define CHUNK_CNT           8
+class Cmd_t {
+private:
+    char IBuf[UART_CMD_BUF_SZ];
+    uint32_t WriteIndx;
+    bool WasSpace = false, WasComma = false;
+    RcvState_t RxState;
+    void PutChar(char c);
+    void StartRx() { RxState = rsReceiving;    WriteIndx = 0; ChunkCnt = 0; WasSpace = false; WasComma = false;}
+    void Reset()   { RxState = rsWaitingStart; WriteIndx = 0; }
+    void Finalize();
+public:
+    char* Name = IBuf;
+    char* Chunks[CHUNK_CNT];
+    uint32_t ChunkCnt;
+    bool IsEmpty() { return (WriteIndx == 0); }
+    friend class CmdUart_t;
+};
+
 #endif
 
 class CmdUart_t {
@@ -60,12 +80,9 @@ private:
     uint32_t IFullSlotsCount, ITransSize;
 #if UART_RX_ENABLED
     int32_t SzOld=0, RIndx=0;
-    RcvState_t RxState;
     uint8_t IRxBuf[UART_RXBUF_SZ];
-    uint8_t CmdCode;
-    uint8_t CmdData[UART_CMDDATA_SZ], *PCmdWrite;
-    void IProcessByte(uint8_t b);
-    void IResetCmd() { RxState = rsStart; PCmdWrite = CmdData; }
+    Cmd_t ICmd[2], *PCmdWrite = &ICmd[0], *PCmdRead = &ICmd[1];
+    void CompleteCmd();
 #endif
 public:
     void Printf(const char *S, ...);
@@ -77,14 +94,14 @@ public:
         }
     }
     void Init(uint32_t ABaudrate);
-    // Command and reply
-    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
-    void Ack(uint8_t Result) { Cmd(0x90, &Result, 1); }
     // Inner use
     void IRQDmaTxHandler();
     void IPutChar(char c);
 #if UART_RX_ENABLED
     void PollRx();
+    // Command and reply
+//    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
+//    void Ack(uint8_t Result) { Cmd(0x90, &Result, 1); }
 #endif
 };
 
