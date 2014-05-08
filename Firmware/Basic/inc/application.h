@@ -51,12 +51,11 @@
 #define PILL_TYPEID_SET_DOSETOP 0x0011
 
 struct Pill_t {
-    uint16_t TypeID;
+    uint32_t TypeID;
     union {
-        uint16_t DeviceID;
         // Cure
         struct {
-            uint16_t ChargeCnt;
+            uint32_t ChargeCnt;
             uint32_t Value;
         } __attribute__ ((__packed__));
         uint32_t DoseTop;

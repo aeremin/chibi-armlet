@@ -19,7 +19,7 @@ App_t App;
 
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
-//    if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
+    if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
     Uart.Printf("Pill: %u\r", Pill.TypeID);
 #ifndef DEVTYPE_PILLPROG
     uint8_t rslt;
