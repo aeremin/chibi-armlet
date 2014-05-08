@@ -55,19 +55,20 @@
 
 class Cmd_t {
 private:
-    char *InnerS;
-    void Finalize() { InnerS = S; S[Cnt++] = 0; }
-    void Backspace() { if(Cnt > 0) Cnt--; }
-public:
-    char S[UART_CMD_BUF_SZ];
-    uint32_t Cnt;
-    void PutChar(char c) { if(Cnt < UART_CMD_BUF_SZ-1) S[Cnt++] = c; }
-    bool IsEmpty() { return (Cnt == 0); }
-    char* GetNextToken() {
-        char *RS = strtok(InnerS, DELIMITERS);
-        InnerS = NULL;
-        return RS;
+    void Finalize() {
+        IString[Cnt++] = 0;
+        Name = strtok(IString, DELIMITERS);
+        GetNextToken();
     }
+    void Backspace() { if(Cnt > 0) Cnt--; }
+    char IString[UART_CMD_BUF_SZ];
+    uint32_t Cnt;
+public:
+    char *Name, *Token;
+    void PutChar(char c) { if(Cnt < UART_CMD_BUF_SZ-1) IString[Cnt++] = c; }
+    bool IsEmpty() { return (Cnt == 0); }
+    char* GetNextToken() { return (Token = strtok(NULL, DELIMITERS)); }
+    bool NameIs(const char *SCmd) { return (strcasecmp(Name, SCmd) == 0); }
     friend class CmdUart_t;
 };
 
@@ -101,8 +102,13 @@ public:
     // Command and reply
 //    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
     void Ack(int Result = OK)  {
-        if(Result == OK) Printf("#Ack\r\n");
-        else Printf("#NAck %d\r\n", Result);
+        switch(Result) {
+            case OK: Printf("#Ack\r\n"); break;
+            case FAILURE: Printf("#Ack Fail\r\n"); break;
+            case TIMEOUT: Printf("#Ack Timeout\r\n"); break;
+            case CMD_ERROR: Printf("#Ack CmdError\r\n"); break;
+            default: Printf("#Ack %d\r\n", Result); break;
+        }
     }
 #endif
 };

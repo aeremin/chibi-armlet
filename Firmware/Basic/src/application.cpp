@@ -101,18 +101,15 @@ void App_t::OnPillConnect() {
 
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
-    Uart.Printf("%S\r", PCmd->S);
+//    Uart.Printf("%S\r", PCmd->S);
     char *S;
     int32_t d;
     uint8_t b;
     //    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
-    // Get name
-    S = PCmd->GetNextToken();
-    if(S == NULL) return;
 //    Uart.Printf("%S\r", S);
-    if(strcasecmp(S, "#ping") == 0) Uart.Ack();
+    if(PCmd->NameIs("#Ping")) Uart.Ack();
 
-#if 1 // ==== ID ====
+#if 0 // ==== ID ====
     else if(strcasecmp(S, "#SetID") == 0) {
         if((S = PCmd->GetNextToken()) != NULL) {        // Next token exists
             if(Convert::TryStrToNumber(S, &d) == OK) {  // Next token is number
@@ -127,23 +124,9 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     else if(strcasecmp(S, "#GetID") == 0) Uart.Printf("#ID %u\r", ID);
 #endif
 
-#ifdef DEVTYPE_UMVOS // ==== DoseTop ====
-        case CMD_SET_DOSETOP:
-            if(Length == sizeof(Dose.Consts.Top)) {
-                dw32 = Convert::ArrToU32AsBE(PData);
-                Dose.Consts.Setup(w32);
-                SaveDoseTop();
-                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-            }
-            else Uart.Ack(CMD_ERROR);
-            break;
-        case CMD_GET_DOSETOP:
-            Convert::U32ToArrAsBE(UartRplBuf, Dose.Consts.Top);
-            Uart.Cmd(RPL_GET_DOSETOP, UartRplBuf, sizeof(Dose.Consts.Top));
-            break;
-#endif
-
 #if 0 // ==== Pills ====
+    else if
+
         case CMD_PILL_STATE:
             b = PData[0];   // Pill address
             if(b <= 7) {
@@ -176,7 +159,21 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
             break;
 #endif
 
-#ifdef DEVTYPE_UMVOS // ==== Dose ====
+#ifdef DEVTYPE_UMVOS // ==== DoseTop ====
+        case CMD_SET_DOSETOP:
+            if(Length == sizeof(Dose.Consts.Top)) {
+                dw32 = Convert::ArrToU32AsBE(PData);
+                Dose.Consts.Setup(w32);
+                SaveDoseTop();
+                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            }
+            else Uart.Ack(CMD_ERROR);
+            break;
+        case CMD_GET_DOSETOP:
+            Convert::U32ToArrAsBE(UartRplBuf, Dose.Consts.Top);
+            Uart.Cmd(RPL_GET_DOSETOP, UartRplBuf, sizeof(Dose.Consts.Top));
+            break;
+
         case CMD_DOSE_SET:
             if(Length == sizeof(uint32_t)) {
                 dw32 = Convert::ArrToU32AsBE(PData);
