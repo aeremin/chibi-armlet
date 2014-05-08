@@ -56,7 +56,7 @@
 class Cmd_t {
 private:
     void Finalize() {
-        IString[Cnt++] = 0;
+        for(uint32_t i=Cnt; i < UART_CMD_BUF_SZ; i++) IString[i] = 0;
         Name = strtok(IString, DELIMITERS);
         GetNextToken();
     }
@@ -68,7 +68,8 @@ public:
     void PutChar(char c) { if(Cnt < UART_CMD_BUF_SZ-1) IString[Cnt++] = c; }
     bool IsEmpty() { return (Cnt == 0); }
     char* GetNextToken() { return (Token = strtok(NULL, DELIMITERS)); }
-    uint8_t TryConvertToNumber(int32_t *POutput) { return Convert::TryStrToNumber(Token, POutput); }
+    uint8_t TryConvertToNumber(uint32_t *POutput) { return Convert::TryStrToNumber(Token, POutput); }
+    uint8_t TryConvertToNumber( int32_t *POutput) { return Convert::TryStrToNumber(Token, POutput); }
     bool NameIs(const char *SCmd) { return (strcasecmp(Name, SCmd) == 0); }
     friend class CmdUart_t;
 };

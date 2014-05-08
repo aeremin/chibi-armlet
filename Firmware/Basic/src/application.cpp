@@ -19,7 +19,7 @@ App_t App;
 
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
-    if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
+//    if(PillMgr.Read(PILL_I2C_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
     Uart.Printf("Pill: %u\r", Pill.TypeID);
 #ifndef DEVTYPE_PILLPROG
     uint8_t rslt;
@@ -102,56 +102,83 @@ void App_t::OnPillConnect() {
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
 //    Uart.Printf("%S\r", PCmd->S);
-    int32_t d;
     uint8_t b;
     //    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
-//    Uart.Printf("%S\r", S);
     if(PCmd->NameIs("#Ping")) Uart.Ack();
 
 #if 1 // ==== ID ====
     else if(PCmd->NameIs("#SetID")) {
-        if(PCmd->TryConvertToNumber(&d) == OK) {  // Next token is number
-            b = ISetID(d);
+        uint32_t NewID;
+        if(PCmd->TryConvertToNumber(&NewID) == OK) {  // Next token is number
+            b = ISetID(NewID);
             Uart.Ack(b);
         }
         else Uart.Ack(CMD_ERROR);
     }
-    else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r", ID);
+    else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r\n", ID);
 #endif
 
-#if 0 // ==== Pills ====
-    else if
+#if 1 // ==== Pills ====
+    else if(PCmd->NameIs("#PillState")) {
+        uint32_t PillAddr;
+        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+            if((PillAddr >= 0) and (PillAddr <= 7)) {
+                b = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
+                if(b == OK) Uart.Printf("#Pill %u Ok\r\n", PillAddr);
+                else Uart.Printf("#Pill %u Fail\r\n", PillAddr);
+                return;
+            }
+        }
+        Uart.Ack(CMD_ERROR);
+    }
 
-        case CMD_PILL_STATE:
-            b = PData[0];   // Pill address
-            if(b <= 7) {
-                UartRplBuf[0] = b;
-                UartRplBuf[1] = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
-                Uart.Cmd(RPL_PILL_STATE, UartRplBuf, 2);
-            }
-            else Uart.Ack(CMD_ERROR);
-            break;
-        case CMD_PILL_WRITE:
-            b = PData[0];   // Pill address
-            if(b <= 7) {
-                UartRplBuf[0] = b;    // Pill address
-                UartRplBuf[1] = PillMgr.Write(PILL_I2C_ADDR, &PData[1], Length-1); // Write result
-                Uart.Cmd(RPL_PILL_WRITE, UartRplBuf, 2);
-            }
-            else Uart.Ack(CMD_ERROR);
-            break;
-        case CMD_PILL_READ:
-            b = PData[0];           // Pill address
-            b2 = PData[1];          // Data size to read
-            if(b2 > (UART_RPL_BUF_SZ-2)) b2 = (UART_RPL_BUF_SZ-2);  // Check data size
-            if(b <= 7) {
-                UartRplBuf[0] = b;                                  // Pill address
-                UartRplBuf[1] = PillMgr.Read(PILL_I2C_ADDR, &UartRplBuf[2], b2);    // Read result
-                if(UartRplBuf[1] == OK) Uart.Cmd(RPL_PILL_READ, UartRplBuf, b2+2);
-                else Uart.Cmd(RPL_PILL_READ, UartRplBuf, 2);
-            }
-            else Uart.Ack(CMD_ERROR);
-            break;
+    else if(PCmd->NameIs("#PillRead32")) {
+        uint32_t PillAddr;
+        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+            if((PillAddr >= 0) and (PillAddr <= 7)) {
+                PCmd->GetNextToken();
+                uint32_t Cnt = 0;
+                uint8_t MemAddr = PILL_START_ADDR;
+                if(PCmd->TryConvertToNumber(&Cnt) == OK) {
+                    Uart.Printf("#PillData ");
+                    for(uint32_t i=0; i<Cnt; i++) {
+                        uint32_t Data;
+                        b = PillMgr.Read(PILL_I2C_ADDR, MemAddr, &Data, 4);
+                        if(b != OK) break;
+                        Uart.Printf("%u ", Data);
+                        MemAddr += 4;
+                    }
+                    Uart.Printf("\r\n");
+                    if(b != OK) Uart.Ack(b);
+                    return;
+                } // if data cnt
+            } // if pill addr ok
+        } // if pill addr
+        Uart.Ack(CMD_ERROR);
+    }
+
+    else if(PCmd->NameIs("#PillWrite32")) {
+        uint32_t PillAddr;
+        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+            if((PillAddr >= 0) and (PillAddr <= 7)) {
+                b = OK;
+                uint32_t Data;
+                uint8_t MemAddr = PILL_START_ADDR;
+                // Iterate data
+                while(true) {
+                    PCmd->GetNextToken();   // Get next data to write
+                    if(PCmd->TryConvertToNumber(&Data) != OK) break;
+//                    Uart.Printf("%X ", Data);
+                    b = PillMgr.Write(PILL_I2C_ADDR, MemAddr, &Data, 4);
+                    if(b != OK) break;
+                    MemAddr += 4;
+                } // while
+                Uart.Ack(b);
+                return;
+            } // if pill addr ok
+        } // if pill addr
+        Uart.Ack(CMD_ERROR);
+    }
 #endif
 
 #ifdef DEVTYPE_UMVOS // ==== DoseTop ====

@@ -42,29 +42,27 @@ uint8_t PillMgr_t::CheckIfConnected(uint8_t i2cAddr) {
     return Rslt;
 }
 
-uint8_t PillMgr_t::Read(uint8_t i2cAddr, void *Ptr, uint32_t Length) {
+uint8_t PillMgr_t::Read(uint8_t i2cAddr, uint8_t MemAddr, void *Ptr, uint32_t Length) {
     chSemWait(&Sem);
-    uint8_t WordAddress = PILL_START_ADDR;
-    uint8_t Rslt = i2c.CmdWriteRead(i2cAddr, &WordAddress, 1, (uint8_t*)Ptr, Length);
+    uint8_t Rslt = i2c.CmdWriteRead(i2cAddr, &MemAddr, 1, (uint8_t*)Ptr, Length);
     if(i2c.Error == true) ResetBus();
     chSemSignal(&Sem);
     return Rslt;
 }
 
-uint8_t PillMgr_t::Write(uint8_t i2cAddr, void *Ptr, uint32_t Length) {
+uint8_t PillMgr_t::Write(uint8_t i2cAddr, uint8_t MemAddr, void *Ptr, uint32_t Length) {
     chSemWait(&Sem);
-    uint8_t WordAddress = PILL_START_ADDR;
     uint8_t Rslt = OK;
     uint8_t *p8 = (uint8_t*)Ptr;
     // Write page by page
     while(Length) {
         uint8_t ToWriteCnt = (Length > PILL_PAGE_SZ)? PILL_PAGE_SZ : Length;
-        Rslt = i2c.CmdWriteWrite(i2cAddr, &WordAddress, 1, p8, ToWriteCnt);
+        Rslt = i2c.CmdWriteWrite(i2cAddr, &MemAddr, 1, p8, ToWriteCnt);
         if(Rslt == OK) {
             chThdSleepMilliseconds(5);   // Allow memory to complete writing
             Length -= ToWriteCnt;
             p8 += ToWriteCnt;
-            WordAddress += ToWriteCnt;
+            MemAddr += ToWriteCnt;
         }
         else break;
     }

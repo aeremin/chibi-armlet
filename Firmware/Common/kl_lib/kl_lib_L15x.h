@@ -113,6 +113,12 @@ public:
     }
     static void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
     static void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
+    static inline uint8_t TryStrToNumber(char* S, uint32_t *POutput) {
+        if(*S == '\0') return FAILURE;
+        char *p;
+        *POutput = strtoul(S, &p, 0);
+        return (*p == 0)? OK : FAILURE;
+    }
     static inline uint8_t TryStrToNumber(char* S, int32_t *POutput) {
         if(*S == '\0') return FAILURE;
         char *p;

@@ -82,6 +82,8 @@ int main(void) {
     Led.SetColor((Color_t){0, 0, 1});
 #elif defined DEVTYPE_PILLPROG
     Uart.Printf("PillProg AHB=%u\r", Clk.AHBFreqHz);
+
+
     Led.SetColor((Color_t){0, 0, 1});
 #endif
 
