@@ -18,12 +18,13 @@
 #define TM_DOSE_SAVE_MS     2007
 #define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
 #define TM_MEASUREMENT_MS   5004
+#define TM_CLICK            18      // for Detector
 #endif
 
 // ========= Device types =========
-#define DEVTYPE_UMVOS
+//#define DEVTYPE_UMVOS
 //#define DEVTYPE_LUSTRA
-//#define DEVTYPE_DETECTOR
+#define DEVTYPE_DETECTOR
 //#define DEVTYPE_PILLPROG
 //#define DEVTYPE_TUNER
 
@@ -33,7 +34,6 @@
 #define RLVL_4M                 700     // 1...20m
 #define RLVL_10M                600
 #define RLVL_50M                1
-
 #define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
 
 // ==== Indication constants ====
@@ -73,22 +73,26 @@ private:
 #ifdef DEVTYPE_UMVOS
     Dose_t Dose;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
+    uint32_t LastTime;
 #endif
 public:
     uint32_t ID;
     Thread *PThd;
-#ifdef DEVTYPE_UMVOS
+#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
     RxTable_t RxTable;
+    uint32_t Damage;
 #endif
     void Init();
     void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
     void OnUartCmd(Cmd_t *PCmd);
-#ifdef DEVTYPE_UMVOS
+#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
     void OnBatteryMeasured();
-    void OnDoseIncTime();
     void OnRxTableReady();
+#endif
+#ifdef DEVTYPE_DETECTOR
+    void OnClick();
 #endif
 };
 

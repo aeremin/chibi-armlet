@@ -9,6 +9,7 @@
 #define DOSE_H_
 
 #include "eestore.h"
+#include "rlvl1_defins.h"
 
 struct DoseConsts_t {
     uint32_t Top;       // Death; top value
@@ -22,8 +23,14 @@ struct DoseConsts_t {
         Yellow = Top / 3;
     }
 };
+
 // Default Dose constants
 #define DOSE_DEFAULT_TOP    300
+// Lustra constants
+#define LUSTRA_MIN_LVL      650
+#define LUSTRA_MAX_LVL      1000
+#define LUSTRA_MIN_DMG      1
+#define LUSTRA_MAX_DMG      60
 
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
@@ -113,28 +120,5 @@ public:
         Set(FDose, diUsual);
     }
 };
-
-#if 1 // ============================ Radio damage =============================
-//inline void GetDmgOutOfPkt() {
-//    int32_t prc = RSSI_DB2PERCENT(PktRx.RSSI);
-////      Uart.Printf("%u\r", PktRx.ID);
-//    if(prc >= PktRx.MinLvl) {   // Only if signal level is enough
-//        if((PktRx.DmgMax == 0) and (PktRx.DmgMin == 0)) NaturalDmg = 0; // "Clean zone" emanator
-//        else {  // Ordinal emanator
-//            int32_t EmDmg = 0;
-//            if(prc >= PktRx.MaxLvl) EmDmg = PktRx.DmgMax;
-//            else {
-//                int32_t DifDmg = PktRx.DmgMax - PktRx.DmgMin;
-//                int32_t DifLvl = PktRx.MaxLvl - PktRx.MinLvl;
-//                EmDmg = (prc * DifDmg + PktRx.DmgMax * DifLvl - PktRx.MaxLvl * DifDmg) / DifLvl;
-//                if(EmDmg < 0) EmDmg = 0;
-//            }
-//            RadioDmg += EmDmg;
-//        }
-//    }
-//}
-
-
-#endif
 
 #endif /* DOSE_H_ */

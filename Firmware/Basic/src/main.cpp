@@ -39,13 +39,7 @@ void TmrPillCheckCallback(void *p) {
 }
 
 #ifdef DEVTYPE_UMVOS
-static VirtualTimer ITmrDose, ITmrDoseSave, ITmrMeasurement;
-void TmrDoseCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_DOSE_INC);
-    chVTSetI(&ITmrDose, MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
-    chSysUnlockFromIsr();
-}
+static VirtualTimer ITmrDoseSave, ITmrMeasurement;
 void TmrDoseSaveCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
@@ -57,6 +51,16 @@ void TmrMeasurementCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
     chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+#endif
+
+#ifdef DEVTYPE_DETECTOR
+static VirtualTimer ITmrClick;
+void TmrClickCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_CLICK);
+    chVTSetI(&ITmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -82,21 +86,22 @@ int main(void) {
     Led.SetColor((Color_t){0, 0, 1});
 #elif defined DEVTYPE_PILLPROG
     Uart.Printf("PillProg AHB=%u\r", Clk.AHBFreqHz);
-
-
     Led.SetColor((Color_t){0, 0, 1});
+#elif defined DEVTYPE_DETECTOR
+    Uart.Printf("Detector AHB=%u\r", Clk.AHBFreqHz);
 #endif
 
+#ifndef DEVTYPE_DETECTOR
     Beeper.Init();
     Beeper.Beep(BeepBeep);
-    PillMgr.Init();
-
-#ifndef DEVTYPE_PILLPROG
-    Radio.Init();
 #endif
+    PillMgr.Init();
 
     App.Init();
     App.PThd = chThdSelf();
+#ifndef DEVTYPE_PILLPROG
+    Radio.Init();
+#endif
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
@@ -110,8 +115,11 @@ int main(void) {
     chVTSetI(&ITmrPillCheck,   MS2ST(TM_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
 #ifdef DEVTYPE_UMVOS
     chVTSetI(&ITmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
-    chVTSetI(&ITmrDose,        MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
+//    chVTSetI(&ITmrDose,        MS2ST(TM_DOSE_INCREASE_MS), TmrDoseCallback, nullptr);
     chVTSetI(&ITmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+#endif
+#ifdef DEVTYPE_DETECTOR
+    chVTSetI(&ITmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
 #endif
     chSysUnlock();
 
@@ -135,14 +143,9 @@ int main(void) {
         } // if EVTMSK_PILL_CHECK
 #ifdef DEVTYPE_UMVOS
         // ==== Dose ====
-        if(EvtMsk & EVTMSK_DOSE_INC) App.OnDoseIncTime();
         if(EvtMsk & EVTMSK_DOSE_STORE) {
             //if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r");   // disabled for DEBUG
         }
-
-        // ==== Radio ====
-        if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
-
         // ==== Measure battery ====
 //        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
 //        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
@@ -151,6 +154,14 @@ int main(void) {
 //            // Blink Red if discharged
 //            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartBlink(LedDischarged);
 //        }
+#endif
+
+#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
+        // ==== Radio ====
+        if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
+#endif
+#ifdef DEVTYPE_DETECTOR
+        if(EvtMsk & EVTMSK_CLICK) App.OnClick();
 #endif
     } // while true
 }

@@ -22,7 +22,7 @@ void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
     Uart.Printf("Pill: %u\r", Pill.TypeID);
 #ifndef DEVTYPE_PILLPROG
-    uint8_t rslt;
+    uint8_t rslt __attribute__((unused));
     switch(Pill.TypeID) {
 #if 0 // ==== Set ID ====
         case PILL_TYPEID_SET_ID:
@@ -204,19 +204,51 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 }
 #endif
 
-#ifdef DEVTYPE_UMVOS // ==== Dose ====
-void App_t::OnDoseIncTime() {
-    // Check if radio damage occured. Will return 1 if no.
-    uint32_t FDamage = 1; //Radio.Damage;
-    //if(FDamage != 1) Uart.Printf("Dmg=%u\r", FDamage);
-    Dose.Increase(FDamage, diUsual);
-    //Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), FDamage);
-}
-
+// ==== Dose ====
+#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
 void App_t::OnRxTableReady() {
-//    Uart.Printf("RxTbl: %u\r", RxTable.PTable->Size);
-    RxTable.Print();
+//    uint32_t TimeElapsed = chTimeNow() - LastTime;
+//    LastTime = chTimeNow();
+    // Radio damage
+    Table_t *PTbl = RxTable.PTable;
+    uint32_t NaturalDmg = 1, RadioDmg = 0;
+    RxTable.dBm2PercentAll();
+//    RxTable.Print();
+    // Iterate received levels
+    for(uint32_t i=0; i<PTbl->Size; i++) {
+        Row_t *PRow = &PTbl->Row[i];
+        int32_t rssi = PRow->Rssi;
+        if(rssi >= PRow->LvlMin) {    // Only if signal level is enough
+            if((PRow->DmgMax == 0) and (PRow->DmgMin == 0)) NaturalDmg = 0; // "Clean zone"
+            else { // Ordinal lustra
+                int32_t EmDmg = 0;
+                if(rssi >= PRow->LvlMax) EmDmg = PRow->DmgMax;
+                else {
+                    int32_t DifDmg = PRow->DmgMax - PRow->DmgMin;
+                    int32_t DifLvl = PRow->LvlMax - PRow->LvlMin;
+                    EmDmg = (rssi * DifDmg + PRow->DmgMax * DifLvl - PRow->LvlMax * DifDmg) / DifLvl;
+                    if(EmDmg < 0) EmDmg = 0;
+//                    Uart.Printf("Ch %u; Dmg=%d\r", PRow->Channel, EmDmg);
+                }
+                RadioDmg += EmDmg;
+            } // ordinal
+        } // if lvl > min
+    } // for
+    Damage = NaturalDmg + RadioDmg;
+//    Uart.Printf("Total=%d\r", Damage);
+#ifdef DEVTYPE_UMVOS
+    Dose.Increase(NaturalDmg + RadioDmg, diUsual);
+    Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), NaturalDmg + RadioDmg);
+#endif
 }
+#ifdef DEVTYPE_DETECTOR
+void App_t::OnClick() {
+    int32_t r = rand() % (DMG_SND_MAX - 1);
+    int32_t DmgSnd = DMG2SNDDMG(Damage);
+//    Uart.Printf("%d; %d\r", Damage, DmgSnd);
+    if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+}
+#endif
 #endif
 
 #if 1 // ========================= Application =================================
@@ -231,13 +263,28 @@ void App_t::Init() {
 
     //Dose.Load();  // DEBUG
 #endif
+#ifdef DEVTYPE_DETECTOR
+    rccEnableTIM2(FALSE);
+    PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
+    TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+    TIM2->CR2 = 0;
+    TIM2->ARR = 22;
+    TIM2->CCMR1 |= (0b111 << 12);
+    TIM2->CCER  |= TIM_CCER_CC2E;
+
+    uint32_t divider = TIM2->ARR * 1000;
+    uint32_t FPrescaler = Clk.APB1FreqHz / divider;
+    if(FPrescaler != 0) FPrescaler--;
+    TIM2->PSC = (uint16_t)FPrescaler;
+    TIM2->CCR2 = 20;
+#endif
 }
 uint8_t App_t::ISetID(uint32_t NewID) {
     if(NewID > 0xFFFF) return FAILURE;
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
     if(rslt == OK) {
         ID = NewID;
-//        Uart.Printf("New ID: %u\r", ID);
+        Uart.Printf("New ID: %u\r", ID);
         return OK;
     }
     else {
