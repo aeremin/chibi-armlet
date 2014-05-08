@@ -13,30 +13,6 @@
 #include "Dose.h"
 #include "RxTable.h"
 
-# if 1 // Uart Command Codes. See https://docs.google.com/document/d/14pGuFv6KsG5tB4OmI0qc9f37cWdUVqZpTvvds2y46VY/edit
-#define CMD_PING            0x01
-#define CMD_SET_ID          0x10
-#define CMD_GET_ID          0x11
-#define CMD_SET_DOSETOP     0x20
-#define CMD_GET_DOSETOP     0x21
-#define CMD_PILL_STATE      0x30
-#define CMD_PILL_WRITE      0x31
-#define CMD_PILL_READ       0x32
-#define CMD_PILL_WRITEALL   0x33
-#define CMD_DOSE_GET        0x60
-#define CMD_DOSE_SET        0x61
-
-#define RPL_ACK             0x90    // Acknowledge
-#define RPL_GET_ID          0xA1
-#define RPL_GET_DOSETOP     0xB1
-#define RPL_PILL_STATE      0xC0
-#define RPL_PILL_WRITE      0xC1
-#define RPL_PILL_READ       0xC2
-#define RPL_DOSE_GET        0xE0
-
-#define UART_RPL_BUF_SZ     36
-#endif
-
 #if 1 // ==== Timings ====
 #define TM_DOSE_INCREASE_MS 999
 #define TM_DOSE_SAVE_MS     2007
@@ -94,7 +70,6 @@ class App_t {
 private:
     Pill_t Pill;
     uint8_t ISetID(uint32_t NewID);
-    uint8_t UartRplBuf[UART_RPL_BUF_SZ];
     Eeprom_t EE;
 #ifdef DEVTYPE_UMVOS
     Dose_t Dose;

@@ -102,26 +102,21 @@ void App_t::OnPillConnect() {
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
 //    Uart.Printf("%S\r", PCmd->S);
-    char *S;
     int32_t d;
     uint8_t b;
     //    uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
 //    Uart.Printf("%S\r", S);
     if(PCmd->NameIs("#Ping")) Uart.Ack();
 
-#if 0 // ==== ID ====
-    else if(strcasecmp(S, "#SetID") == 0) {
-        if((S = PCmd->GetNextToken()) != NULL) {        // Next token exists
-            if(Convert::TryStrToNumber(S, &d) == OK) {  // Next token is number
-                b = ISetID(d);
-                Uart.Ack(b);
-            }
-            else Uart.Ack(CMD_ERROR);
+#if 1 // ==== ID ====
+    else if(PCmd->NameIs("#SetID")) {
+        if(PCmd->TryConvertToNumber(&d) == OK) {  // Next token is number
+            b = ISetID(d);
+            Uart.Ack(b);
         }
         else Uart.Ack(CMD_ERROR);
     }
-
-    else if(strcasecmp(S, "#GetID") == 0) Uart.Printf("#ID %u\r", ID);
+    else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r", ID);
 #endif
 
 #if 0 // ==== Pills ====
@@ -191,8 +186,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
             break;
 #endif
 
-//        default: Uart.Ack(CMD_ERROR); break;
-//    } // switch
+    else Uart.Ack(CMD_UNKNOWN);
 }
 #endif
 
@@ -225,10 +219,11 @@ void App_t::Init() {
 #endif
 }
 uint8_t App_t::ISetID(uint32_t NewID) {
+    if(NewID > 0xFFFF) return FAILURE;
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
     if(rslt == OK) {
         ID = NewID;
-        Uart.Printf("New ID: %u\r", ID);
+//        Uart.Printf("New ID: %u\r", ID);
         return OK;
     }
     else {

@@ -1,6 +1,6 @@
 # Terminal macro file v2
 Ping
-##01#010#013
+##Ping#010#013
 PState
 ##30,00#010#013
 Read
@@ -44,6 +44,6 @@ NoCure
 Pill ID
 ##31,00,0001,0064#010#013
 SetID
-##10,
+##SetID 
 GetID
-##11#010#013
+##GetID#010#013
