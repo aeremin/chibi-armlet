@@ -30,19 +30,19 @@ SetTop
 
 
 Cure
-##WritePill 0,9,1,3600#010#013
+##PillWrite32 0,9,0,1,3600#010#013
 Panacea
-##31,00,0009,FFFF,FFFFFFFF#010#013
-NoCure
-##31,00,0009,0000,00000000#010#013
+##PillWrite32 0,9,0,999999999,999999999#010#013
+Empty
+##PillWrite32 0,9,0,0,0#010#013
 
 
 
 
 
 
-Pill ID
-##31,00,0001,0064#010#013
+
+
 SetID
 ##SetID 
 GetID
