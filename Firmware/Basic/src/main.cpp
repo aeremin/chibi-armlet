@@ -144,7 +144,7 @@ int main(void) {
 #ifdef DEVTYPE_UMVOS
         // ==== Dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) {
-            //if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r");   // disabled for DEBUG
+            App.SaveDose(); // disabled for DEBUG
         }
         // ==== Measure battery ====
 //        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();

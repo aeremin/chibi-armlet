@@ -20,7 +20,12 @@ App_t App;
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
-    Uart.Printf("Pill: %u\r", Pill.TypeID);
+    // Print pill
+    Uart.Printf("#PillRead32 0 16\r\n");
+    Uart.Printf("#PillData ");
+    int32_t *p = (int32_t*)&Pill;
+    for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
+    Uart.Printf("\r\n");
 #ifndef DEVTYPE_PILLPROG
     uint8_t rslt __attribute__((unused));
     switch(Pill.TypeID) {
@@ -51,14 +56,14 @@ void App_t::OnPillConnect() {
 
 #ifdef DEVTYPE_UMVOS // ==== Cure ====
         case PILL_TYPEID_CURE:
-            switch(Pill.ChargeCnt) {
-                case 0: rslt = FAILURE; break;      // Discharged pill
-                case INFINITY32: rslt = OK; break;  // Infinite count of charges, do not decrease
-                default:
-                    Pill.ChargeCnt--;
-                    rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
+            if(Pill.ChargeCnt > 0) {
+                rslt = OK;
+                Pill.ChargeCnt--;
+                //Pill.
+                rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
                     break;
-            } // switch charge
+            }
+            else rslt = FAILURE; // Discharged pill
 
             if(rslt == OK) {
                 Beeper.Beep(BeepPillOk);
@@ -174,6 +179,32 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
+
+    else if(PCmd->NameIs("#PillRepeatWrite32")) {
+        uint32_t PillAddr;
+        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+            if((PillAddr >= 0) and (PillAddr <= 7)) {
+                b = OK;
+                // Iterate data
+                WriteData.Size = 0;
+                for(uint32_t i=0; i<PILL_SZ32; i++) {
+                    PCmd->GetNextToken();   // Get next data to write
+                    if(PCmd->TryConvertToNumber(&dw32) != OK) break;
+//                  Uart.Printf("%X ", Data);
+//                    WriteData
+
+
+                } // while
+                // Save data to EEPROM
+                if(WriteData.Size > 0) {
+
+                }
+                Uart.Ack(b);
+                return;
+            } // if pill addr ok
+        } // if pill addr
+        Uart.Ack(CMD_ERROR);
+    }
 #endif
 
 #ifdef DEVTYPE_UMVOS // ==== DoseTop ====
@@ -261,7 +292,7 @@ void App_t::Init() {
     Dose.Consts.Setup(FTop);
     Uart.Printf("ID=%u; Top=%u; Red=%u; Yellow=%u\r", ID, Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
 
-    //Dose.Load();  // DEBUG
+    Dose.Load();
 #endif
 #ifdef DEVTYPE_DETECTOR
     rccEnableTIM2(FALSE);

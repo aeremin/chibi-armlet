@@ -24,8 +24,8 @@
 // ========= Device types =========
 //#define DEVTYPE_UMVOS
 //#define DEVTYPE_LUSTRA
-#define DEVTYPE_DETECTOR
-//#define DEVTYPE_PILLPROG
+//#define DEVTYPE_DETECTOR
+#define DEVTYPE_PILLPROG
 //#define DEVTYPE_TUNER
 
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
@@ -46,22 +46,36 @@
 #endif
 
 #if 1 // ==== Pill ====
-#define PILL_TYPEID_SET_ID      0x0001
-#define PILL_TYPEID_CURE        0x0009
-#define PILL_TYPEID_SET_DOSETOP 0x0011
+#define PILL_TYPEID_SET_ID      1
+#define PILL_TYPEID_CURE        9
+#define PILL_TYPEID_DRUG        10
+#define PILL_TYPEID_PANACEA     11
+#define PILL_TYPEID_SET_DOSETOP 18
+#define PILL_TYPEID_DIAGNOSTIC  27
 
 struct Pill_t {
-    uint32_t TypeID;
+    int32_t TypeID;
     union {
-        // Cure
+        int32_t DeviceID;
+        int32_t DoseAfter;  // Contains dose value after pill application
+    };
+    union {
+        // Cure / drug
         struct {
-            uint32_t ChargeCnt;
-            uint32_t Value;
+            int32_t ChargeCnt;
+            int32_t Value;
         } __attribute__ ((__packed__));
-        uint32_t DoseTop;
+        int32_t DoseTop;
     };
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
+#define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
+
+struct RepeatWriteData_t {
+    int32_t Size;
+    int32_t Data[PILL_SZ32];
+};
+
 #endif // Pill
 
 // ==== Application class ====
@@ -75,12 +89,18 @@ private:
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
     uint32_t LastTime;
 #endif
+#ifdef DEVTYPE_PILLPROG
+    RepeatWriteData_t WriteData;
+#endif
 public:
     uint32_t ID;
     Thread *PThd;
 #if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
     RxTable_t RxTable;
     uint32_t Damage;
+#endif
+#ifdef DEVTYPE_UMVOS
+    void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
 #endif
     void Init();
     void DetectorFound(int32_t RssiPercent);

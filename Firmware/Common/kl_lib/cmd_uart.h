@@ -36,8 +36,8 @@
                             STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */
 
 #if UART_RX_ENABLED // ==== RX ====
-#define UART_RXBUF_SZ       54 // unprocessed bytes
-#define UART_CMD_BUF_SZ     36 // payload bytes
+#define UART_RXBUF_SZ       72 // unprocessed bytes
+#define UART_CMD_BUF_SZ     54 // payload bytes
 #define UART_RX_PIN         10
 #define UART_RX_REG         UART->DR
 
@@ -102,7 +102,6 @@ public:
 #if UART_RX_ENABLED
     void PollRx();
     // Command and reply
-//    void Cmd(uint8_t CmdCode, uint8_t *PData, uint32_t Length) { Printf("#%X,%A\r\n", CmdCode, PData, Length, ' '); }
     void Ack(int Result = OK)  {
         switch(Result) {
             case OK: Printf("#Ack\r\n"); break;

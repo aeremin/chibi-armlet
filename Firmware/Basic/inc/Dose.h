@@ -25,7 +25,7 @@ struct DoseConsts_t {
 };
 
 // Default Dose constants
-#define DOSE_DEFAULT_TOP    300
+#define DOSE_DEFAULT_TOP    10800
 // Lustra constants
 #define LUSTRA_MIN_LVL      650
 #define LUSTRA_MAX_LVL      1000
