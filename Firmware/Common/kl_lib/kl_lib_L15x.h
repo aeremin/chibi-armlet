@@ -40,6 +40,8 @@
 #define CMD_ERROR       7
 #define WRITE_PROTECT   8
 #define CMD_UNKNOWN     9
+#define EMPTY_STRING    10
+#define NOT_A_NUMBER    11
 
 // Binary semaphores
 #define NOT_TAKEN       false
@@ -108,17 +110,17 @@ public:
     }
     static void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
     static void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
-    static inline uint8_t TryStrToNumber(char* S, uint32_t *POutput) {
-        if(*S == '\0') return FAILURE;
+    static inline uint8_t TryStrToUInt32(char* S, uint32_t *POutput) {
+        if(*S == '\0') return EMPTY_STRING;
         char *p;
         *POutput = strtoul(S, &p, 0);
-        return (*p == 0)? OK : FAILURE;
+        return (*p == 0)? OK : NOT_A_NUMBER;
     }
-    static inline uint8_t TryStrToNumber(char* S, int32_t *POutput) {
-        if(*S == '\0') return FAILURE;
+    static inline uint8_t TryStrToInt32(char* S, int32_t *POutput) {
+        if(*S == '\0') return EMPTY_STRING;
         char *p;
         *POutput = strtol(S, &p, 0);
-        return (*p == 0)? OK : FAILURE;
+        return (*p == '\0')? OK : NOT_A_NUMBER;
     }
 };
 
