@@ -39,12 +39,6 @@
 // ==== Indication constants ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
 
-#if 1 // ==== Eeprom ====
-// Addresses
-#define EE_DEVICE_ID_ADDR       0
-#define EE_DOSETOP_ADDR         (sizeof(uint32_t))  // ID is uint32_t
-#endif
-
 #if 1 // ==== Pill ====
 #define PILL_TYPEID_SET_ID      1
 #define PILL_TYPEID_CURE        9
@@ -71,12 +65,14 @@ struct Pill_t {
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
 
-struct RepeatWriteData_t {
-    int32_t Size;
-    int32_t Data[PILL_SZ32];
-};
-
 #endif // Pill
+
+#if 1 // ==== Eeprom ====
+// Addresses
+#define EE_DEVICE_ID_ADDR       0
+#define EE_DOSETOP_ADDR         4  // ID is uint32_t
+#define EE_REPDATA_ADDR         8
+#endif
 
 // ==== Application class ====
 class App_t {
@@ -90,7 +86,7 @@ private:
     uint32_t LastTime;
 #endif
 #ifdef DEVTYPE_PILLPROG
-    RepeatWriteData_t WriteData;
+    int32_t RepWrData[PILL_SZ32];    // data to save in EE and to write to pill
 #endif
 public:
     uint32_t ID;

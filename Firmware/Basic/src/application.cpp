@@ -96,8 +96,20 @@ void App_t::OnPillConnect() {
             break;
     } // switch
 #else // DEVTYPE_PILLPROG
-    Led.StartBlink(LedPillSetupOk);
-    Beeper.Beep(BeepPillOk);
+    // Write pill if data exists
+    EE.ReadBuf(&RepWrData, PILL_SZ, EE_REPDATA_ADDR);
+
+    Uart.Printf("#PillWrite32 0,%d,%d,%d,%d\r\n", RepWrData[0], RepWrData[1], RepWrData[2], RepWrData[3]);
+    uint8_t b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, RepWrData, PILL_SZ);
+    Uart.Ack(b);
+    if(b == OK) {
+        Led.StartBlink(LedPillSetupOk);
+        Beeper.Beep(BeepPillOk);
+    }
+    else {
+        Led.StartBlink(LedPillBad);
+        Beeper.Beep(BeepPillBad);
+    }
 #endif
 }
 #endif
@@ -186,19 +198,20 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
                 b = OK;
                 // Iterate data
-                WriteData.Size = 0;
                 for(uint32_t i=0; i<PILL_SZ32; i++) {
                     PCmd->GetNextToken();   // Get next data to write
-                    if(PCmd->TryConvertToNumber(&dw32) != OK) break;
-//                  Uart.Printf("%X ", Data);
-//                    WriteData
-
-
+                    //Uart.Printf("%S\r", PCmd->Token);
+                    if(PCmd->TryConvertToNumber(&dw32) == OK) RepWrData[i] = dw32;
+                    else {
+                        RepWrData[i] = 0;
+                        if(strlen(PCmd->Token) != 0) {
+                            b = CMD_ERROR; // NaN and non-zero length
+                            break;
+                        }
+                    }
                 } // while
                 // Save data to EEPROM
-                if(WriteData.Size > 0) {
-
-                }
+                if(b == OK) b = EE.WriteBuf(RepWrData, PILL_SZ, EE_REPDATA_ADDR);
                 Uart.Ack(b);
                 return;
             } // if pill addr ok
