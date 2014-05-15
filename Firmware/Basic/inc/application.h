@@ -22,11 +22,20 @@
 #endif
 
 // ========= Device types =========
-//#define DEVTYPE_UMVOS
-//#define DEVTYPE_LUSTRA
-//#define DEVTYPE_DETECTOR
-#define DEVTYPE_PILLPROG
-//#define DEVTYPE_TUNER
+enum DeviceType_t {
+    dtNothing = 0,
+    dtUmvos = 1,
+    dtLustraClean = 10,
+    dtLustraWeak = 11,
+    dtLustraStrong = 12,
+    dtLustraLethal = 13,
+    dtDetectorMobile = 21,
+    dtDetectorFixed = 22,
+    dtEmpMech = 31,
+    dtEmpGrenade = 32,
+    dtEmpPelengator = 41,
+    dtPillFlasher = 51
+};
 
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
 #define RLVL_NEVER              10000
@@ -44,8 +53,12 @@
 #define PILL_TYPEID_CURE        9
 #define PILL_TYPEID_DRUG        10
 #define PILL_TYPEID_PANACEA     11
+#define PILL_TYPEID_AUTODOC     12
 #define PILL_TYPEID_SET_DOSETOP 18
 #define PILL_TYPEID_DIAGNOSTIC  27
+#define PILL_TYPEID_EMP_BREAKER 31
+#define PILL_TYPEID_EMP_REPAIR  32
+#define PILL_TYPEID_EMP_CHARGE  33
 
 struct Pill_t {
     int32_t TypeID;
@@ -65,12 +78,11 @@ struct Pill_t {
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
 
-// data to save in EE and to write to pill
+// Data to save in EE and to write to pill
 struct DataToWrite_t {
     uint32_t Sz32;
     int32_t Data[PILL_SZ32];
 };
-
 #endif // Pill
 
 #if 1 // ==== Eeprom ====
@@ -84,16 +96,12 @@ struct DataToWrite_t {
 class App_t {
 private:
     Pill_t Pill;
+    DataToWrite_t Data2Wr;  // for pill flasher
     uint8_t ISetID(uint32_t NewID);
     Eeprom_t EE;
-#ifdef DEVTYPE_UMVOS
     Dose_t Dose;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
     uint32_t LastTime;
-#endif
-#ifdef DEVTYPE_PILLPROG
-    DataToWrite_t Data2Wr;
-#endif
 public:
     uint32_t ID;
     Thread *PThd;
