@@ -67,9 +67,12 @@ public:
     char *Name, *Token;
     void PutChar(char c) { if(Cnt < UART_CMD_BUF_SZ-1) IString[Cnt++] = c; }
     bool IsEmpty() { return (Cnt == 0); }
-    char* GetNextToken() { return (Token = strtok(NULL, DELIMITERS)); }
-    uint8_t TryConvertToNumber(uint32_t *POutput) { return Convert::TryStrToUInt32(Token, POutput); }
-    uint8_t TryConvertToNumber( int32_t *POutput) { return Convert::TryStrToInt32(Token, POutput); }
+    uint8_t GetNextToken() {
+        Token = strtok(NULL, DELIMITERS);
+        return (*Token == '\0')? FAILURE : OK;
+    }
+    uint8_t TryConvertTokenToNumber(uint32_t *POutput) { return Convert::TryStrToUInt32(Token, POutput); }
+    uint8_t TryConvertTokenToNumber( int32_t *POutput) { return Convert::TryStrToInt32(Token, POutput); }
     bool NameIs(const char *SCmd) { return (strcasecmp(Name, SCmd) == 0); }
     friend class CmdUart_t;
 };

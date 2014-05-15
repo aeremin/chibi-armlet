@@ -96,12 +96,16 @@ void App_t::OnPillConnect() {
             break;
     } // switch
 #else // DEVTYPE_PILLPROG
+    uint8_t b = FAILURE;
     // Write pill if data exists
-    EE.ReadBuf(&RepWrData, PILL_SZ, EE_REPDATA_ADDR);
-
-    Uart.Printf("#PillWrite32 0,%d,%d,%d,%d\r\n", RepWrData[0], RepWrData[1], RepWrData[2], RepWrData[3]);
-    uint8_t b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, RepWrData, PILL_SZ);
-    Uart.Ack(b);
+    EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
+    if(Data2Wr.Sz32 != 0) {
+        Uart.Printf("#PillWrite32 0");
+        for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
+        Uart.Printf("\r\n");
+        b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, (Data2Wr.Sz32*4));
+        Uart.Ack(b);
+    }
     if(b == OK) {
         Led.StartBlink(LedPillSetupOk);
         Beeper.Beep(BeepPillOk);
@@ -123,7 +127,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
 #if 1 // ==== ID ====
     else if(PCmd->NameIs("#SetID")) {
-        if(PCmd->TryConvertToNumber(&dw32) == OK) {  // Next token is number
+        if(PCmd->TryConvertTokenToNumber(&dw32) == OK) {  // Next token is number
             b = ISetID(dw32);
             Uart.Ack(b);
         }
@@ -135,7 +139,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 #if 1 // ==== Pills ====
     else if(PCmd->NameIs("#PillState")) {
         uint32_t PillAddr;
-        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+        if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
                 b = PillMgr.CheckIfConnected(PILL_I2C_ADDR);
                 if(b == OK) Uart.Printf("#Pill %u Ok\r\n", PillAddr);
@@ -148,12 +152,12 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
     else if(PCmd->NameIs("#PillRead32")) {
         uint32_t PillAddr;
-        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+        if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
                 PCmd->GetNextToken();
                 uint32_t Cnt = 0;
                 uint8_t MemAddr = PILL_START_ADDR;
-                if(PCmd->TryConvertToNumber(&Cnt) == OK) {
+                if(PCmd->TryConvertTokenToNumber(&Cnt) == OK) {
                     Uart.Printf("#PillData ");
                     for(uint32_t i=0; i<Cnt; i++) {
                         b = PillMgr.Read(PILL_I2C_ADDR, MemAddr, &dw32, 4);
@@ -172,14 +176,14 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
     else if(PCmd->NameIs("#PillWrite32")) {
         uint32_t PillAddr;
-        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+        if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
                 b = OK;
                 uint8_t MemAddr = PILL_START_ADDR;
                 // Iterate data
                 while(true) {
                     PCmd->GetNextToken();   // Get next data to write
-                    if(PCmd->TryConvertToNumber(&dw32) != OK) break;
+                    if(PCmd->TryConvertTokenToNumber(&dw32) != OK) break;
 //                    Uart.Printf("%X ", Data);
                     b = PillMgr.Write(PILL_I2C_ADDR, MemAddr, &dw32, 4);
                     if(b != OK) break;
@@ -194,24 +198,20 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
     else if(PCmd->NameIs("#PillRepeatWrite32")) {
         uint32_t PillAddr;
-        if(PCmd->TryConvertToNumber(&PillAddr) == OK) {
+        if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
                 b = OK;
+                Data2Wr.Sz32 = 0;
                 // Iterate data
                 for(uint32_t i=0; i<PILL_SZ32; i++) {
-                    PCmd->GetNextToken();   // Get next data to write
+                    if(PCmd->GetNextToken() != OK) break;   // Get next data to write, get out if end
                     //Uart.Printf("%S\r", PCmd->Token);
-                    if(PCmd->TryConvertToNumber(&dw32) == OK) RepWrData[i] = dw32;
-                    else {
-                        RepWrData[i] = 0;
-                        if(strlen(PCmd->Token) != 0) {
-                            b = CMD_ERROR; // NaN and non-zero length
-                            break;
-                        }
-                    }
+                    b = PCmd->TryConvertTokenToNumber(&Data2Wr.Data[i]);
+                    if(b == OK) Data2Wr.Sz32++;
+                    else break; // Token is NAN
                 } // while
                 // Save data to EEPROM
-                if(b == OK) b = EE.WriteBuf(RepWrData, PILL_SZ, EE_REPDATA_ADDR);
+                if(b == OK) b = EE.WriteBuf(&Data2Wr, (4 + Data2Wr.Sz32*4), EE_REPDATA_ADDR);
                 Uart.Ack(b);
                 return;
             } // if pill addr ok

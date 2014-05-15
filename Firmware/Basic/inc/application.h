@@ -65,6 +65,12 @@ struct Pill_t {
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
 
+// data to save in EE and to write to pill
+struct DataToWrite_t {
+    uint32_t Sz32;
+    int32_t Data[PILL_SZ32];
+};
+
 #endif // Pill
 
 #if 1 // ==== Eeprom ====
@@ -86,7 +92,7 @@ private:
     uint32_t LastTime;
 #endif
 #ifdef DEVTYPE_PILLPROG
-    int32_t RepWrData[PILL_SZ32];    // data to save in EE and to write to pill
+    DataToWrite_t Data2Wr;
 #endif
 public:
     uint32_t ID;
