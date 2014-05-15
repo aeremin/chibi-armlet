@@ -105,16 +105,7 @@ public:
 #if UART_RX_ENABLED
     void PollRx();
     // Command and reply
-    void Ack(int Result = OK)  {
-        switch(Result) {
-            case OK: Printf("#Ack\r\n"); break;
-            case FAILURE: Printf("#Ack Fail\r\n"); break;
-            case TIMEOUT: Printf("#Ack Timeout\r\n"); break;
-            case CMD_ERROR: Printf("#Ack CmdError\r\n"); break;
-            case CMD_UNKNOWN: Printf("#Ack CmdUnknown\r\n"); break;
-            default: Printf("#Ack %d\r\n", Result); break;
-        }
-    }
+    void Ack(int32_t Result) { Printf("#Ack %d\r\n", Result); }
 #endif
 };
 

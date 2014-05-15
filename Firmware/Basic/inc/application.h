@@ -16,7 +16,7 @@
 #if 1 // ==== Timings ====
 #define TM_DOSE_INCREASE_MS 999
 #define TM_DOSE_SAVE_MS     2007
-#define TM_PILL_CHECK_MS    504    // Check if pill connected every TM_PILL_CHECK
+#define TM_PILL_CHECK_MS    360    // Check if pill connected every TM_PILL_CHECK
 #define TM_MEASUREMENT_MS   5004
 #define TM_CLICK            18      // for Detector
 #endif
