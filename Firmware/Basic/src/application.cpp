@@ -195,7 +195,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
-
+#ifdef DEVTYPE_PILLPROG
     else if(PCmd->NameIs("#PillRepeatWrite32")) {
         uint32_t PillAddr;
         if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
@@ -214,12 +214,15 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
                 // Save data to EEPROM
                 if(b == OK) b = EE.WriteBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
                 Uart.Ack(b);
+                // Write pill immediately if connected
+                if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) App.OnPillConnect();
                 return;
             } // if pill addr ok
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
-#endif
+#endif // PillProg
+#endif // Pills
 
 #ifdef DEVTYPE_UMVOS // ==== DoseTop ====
     else if(PCmd->NameIs("#SetDoseTop")) {
