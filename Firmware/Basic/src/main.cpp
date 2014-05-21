@@ -92,7 +92,7 @@ int main(void) {
 #endif
 
 #ifndef DEVTYPE_DETECTOR
-    Beeper.Init();
+//    Beeper.Init();
     Beeper.Beep(BeepBeep);
 #endif
     PillMgr.Init();
