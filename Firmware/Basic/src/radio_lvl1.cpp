@@ -36,6 +36,7 @@ static void rLvl1Thread(void *arg) {
 //#define LED_RX
 void rLevel1_t::ITask() {
     while(true) {
+
 #if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
         int8_t Rssi;
         // Supercycle
@@ -85,30 +86,30 @@ void rLevel1_t::ITask() {
         } // switch
 #endif
 
-#ifdef SHIKO_DEVICE // ======== RX cycle ========
+        // ======== RX cycle ========
         // Everyone
-        CC.SetChannel(FIELD_RX_CHNL);
-        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
-        if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
+//        CC.SetChannel(FIELD_RX_CHNL);
+//        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
+//        if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
 //            Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
-            int32_t RssiPercent = dBm2Percent(Rssi);
-            App.DetectorFound(RssiPercent);
-        }
-        // If detector not found, listen other channels
-        else {
-            if(ANY_OF_4(App.Type, dtXtraNormal, dtXtraWeak, dtUfo, dtDetector)) {
-                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-                    CC.SetChannel(i);
-                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
-                    if(RxRslt == OK) {
-//                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                        App.RxTable.PutInfo(i, PktRx.Type, Rssi);
-                    }
-                } // for
-            } // if any of
-        } // if detector found
+//            int32_t RssiPercent = dBm2Percent(Rssi);
+//            App.DetectorFound(RssiPercent);
+//        }
+//        // If detector not found, listen other channels
+//        else {
+//            if(ANY_OF_4(App.Type, dtXtraNormal, dtXtraWeak, dtUfo, dtDetector)) {
+//                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+//                    CC.SetChannel(i);
+//                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
+//                    if(RxRslt == OK) {
+////                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+//                        App.RxTable.PutInfo(i, PktRx.Type, Rssi);
+//                    }
+//                } // for
+//            } // if any of
+//        } // if detector found
 //        Uart.Printf("***\r");
-#endif
+        chThdSleepMilliseconds(999);
 
 #ifdef TX
         // Transmit

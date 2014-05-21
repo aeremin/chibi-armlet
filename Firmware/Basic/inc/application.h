@@ -25,16 +25,16 @@
 enum DeviceType_t {
     dtNothing = 0,
     dtUmvos = 1,
-    dtLustraClean = 10,
-    dtLustraWeak = 11,
-    dtLustraStrong = 12,
-    dtLustraLethal = 13,
-    dtDetectorMobile = 21,
-    dtDetectorFixed = 22,
-    dtEmpMech = 31,
-    dtEmpGrenade = 32,
-    dtEmpPelengator = 41,
-    dtPillFlasher = 51
+    dtLustraClean = 2,
+    dtLustraWeak = 3,
+    dtLustraStrong = 4,
+    dtLustraLethal = 5,
+    dtDetectorMobile = 6,
+    dtDetectorFixed = 7,
+    dtEmpMech = 8,
+    dtEmpGrenade = 9,
+    dtPelengator = 10,
+    dtPillFlasher = 11
 };
 
 // Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
@@ -88,9 +88,12 @@ struct DataToWrite_t {
 #if 1 // ==== Eeprom ====
 // Addresses
 #define EE_DEVICE_ID_ADDR       0
-#define EE_DOSETOP_ADDR         4  // ID is uint32_t
-#define EE_REPDATA_ADDR         8
+#define EE_DEVICE_TYPE_ADDR     4
+#define EE_DOSETOP_ADDR         8  // ID is uint32_t
+#define EE_REPDATA_ADDR         12
 #endif
+
+#define DO_DOSE_SAVE            FALSE
 
 // ==== Application class ====
 class App_t {
@@ -98,32 +101,29 @@ private:
     Pill_t Pill;
     DataToWrite_t Data2Wr;  // for pill flasher
     uint8_t ISetID(uint32_t NewID);
-    Eeprom_t EE;
+    uint8_t ISetType(uint8_t AType);
     Dose_t Dose;
+    Eeprom_t EE;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
     uint32_t LastTime;
 public:
     uint32_t ID;
+    DeviceType_t Type;
     Thread *PThd;
-#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
+    // Timers
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
+    // Radio & damage
     RxTable_t RxTable;
     uint32_t Damage;
-#endif
-#ifdef DEVTYPE_UMVOS
     void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
-#endif
     void Init();
     void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
     void OnUartCmd(Cmd_t *PCmd);
-#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
     void OnBatteryMeasured();
     void OnRxTableReady();
-#endif
-#ifdef DEVTYPE_DETECTOR
     void OnClick();
-#endif
 };
 
 extern App_t App;

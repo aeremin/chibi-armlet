@@ -16,6 +16,27 @@
 #include <cstdlib>
 
 App_t App;
+// Timers callbacks prototypes
+extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
+extern void TmrMeasurementCallback(void *p) __attribute__((unused));
+extern void TmrClickCallback(void *p);
+
+// Table of colors depending on type
+#define DEVICETYPE_BLINK_T_MS   999
+const LedChunk_t TypeColorTbl[] = {
+        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
+        {{0,1,0},   DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
+        {clBlue,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
+        {clGreen,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
+        {clYellow,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
+        {clRed,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
+        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
+        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
+        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
+        {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
+        {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
+        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
+};
 
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
@@ -26,106 +47,105 @@ void App_t::OnPillConnect() {
     int32_t *p = (int32_t*)&Pill;
     for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
     Uart.Printf("\r\n");
-#ifndef DEVTYPE_PILLPROG
-    uint8_t rslt __attribute__((unused));
-    switch(Pill.TypeID) {
+    if(Type == dtPillFlasher) {
+        uint8_t b = FAILURE;
+        // Write pill if data exists
+        EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
+        if(Data2Wr.Sz32 != 0) {
+            Uart.Printf("#PillWrite32 0");
+            for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
+            Uart.Printf("\r\n");
+            b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
+            Uart.Ack(b);
+        }
+        if(b == OK) {
+            Led.StartBlink(LedPillSetupOk);
+            Beeper.Beep(BeepPillOk);
+        }
+        else {
+            Led.StartBlink(LedPillBad);
+            Beeper.Beep(BeepPillBad);
+        }
+    }
+    else {
+        uint8_t rslt __attribute__((unused));
+        switch(Pill.TypeID) {
 #if 0 // ==== Set ID ====
-        case PILL_TYPEID_SET_ID:
-            if(ID == 0) {
-                Pill.DeviceID++;
-                rslt = PillMgr.Write(PILL_I2C_ADDR, &Pill, (sizeof(Pill.TypeID) + sizeof(Pill.DeviceID)));
-                if(rslt == OK) {
-                    ISetID(Pill.DeviceID-1);
-                    Led.StartBlink(LedPillIdSet);
-                    Beeper.Beep(BeepPillOk);
+            case PILL_TYPEID_SET_ID:
+                if(ID == 0) {
+                    Pill.DeviceID++;
+                    rslt = PillMgr.Write(PILL_I2C_ADDR, &Pill, (sizeof(Pill.TypeID) + sizeof(Pill.DeviceID)));
+                    if(rslt == OK) {
+                        ISetID(Pill.DeviceID-1);
+                        Led.StartBlink(LedPillIdSet);
+                        Beeper.Beep(BeepPillOk);
+                    }
+                    else {
+                        Uart.Printf("Pill Write Error\r");
+                        Led.StartBlink(LedPillIdNotSet);
+                        Beeper.Beep(BeepPillBad);
+                    }
                 }
                 else {
-                    Uart.Printf("Pill Write Error\r");
+                    Uart.Printf("ID already set: %u\r", ID);
                     Led.StartBlink(LedPillIdNotSet);
                     Beeper.Beep(BeepPillBad);
                 }
-            }
-            else {
-                Uart.Printf("ID already set: %u\r", ID);
-                Led.StartBlink(LedPillIdNotSet);
-                Beeper.Beep(BeepPillBad);
-            }
-            chThdSleepMilliseconds(1800);
-            break;
+                chThdSleepMilliseconds(1800);
+                break;
 #endif
+            // ==== Cure ====
+            case PILL_TYPEID_CURE:
+                if(Pill.ChargeCnt > 0) {
+                    rslt = OK;
+                    Pill.ChargeCnt--;
+                    //Pill.
+                    rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
+                        break;
+                }
+                else rslt = FAILURE; // Discharged pill
 
-#ifdef DEVTYPE_UMVOS // ==== Cure ====
-        case PILL_TYPEID_CURE:
-            if(Pill.ChargeCnt > 0) {
-                rslt = OK;
-                Pill.ChargeCnt--;
-                //Pill.
-                rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
-                    break;
-            }
-            else rslt = FAILURE; // Discharged pill
-
-            if(rslt == OK) {
-                Beeper.Beep(BeepPillOk);
-                Led.StartBlink(LedPillCureOk);
-                // Decrease dose if not dead, or if this is panacea
-                if((Dose.State != hsDeath) or (Pill.Value == INFINITY32)) Dose.Decrease(Pill.Value, diNeverIndicate);
-                chThdSleepMilliseconds(2007);    // Let indication to complete
-                Dose.RenewIndication();
-            }
-            else {
-                Beeper.Beep(BeepPillBad);
-                Led.StartBlink(LedPillBad);
-                chThdSleepMilliseconds(2007);    // Let indication to complete
-            }
-            break;
+                if(rslt == OK) {
+                    Beeper.Beep(BeepPillOk);
+                    Led.StartBlink(LedPillCureOk);
+                    // Decrease dose if not dead, or if this is panacea
+//                    if((Dose.State != hsDeath) or (Pill.Value == INFINITY32)) Dose.Decrease(Pill.Value, diNeverIndicate);
+                    chThdSleepMilliseconds(2007);    // Let indication to complete
+                    Dose.RenewIndication();
+                }
+                else {
+                    Beeper.Beep(BeepPillBad);
+                    Led.StartBlink(LedPillBad);
+                    chThdSleepMilliseconds(2007);    // Let indication to complete
+                }
+                break;
 
             // ==== Set consts ====
-//        case PILL_TYPEID_SET_DOSETOP:
-//            Dose.Consts.Setup(Pill.DoseTop);
-//            SaveDoseTop();
-//            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-//            Led.StartBlink(LedPillSetupOk);
-//            Beeper.Beep(BeepPillOk);
-//            chThdSleepMilliseconds(2007);
-//            break;
-#endif
-        default:
-            Uart.Printf("Unknown Pill\r");
-            Beeper.Beep(BeepPillBad);
-            break;
-    } // switch
-#else // DEVTYPE_PILLPROG
-    uint8_t b = FAILURE;
-    // Write pill if data exists
-    EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
-    if(Data2Wr.Sz32 != 0) {
-        Uart.Printf("#PillWrite32 0");
-        for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
-        Uart.Printf("\r\n");
-        b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
-        Uart.Ack(b);
-    }
-    if(b == OK) {
-        Led.StartBlink(LedPillSetupOk);
-        Beeper.Beep(BeepPillOk);
-    }
-    else {
-        Led.StartBlink(LedPillBad);
-        Beeper.Beep(BeepPillBad);
-    }
-#endif
+//            case PILL_TYPEID_SET_DOSETOP:
+//                Dose.Consts.Setup(Pill.DoseTop);
+//                SaveDoseTop();
+//                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+//                Led.StartBlink(LedPillSetupOk);
+//                Beeper.Beep(BeepPillOk);
+//                chThdSleepMilliseconds(2007);
+//                break;
+            default:
+                Uart.Printf("Unknown Pill\r");
+                Beeper.Beep(BeepPillBad);
+                break;
+        } // switch
+    } // if pill flasher
 }
 #endif
 
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
-//    Uart.Printf("%S\r", PCmd->S);
+//    Uart.Printf("%S\r", PCmd->Name);
     uint8_t b;
     uint32_t dw32 __attribute__((unused));  // May be unused in some cofigurations
     if(PCmd->NameIs("#Ping")) Uart.Ack(OK);
 
-#if 1 // ==== ID ====
+#if 1 // ==== ID & Type ====
     else if(PCmd->NameIs("#SetID")) {
         if(PCmd->TryConvertTokenToNumber(&dw32) == OK) {  // Next token is number
             b = ISetID(dw32);
@@ -134,6 +154,15 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         else Uart.Ack(CMD_ERROR);
     }
     else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r\n", ID);
+
+    else if(PCmd->NameIs("#SetType")) {
+        if(PCmd->TryConvertTokenToNumber(&dw32) == OK) {  // Next token is number
+            b = ISetType(dw32);
+            Uart.Ack(b);
+        }
+        else Uart.Ack(CMD_ERROR);
+    }
+    else if(PCmd->NameIs("#GetType")) Uart.Printf("#Type %u\r\n", Type);
 #endif
 
 #if 1 // ==== Pills ====
@@ -195,8 +224,8 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
-#ifdef DEVTYPE_PILLPROG
-    else if(PCmd->NameIs("#PillRepeatWrite32")) {
+
+    else if(PCmd->NameIs("#PillRepeatWrite32") and (Type == dtPillFlasher)) {
         uint32_t PillAddr;
         if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
             if((PillAddr >= 0) and (PillAddr <= 7)) {
@@ -221,16 +250,15 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
-#endif // PillProg
 #endif // Pills
 
-#ifdef DEVTYPE_UMVOS // ==== DoseTop ====
+#if 1 // ==== Dose ====
     else if(PCmd->NameIs("#SetDoseTop")) {
-        uint32_t NewTop;
-        if(PCmd->TryConvertToNumber(&NewTop) == OK) {  // Next token is number
+        int32_t NewTop;
+        if(PCmd->TryConvertTokenToNumber(&NewTop) == OK) {  // Next token is number
             Dose.Consts.Setup(NewTop);
             SaveDoseTop();
-            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            Uart.Printf("Top=%d; Red=%d; Yellow=%d\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             Uart.Ack(OK);
         }
         else Uart.Ack(CMD_ERROR);
@@ -238,22 +266,23 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     else if(PCmd->NameIs("#GetDoseTop")) Uart.Printf("#DoseTop %u\r\n", Dose.Consts.Top);
 
     else if(PCmd->NameIs("#SetDose")) {
-        if(PCmd->TryConvertToNumber(&dw32) == OK) {  // Next token is number
-            if(dw32 <= Dose.Consts.Top) {
-                Dose.Set(dw32, diAlwaysIndicate);
+        int32_t NewDose;
+        if(PCmd->TryConvertTokenToNumber(&NewDose) == OK) {  // Next token is number
+            if(NewDose <= Dose.Consts.Top) {
+                Dose.Set(NewDose, diAlwaysIndicate);
                 Uart.Ack(OK);
             }
         }
         else Uart.Ack(CMD_ERROR);
     }
     else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Get());
-#endif
+#endif // Dose
+
     else if(*PCmd->Name == '#') Uart.Ack(CMD_UNKNOWN);  // reply only #-started stuff
 }
 #endif
 
-// ==== Dose ====
-#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
+#if 1 // =============================== Dose ==================================
 void App_t::OnRxTableReady() {
 //    uint32_t TimeElapsed = chTimeNow() - LastTime;
 //    LastTime = chTimeNow();
@@ -284,49 +313,29 @@ void App_t::OnRxTableReady() {
     } // for
     Damage = NaturalDmg + RadioDmg;
 //    Uart.Printf("Total=%d\r", Damage);
-#ifdef DEVTYPE_UMVOS
-    Dose.Increase(NaturalDmg + RadioDmg, diUsual);
-    Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), NaturalDmg + RadioDmg);
-#endif
+    if(Type == dtUmvos) {
+        Dose.Increase(Damage, diUsual);
+        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
+    }
 }
-#ifdef DEVTYPE_DETECTOR
+
 void App_t::OnClick() {
-    int32_t r = rand() % (DMG_SND_MAX - 1);
-    int32_t DmgSnd = DMG2SNDDMG(Damage);
-//    Uart.Printf("%d; %d\r", Damage, DmgSnd);
-    if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+    if(Damage > 0) {
+        int32_t r = rand() % (DMG_SND_MAX - 1);
+        int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
+//        Uart.Printf("%d; %d\r", Damage, DmgSnd);
+        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+    }
 }
-#endif
-#endif
+#endif // Dose
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
-#ifdef DEVTYPE_UMVOS
-    // Read dose constants
-    uint32_t FTop = EE.Read32(EE_DOSETOP_ADDR);
-    if(FTop == 0) FTop = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
-    Dose.Consts.Setup(FTop);
-    Uart.Printf("ID=%u; Top=%u; Red=%u; Yellow=%u\r", ID, Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-
-    Dose.Load();
-#endif
-#ifdef DEVTYPE_DETECTOR
-    rccEnableTIM2(FALSE);
-    PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
-    TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-    TIM2->CR2 = 0;
-    TIM2->ARR = 22;
-    TIM2->CCMR1 |= (0b111 << 12);
-    TIM2->CCER  |= TIM_CCER_CC2E;
-
-    uint32_t divider = TIM2->ARR * 1000;
-    uint32_t FPrescaler = Clk.APB1FreqHz / divider;
-    if(FPrescaler != 0) FPrescaler--;
-    TIM2->PSC = (uint16_t)FPrescaler;
-    TIM2->CCR2 = 20;
-#endif
+    ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
+    Uart.Printf("ID=%u\r\n", ID);
 }
+
 uint8_t App_t::ISetID(uint32_t NewID) {
     if(NewID > 0xFFFF) return FAILURE;
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
@@ -339,5 +348,68 @@ uint8_t App_t::ISetID(uint32_t NewID) {
         Uart.Printf("EE error: %u\r", rslt);
         return FAILURE;
     }
+}
+
+uint8_t App_t::ISetType(uint8_t AType) {
+    if(AType > dtPillFlasher) return FAILURE;
+    Type = (DeviceType_t)AType;
+    // Reinit timers
+    chSysLock();
+    if(chVTIsArmedI(&TmrDoseSave))    chVTResetI(&TmrDoseSave);
+    if(chVTIsArmedI(&TmrMeasurement)) chVTResetI(&TmrMeasurement);
+    if(chVTIsArmedI(&TmrClick))       chVTResetI(&TmrClick);
+    switch(App.Type) {
+        case dtUmvos:
+//            chVTSetI(&TmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
+#if DO_DOSE_SAVE
+            chVTSetI(&TmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+#endif
+            break;
+        case dtDetectorMobile:
+            chVTSetI(&TmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
+            break;
+        default: break;
+    }
+    chSysUnlock();
+
+    // Reinit constants
+    uint32_t tmp1;
+    switch(Type) {
+        case dtUmvos:
+            // Read dose constants
+            tmp1 = EE.Read32(EE_DOSETOP_ADDR);
+            if(tmp1 == 0) tmp1 = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
+            Dose.Consts.Setup(tmp1);
+            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r\n", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+#if DO_DOSE_SAVE
+            Dose.Load();
+#endif
+            break;
+
+        case dtDetectorMobile:
+            rccEnableTIM2(FALSE);
+            PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
+            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+            TIM2->CR2 = 0;
+            TIM2->ARR = 22;
+            TIM2->CCMR1 |= (0b111 << 12);
+            TIM2->CCER  |= TIM_CCER_CC2E;
+            tmp1 = TIM2->ARR * 1000;
+            tmp1 = Clk.APB1FreqHz / tmp1;
+            if(tmp1 != 0) tmp1--;
+            TIM2->PSC = (uint16_t)tmp1;
+            TIM2->CCR2 = 20;
+            break;
+
+        default: break;
+    } // switch
+
+    Led.StartBlink(&TypeColorTbl[AType]);   // Blink with correct color
+    // Save in EE if not equal
+    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
+    uint8_t rslt = OK;
+    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
+    Uart.Printf("Type=%u\r\n", Type);
+    return rslt;
 }
 #endif

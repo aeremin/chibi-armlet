@@ -64,7 +64,6 @@ const LedChunk_t LedGreen[] = {
 #define DMG_SND_MAX     1000
 #define DMG_SND_BCKGND  40
 #define DMG_MAX         50      // Maximum radiation value
-#define DMG2SNDDMG(dmg) ((((DMG_SND_MAX - DMG_SND_BCKGND) * ((dmg) - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND)
 // Just for example
 #define DMG_SND_MID     220
 #define DMG_SND_HEAVY   700
