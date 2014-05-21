@@ -99,17 +99,15 @@ void App_t::OnPillConnect() {
                 if(Pill.ChargeCnt > 0) {
                     rslt = OK;
                     Pill.ChargeCnt--;
-                    //Pill.
                     rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
-                        break;
                 }
                 else rslt = FAILURE; // Discharged pill
 
                 if(rslt == OK) {
                     Beeper.Beep(BeepPillOk);
                     Led.StartBlink(LedPillCureOk);
-                    // Decrease dose if not dead, or if this is panacea
-//                    if((Dose.State != hsDeath) or (Pill.Value == INFINITY32)) Dose.Decrease(Pill.Value, diNeverIndicate);
+                    // Decrease dose if not dead
+                    if(Dose.State != hsDeath) Dose.Decrease(Pill.Value, diNeverIndicate);
                     chThdSleepMilliseconds(2007);    // Let indication to complete
                     Dose.RenewIndication();
                 }
@@ -121,14 +119,15 @@ void App_t::OnPillConnect() {
                 break;
 
             // ==== Set consts ====
-//            case PILL_TYPEID_SET_DOSETOP:
-//                Dose.Consts.Setup(Pill.DoseTop);
-//                SaveDoseTop();
-//                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-//                Led.StartBlink(LedPillSetupOk);
-//                Beeper.Beep(BeepPillOk);
-//                chThdSleepMilliseconds(2007);
-//                break;
+            case PILL_TYPEID_SET_DOSETOP:
+                Dose.Consts.Setup(Pill.DoseTop);
+                SaveDoseTop();
+                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+                Led.StartBlink(LedPillSetupOk);
+                Beeper.Beep(BeepPillOk);
+                chThdSleepMilliseconds(2007);
+                break;
+
             default:
                 Uart.Printf("Unknown Pill\r");
                 Beeper.Beep(BeepPillBad);
@@ -324,8 +323,13 @@ void App_t::OnClick() {
         int32_t r = rand() % (DMG_SND_MAX - 1);
         int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
 //        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+        if(r < DmgSnd) {
+            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+            Led.StartBlink(LedClick);
+            return;
+        }
     }
+    Led.SetColor(CLR_NO_DAMAGE);
 }
 #endif // Dose
 
@@ -334,6 +338,7 @@ void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
     Uart.Printf("ID=%u\r\n", ID);
+    Damage = 1; // DEBUG
 }
 
 uint8_t App_t::ISetID(uint32_t NewID) {

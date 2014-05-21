@@ -27,10 +27,11 @@ struct DoseConsts_t {
 // Default Dose constants
 #define DOSE_DEFAULT_TOP    10800
 // Lustra constants
-#define LUSTRA_MIN_LVL      650
-#define LUSTRA_MAX_LVL      1000
-#define LUSTRA_MIN_DMG      1
-#define LUSTRA_MAX_DMG      60
+// LvlMin, LvlMax, DmgMin, DmgMax
+const rPkt_t PktTxLustraClean  = {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0, 0};
+const rPkt_t PktTxLustraWeak   = {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 30};
+const rPkt_t PktTxLustraStrong = {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 60};
+const rPkt_t PktTxLustraLethal = {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0xFF, 0xFF};
 
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};

@@ -33,9 +33,8 @@ static inline int32_t dBm2Percent(int32_t Rssi) {
 }
 
 // Conversion Lvl1000 <=> Lvl250
-static inline uint8_t Lvl1000ToLvl250(uint16_t Lvl1000) {
-    return (uint8_t)((Lvl1000 + 3) / 4);
-}
+#define Lvl1000ToLvl250(Lvl1000) ((uint8_t)((Lvl1000 + 3) / 4))
+
 static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
     *PLvl = (*PLvl) * 4;
 }
@@ -68,6 +67,8 @@ struct rPkt_t {
 #define RX_CHNL         9
 #define RCHNL_MIN       10
 #define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
+
+#define ID_TO_RCHNL(ID) ((ID - LUSTRA_MIN_ID) + RCHNL_MIN)
 
 #define CYCLE_CNT       4   // Number of cycles in supercycle
 

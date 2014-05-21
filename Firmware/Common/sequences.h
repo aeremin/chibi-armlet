@@ -40,6 +40,17 @@ const LedChunk_t LedBatteryDischarged[] = {
         {clRed,  180, ckStop},
 };
 
+// Bad ID
+const LedChunk_t LedBadID[] = {
+        {{99, 0, 0},  99, ckStop},
+};
+
+// Detector blink
+const LedChunk_t LedClick[] = {
+        {{255, 18, 0},  11, ckStop},
+};
+#define CLR_NO_DAMAGE   (Color_t){0, 1, 0}
+
 // Health states
 const LedChunk_t LedRedFast[] = {
         {clRed,   36, ckNormal},

@@ -35,8 +35,6 @@ static void rLvl1Thread(void *arg) {
 //#define TX
 //#define LED_RX
 void rLevel1_t::ITask() {
-    while(true) {
-
 #if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
         int8_t Rssi;
         // Supercycle
@@ -62,31 +60,40 @@ void rLevel1_t::ITask() {
         chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
         chSysUnlock();
 //        Uart.Printf("***\r");
-#elif defined DEVTYPE_LUSTRA
-        DBG1_SET();
-        CC.TransmitSync(&PktTx);
-        DBG1_CLR();
 #endif
 
-#ifdef SHIKO_DEVICE // ======== TX cycle ========
-        PktTx.Type = App.Type;
-        switch(App.Type) {
-            case dtFieldWeak:
-            case dtFieldNature:
-            case dtFieldStrong:
-                CC.SetChannel(App.ID);
-                CC.TransmitSync(&PktTx);
-                break;
+#if 1 // ======== TX cycle ========
+    // Lustra
+    if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
+        // Setup channel, do nothing if bad ID
+        if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
+            Led.StartBlink(LedBadID);
+            chThdSleepMilliseconds(999);
+            return;
+        }
+        CC.SetChannel(ID_TO_RCHNL(App.ID));
+    }
 
-            case dtDetector:
-                CC.SetChannel(FIELD_RX_CHNL);
-                for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
-                break;
-            default: break;
-        } // switch
+    switch(App.Type) {
+        case dtLustraClean:  CC.TransmitSync((void*)&PktTxLustraClean); break;
+        case dtLustraWeak:   CC.TransmitSync((void*)&PktTxLustraWeak); break;
+        case dtLustraStrong: CC.TransmitSync((void*)&PktTxLustraStrong); break;
+        case dtLustraLethal: CC.TransmitSync((void*)&PktTxLustraLethal); break;
+
+//        case dtDetector:
+//            CC.SetChannel(FIELD_RX_CHNL);
+//            for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
+//            break;
+        default: break;
+    } // switch
 #endif
 
-        // ======== RX cycle ========
+#if 1 // ======== RX cycle ========
+    switch(App.Type) {
+        default:
+//            chThdSleepMilliseconds(999);
+            break;
+    } // switch
         // Everyone
 //        CC.SetChannel(FIELD_RX_CHNL);
 //        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
@@ -109,7 +116,7 @@ void rLevel1_t::ITask() {
 //            } // if any of
 //        } // if detector found
 //        Uart.Printf("***\r");
-        chThdSleepMilliseconds(999);
+#endif // RX
 
 #ifdef TX
         // Transmit
@@ -140,7 +147,6 @@ void rLevel1_t::ITask() {
 //        }
         chThdSleepMilliseconds(99);
 #endif
-    } // while true
 }
 #endif // task
 
