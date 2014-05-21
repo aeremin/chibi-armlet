@@ -66,7 +66,6 @@ void rLevel1_t::ITask() {
         }
         else IIterateChannels(); /* Mesh not Init */
 
-=======
 #if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
         int8_t Rssi;
         // Supercycle
