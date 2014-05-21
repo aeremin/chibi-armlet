@@ -38,8 +38,8 @@ private:
 public:
     void Init();
     uint8_t CheckIfConnected(uint8_t i2cAddr);
-    uint8_t Read (uint8_t i2cAddr, void *Ptr, uint32_t Length);
-    uint8_t Write(uint8_t i2cAddr, void *Ptr, uint32_t Length);
+    uint8_t Read (uint8_t i2cAddr, uint8_t MemAddr, void *Ptr, uint32_t Length);
+    uint8_t Write(uint8_t i2cAddr, uint8_t MemAddr, void *Ptr, uint32_t Length);
 };
 
 extern PillMgr_t PillMgr;

@@ -8,7 +8,8 @@
 #ifndef RLVL1_DEFINS_H_
 #define RLVL1_DEFINS_H_
 
-// ==== pyton translation for db ====
+#if 1 // ========================= Signal levels ===============================
+// pyton translation for db
 #define RX_LVL_TOP      1000
 // Jolaf: str(tuple(1 + int(sqrt(float(i) / 65) * 99) for i in xrange(0, 65 + 1)))
 //const int32_t dBm2Percent1000Tbl[66] = {10, 130, 180, 220, 250, 280, 310, 330, 350, 370, 390, 410, 430, 450, 460, 480, 500, 510, 530, 540, 550, 570, 580, 590, 610, 620, 630, 640, 650, 670, 680, 690, 700, 710, 720, 730, 740, 750, 760, 770, 780, 790, 800, 810, 820, 830, 840, 850, 860, 860, 870, 880, 890, 900, 910, 920, 920, 930, 940, 950, 960, 960, 970, 980, 990, 1000};
@@ -31,9 +32,26 @@ static inline int32_t dBm2Percent(int32_t Rssi) {
     return dBm2Percent1000Tbl[Rssi];
 }
 
+// Conversion Lvl1000 <=> Lvl250
+static inline uint8_t Lvl1000ToLvl250(uint16_t Lvl1000) {
+    return (uint8_t)((Lvl1000 + 3) / 4);
+}
+static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
+    *PLvl = (*PLvl) * 4;
+}
+
+// Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
+#define RLVL_NEVER              10000
+#define RLVL_2M                 800     // 0...4m
+#define RLVL_4M                 700     // 1...20m
+#define RLVL_10M                600
+#define RLVL_50M                1
+#define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
+
+#endif
+
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint8_t ID;
     uint8_t LvlMin;
     uint8_t LvlMax;
     uint8_t DmgMin;
@@ -44,6 +62,8 @@ struct rPkt_t {
 
 #if 1 // ======================= Channels & cycles =============================
 #define LUSTRA_CNT      40
+#define LUSTRA_MIN_ID   100
+#define LUSTRA_MAX_ID   140
 
 #define RX_CHNL         9
 #define RCHNL_MIN       10

@@ -60,6 +60,16 @@ const LedChunk_t LedGreen[] = {
 
 #endif
 
+// Snd coeffs
+#define DMG_SND_MAX     1000
+#define DMG_SND_BCKGND  40
+#define DMG_MAX         50      // Maximum radiation value
+#define DMG2SNDDMG(dmg) ((((DMG_SND_MAX - DMG_SND_BCKGND) * ((dmg) - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND)
+// Just for example
+#define DMG_SND_MID     220
+#define DMG_SND_HEAVY   700
+
+
 #if 1 // ============================= Beep ====================================
 /* Every sequence is an array of BeepCmd_t:
  struct BeepChunk_t {
@@ -69,7 +79,7 @@ const LedChunk_t LedGreen[] = {
     ChunkKind_t ChunkKind;
   };
 */
-#define BEEP_VOLUME     1   // set to 10 in production, and to 1 when someone sleeps near
+#define BEEP_VOLUME     2   // set to 10 in production, and to 1 when someone sleeps near
 
 const BeepChunk_t BeepBeep[] = {
         {BEEP_VOLUME, 1975, 54, ckNormal},

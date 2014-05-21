@@ -29,7 +29,6 @@ rLevel1_t Radio;
 
 #if 1 // ================================ Task =================================
 static WORKING_AREA(warLvl1Thread, 256);
-__attribute__((noreturn))
 static void rLvl1Thread(void *arg) {
     chRegSetThreadName("rLvl1");
     while(true) Radio.ITask();
@@ -37,11 +36,9 @@ static void rLvl1Thread(void *arg) {
 
 //#define TX
 //#define LED_RX
-__attribute__((noreturn))
 void rLevel1_t::ITask() {
     while(true) {
 #ifdef DEVTYPE_UMVOS
-
         if(Mesh.IsInit) {
             uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
 
@@ -69,8 +66,33 @@ void rLevel1_t::ITask() {
         }
         else IIterateChannels(); /* Mesh not Init */
 
+=======
+#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
+        int8_t Rssi;
+        // Supercycle
+        for(uint32_t j=0; j<CYCLE_CNT; j++) {
+            // Iterate channels
+            for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                CC.SetChannel(i);
+                uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
+                if(RxRslt == OK) {
+//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                    App.RxTable.PutPkt(i, &PktRx, Rssi);
+                }
+            } // for i
+        } // for j
+
+        // Supercycle completed, switch table and inform application
+        uint32_t TimeElapsed = chTimeNow() - LastTime;
+        if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
+        LastTime = chTimeNow();
+
+        chSysLock();
+        App.RxTable.SwitchTableI();
+        chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+        chSysUnlock();
+>>>>>>> ConsoleMesh
 //        Uart.Printf("***\r");
-        chThdSleepMilliseconds(207);
 #elif defined DEVTYPE_LUSTRA
         DBG1_SET();
         CC.TransmitSync(&PktTx);
@@ -152,6 +174,10 @@ void rLevel1_t::ITask() {
     } // while true
 }
 #endif // task
+    }
+}
+#endif
+
 
 #if 1 // ==== Iterate Channels ====
 void rLevel1_t::IIterateChannels() {
@@ -165,14 +191,14 @@ void rLevel1_t::IIterateChannels() {
             uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
             if(RxRslt == OK) {
 //                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                App.RxTable.PutPkt(&PktRx, Rssi);
+//                App.RxTable.PutPkt(&PktRx, Rssi);
             }
         } // for i
     } // for j
     /* Iterate Lustrs completed, switch table and inform application */
 
     chSysLock();
-    App.RxTable.SwitchTableI();
+//    App.RxTable.SwitchTableI();
     chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
     chSysUnlock();
 }
@@ -197,7 +223,7 @@ void rLevel1_t::IMeshRx() {
         if(RxRslt == OK) { // Pkt received correctly
             Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
             Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, RSSI, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
-            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+//            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
         } // Pkt Ok
         Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);
@@ -212,18 +238,23 @@ void rLevel1_t::Init() {
 #endif
     // Init radioIC
     CC.Init();
-    CC.SetTxPower(CC_PwrPlus5dBm);
+    CC.SetTxPower(CC_Pwr0dBm);
     CC.SetPktSize(RPKT_LEN);
 #ifdef DEVTYPE_LUSTRA
-    // DEBUG
-    CC.SetChannel(RCHNL_MIN);
-    PktTx.ID = 200;
-    PktTx.DmgMin = 5;
-    PktTx.DmgMax = 5;
-    PktTx.LvlMin = 40;
-    PktTx.LvlMax = 50;
+    // Make radio chanel out of ID
+    if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
+        Uart.Printf("Bad ID: %u\r", App.ID);
+        return;
+    }
+    uint8_t Chnl = RCHNL_MIN + App.ID - LUSTRA_MIN_ID;
+    Uart.Printf("RadioChnl: %u\r", Chnl);
+
+    CC.SetChannel(Chnl);
+    PktTx.DmgMin = LUSTRA_MIN_DMG;
+    PktTx.DmgMax = LUSTRA_MAX_DMG;
+    PktTx.LvlMin = Lvl1000ToLvl250(LUSTRA_MIN_LVL);
+    PktTx.LvlMax = Lvl1000ToLvl250(LUSTRA_MAX_LVL);
 #endif
-    // Variables
     // Thread
     rThd = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

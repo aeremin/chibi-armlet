@@ -396,6 +396,7 @@ uint8_t i2c_t::WaitBTF() {
 // Here not-fast write is used. I.e. interface will erase the word if it is not the same.
 uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
     Addr += EEPROM_BASE_ADDR;
+//    Uart.Printf("EAdr=%u\r", Addr);
     UnlockEE();
     // Wait for last operation to be completed
     uint8_t status = WaitForLastOperation();

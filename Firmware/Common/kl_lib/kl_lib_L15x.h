@@ -12,6 +12,8 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
+#include "core_cmInstr.h"
+#include <cstdlib>
 
 #if 1 // ============================ General ==================================
 #define PACKED __attribute__ ((__packed__))
@@ -27,11 +29,6 @@
 #define FALSE 0
 #endif
 
-// Infinity values
-#define INFINITY8           (uint8_t)0xFF
-#define INFINITY16          (uint16_t)0xFFFF
-#define INFINITY32          (uint32_t)0xFFFFFFFF
-
 // Return values
 #define OK              0
 #define FAILURE         1
@@ -42,6 +39,9 @@
 #define LAST            6
 #define CMD_ERROR       7
 #define WRITE_PROTECT   8
+#define CMD_UNKNOWN     9
+#define EMPTY_STRING    10
+#define NOT_A_NUMBER    11
 
 // Binary semaphores
 #define NOT_TAKEN       false
@@ -76,6 +76,54 @@ typedef void (*ftVoidVoid)(void);
 #define DMA_PRIORITY_MEDIUM     STM32_DMA_CR_PL(0b01)
 #define DMA_PRIORITY_HIGH       STM32_DMA_CR_PL(0b10)
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
+
+// Big-Endian Writing in array
+class Convert {
+public:
+    static void U16ToArrAsBE(uint8_t *PArr, uint16_t N) {
+        uint8_t *p8 = (uint8_t*)&N;
+        *PArr++ = *(p8 + 1);
+        *PArr   = *p8;
+    }
+    static void U32ToArrAsBE(uint8_t *PArr, uint32_t N) {
+        uint8_t *p8 = (uint8_t*)&N;
+        *PArr++ = *(p8 + 3);
+        *PArr++ = *(p8 + 2);
+        *PArr++ = *(p8 + 1);
+        *PArr   = *p8;
+    }
+    static uint16_t ArrToU16AsBE(uint8_t *PArr) {
+        uint16_t N;
+        uint8_t *p8 = (uint8_t*)&N;
+        *p8++ = *(PArr + 1);
+        *p8 = *PArr;
+        return N;
+    }
+    static uint32_t ArrToU32AsBE(uint8_t *PArr) {
+        uint32_t N;
+        uint8_t *p8 = (uint8_t*)&N;
+        *p8++ = *(PArr + 3);
+        *p8++ = *(PArr + 2);
+        *p8++ = *(PArr + 1);
+        *p8 = *PArr;
+        return N;
+    }
+    static void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
+    static void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
+    static inline uint8_t TryStrToUInt32(char* S, uint32_t *POutput) {
+        if(*S == '\0') return EMPTY_STRING;
+        char *p;
+        *POutput = strtoul(S, &p, 0);
+        return (*p == 0)? OK : NOT_A_NUMBER;
+    }
+    static inline uint8_t TryStrToInt32(char* S, int32_t *POutput) {
+        if(*S == '\0') return EMPTY_STRING;
+        char *p;
+        *POutput = strtol(S, &p, 0);
+        return (*p == '\0')? OK : NOT_A_NUMBER;
+    }
+};
+
 
 // Init, to calm compiler
 extern "C" {

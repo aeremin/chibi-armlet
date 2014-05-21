@@ -1,49 +1,49 @@
 # Terminal macro file v2
 Ping
-##01#010#013
-PState
-##30,00#010#013
+##Ping#010#013
+PillSt
+##PillState 0#010#013
 Read
-##32,00,08#010#013
+##PillRead32 0 3#010#013
 
 
 
 
 GetDse
-##60#010#013
+##GetDose#010#013
 GreenDse
-##61,00000000#010#013
+##SetDose 0#010#013
 YellwDse
-##61,58020000#010#013
+##SetDose 100#010#013
 RedDse
-##61,B0040000#010#013
-RRDse
-##61,FB060000#010#013
+##SetDose 200#010#013
 
 
 
 
-GetDose
-##21#010#013
-SetDose
-##20,58020000#010#013
+
+
+GetTop
+##GetDoseTop#010#013
+SetTop
+##SetDoseTop 300#010#013
 
 
 Cure
-##31,00,0900,0100,4B000000#010#013
+##PillWrite32 0,9,0,1,3600#010#013
 Panacea
-##31,00,0900,FFFF,FFFFFFFF#010#013
-NoCure
-##31,00,0900,0000,00000000#010#013
+##PillWrite32 0,9,0,999999999,999999999#010#013
+Empty
+##PillWrite32 0,9,0,0,0#010#013
 
 
 
 
 
 
-Pill ID
-##31,00,0100,6400#010#013
+
+
 SetID
-##10,
+##SetID 
 GetID
-##11#010#013
+##GetID#010#013
