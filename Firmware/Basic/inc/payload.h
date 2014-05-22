@@ -24,7 +24,7 @@ public:
                  PNext(InfoBuf)   {}
     PayloadString_t *PStr, *PNext;
     uint8_t WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp, PayloadString_t *Ptr);
-    void WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion);
+    void WritePayload(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion);
     PayloadString_t* GetInfoByID(uint16_t ID) { return (PayloadString_t*)&InfoBuf[ID]; }
     uint16_t GetNextInfoID();
     uint8_t PrintNextInfo();

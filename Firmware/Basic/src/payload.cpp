@@ -46,7 +46,7 @@ uint16_t Payload_t::GetNextInfoID() {
     return (uint16_t)(PNext - InfoBuf);
 }
 
-void Payload_t::WritePayloadByID(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
+void Payload_t::WritePayload(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
     PayloadString_t *p = &InfoBuf[IDv];
     p->Timestamp = TimeStampValue;
     p->Location = NewLocation;

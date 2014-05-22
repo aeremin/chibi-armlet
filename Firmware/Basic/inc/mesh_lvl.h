@@ -110,6 +110,7 @@ public:
     Thread *IPThread, *IPBktHanlder;
     bool IsInit;
 
+    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }

@@ -70,7 +70,6 @@ void Mesh_t::Init(uint32_t ID) {
     nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
     Uart.Printf("Msh Init ID=%u\r", SelfID);
 
-    PktTx.MeshData.SelfID = SelfID;
     IResetTimeAge(SelfID);
     IPktPutCycle(AbsCycle);
     PreparePktPayload();
@@ -152,6 +151,7 @@ void Mesh_t::IUpdateTimer() {
 }
 
 void Mesh_t::PreparePktPayload() {
+    PktTx.MeshData.SelfID = SelfID;
     PayloadString_t *PlStr;
     uint16_t NextID = 0;
     NextID = Payload.GetNextInfoID();
