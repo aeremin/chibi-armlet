@@ -38,6 +38,41 @@ static void rLvl1Thread(void *arg) {
 //#define LED_RX
 void rLevel1_t::ITask() {
     while(true) {
+        if(App.Type == dtUmvos) {
+            if(Mesh.IsInit) {
+                uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
+
+                CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
+                CC.SetPktSize(MESH_PKT_SZ);
+                if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
+
+                if(EvtMsk & EVTMSK_MESH_TX) {
+                    CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
+
+//                Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
+//                        Mesh.PktTx.MeshData.SelfID,
+//                        Mesh.PktTx.MeshData.CycleN,
+//                        Mesh.PktTx.MeshData.TimeOwnerID,
+//                        Mesh.PktTx.MeshData.TimeAge,
+//                        Mesh.PktTx.PayloadID,
+//                        Mesh.PktTx.Payload.Hops,
+//                        Mesh.PktTx.Payload.Timestamp,
+//                        Mesh.PktTx.Payload.TimeDiff,
+//                        Mesh.PktTx.Payload.Reason,
+//                        Mesh.PktTx.Payload.Location,
+//                        Mesh.PktTx.Payload.Emotion
+//                        );
+//                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
+                } // Mesh Tx
+            } // Mesh Init
+            else chThdSleepMilliseconds(999);
+        }
+        else chThdSleepMilliseconds(999);
+    }
+}
+#endif
+
+
 #ifdef DEVTYPE_UMVOS
         if(Mesh.IsInit) {
             uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
@@ -223,9 +258,7 @@ void rLevel1_t::ITask() {
 }
 #endif // task
 #endif
-    }
-}
-#endif
+//        if(App.Type == dtNothing) chThdSleepMilliseconds(999);
 
 
 #if 1 // ==== Iterate Channels ====
@@ -256,28 +289,28 @@ void rLevel1_t::ITask() {
 
 #if 1 // ==== Mesh Rx Cycle ====
 
-//static void RxEnd(void *p) {
-////    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
-//    Radio.Valets.InRx = false;
-//}
-//
-//void rLevel1_t::IMeshRx() {
-//    int8_t RSSI = 0;
-//    Valets.RxTmt = CYCLE_TIME;
-//    Valets.InRx = true;
-//    chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
-//    do {
-//        Valets.CurrentTime = chTimeNow();
-//        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
-//        if(RxRslt == OK) { // Pkt received correctly
-//            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
-//            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, RSSI, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
-////            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
-//        } // Pkt Ok
-//        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
-//    } while(Radio.Valets.InRx);
-//    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
-//}
+static void RxEnd(void *p) {
+//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+    Radio.Valets.InRx = false;
+}
+
+void rLevel1_t::IMeshRx() {
+    int8_t RSSI = 0;
+    Valets.RxTmt = CYCLE_TIME;
+    Valets.InRx = true;
+    chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
+    do {
+        Valets.CurrentTime = chTimeNow();
+        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
+        if(RxRslt == OK) { // Pkt received correctly
+            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
+            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, RSSI, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
+            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+        } // Pkt Ok
+        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
+    } while(Radio.Valets.InRx);
+    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
+}
 #endif
 
 #if 1 // ============================

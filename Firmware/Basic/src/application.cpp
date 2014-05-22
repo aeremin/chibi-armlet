@@ -14,8 +14,8 @@
 #include "radio_lvl1.h"
 #include "adc15x.h"
 
-//#include "mesh_lvl.h"
-//#include "console.h"
+#include "mesh_lvl.h"
+#include "console.h"
 
 #include <cstdlib>
 
@@ -280,6 +280,22 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     }
     else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Get());
 #endif // Dose
+
+#if 1 // Mesh
+
+    else if(PCmd->NameIs("#SetMeshCycle")) {
+        uint32_t NewCycle;
+        if(PCmd->TryConvertTokenToNumber(&NewCycle) == OK) {  // Next token is number
+            Uart.Printf("New cycle %u\r", NewCycle);
+            Mesh.SetCurrCycleN(NewCycle);
+        }
+    }
+
+    else if(PCmd->NameIs("GetMeshInfo")) {
+
+    }
+#endif // Mesh
+
     else if(*PCmd->Name == '#') Uart.Ack(CMD_UNKNOWN);  // reply only #-started stuff
 }
 #endif

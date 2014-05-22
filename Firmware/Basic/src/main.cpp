@@ -74,7 +74,7 @@ int main(void) {
     App.Init();
     App.PThd = chThdSelf();
     Radio.Init();
-//    Mesh.Init(App.ID);
+    Mesh.Init(App.ID);
 
 //     Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
