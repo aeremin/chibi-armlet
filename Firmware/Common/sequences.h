@@ -40,6 +40,17 @@ const LedChunk_t LedBatteryDischarged[] = {
         {clRed,  180, ckStop},
 };
 
+// Bad ID
+const LedChunk_t LedBadID[] = {
+        {{99, 0, 0},  99, ckStop},
+};
+
+// Detector blink
+const LedChunk_t LedClick[] = {
+        {{255, 18, 0},  11, ckStop},
+};
+#define CLR_NO_DAMAGE   (Color_t){0, 1, 0}
+
 // Health states
 const LedChunk_t LedRedFast[] = {
         {clRed,   36, ckNormal},
@@ -64,7 +75,6 @@ const LedChunk_t LedGreen[] = {
 #define DMG_SND_MAX     1000
 #define DMG_SND_BCKGND  40
 #define DMG_MAX         50      // Maximum radiation value
-#define DMG2SNDDMG(dmg) ((((DMG_SND_MAX - DMG_SND_BCKGND) * ((dmg) - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND)
 // Just for example
 #define DMG_SND_MID     220
 #define DMG_SND_HEAVY   700

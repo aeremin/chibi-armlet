@@ -107,39 +107,89 @@ void rLevel1_t::ITask() {
                 CC.SetChannel(App.ID);
                 CC.TransmitSync(&PktTx);
                 break;
+=======
+#if 1 // ======== TX cycle ========
+    uint8_t Indx;
+    switch(App.Type) {
+        case dtLustraClean:
+        case dtLustraWeak:
+        case dtLustraStrong:
+        case dtLustraLethal:
+            // Setup channel, do nothing if bad ID
+            if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
+                Led.StartBlink(LedBadID);
+                chThdSleepMilliseconds(999);
+                return;
+            }
+            CC.SetChannel(LUSTRA_ID_TO_RCHNL(App.ID));
+            // Transmit corresponding pkt
+            Indx = App.Type - dtLustraClean;
+            CC.TransmitSync((void*)&PktLustra[Indx]);
+            break;
+>>>>>>> origin/Fallout
 
-            case dtDetector:
-                CC.SetChannel(FIELD_RX_CHNL);
-                for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
-                break;
-            default: break;
-        } // switch
+//        case dtDetector:
+//            CC.SetChannel(FIELD_RX_CHNL);
+//            for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
+//            break;
+        default: break;
+    } // switch
 #endif
 
-#ifdef SHIKO_DEVICE // ======== RX cycle ========
-        // Everyone
-        CC.SetChannel(FIELD_RX_CHNL);
-        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
-        if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
-//            Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
-            int32_t RssiPercent = dBm2Percent(Rssi);
-            App.DetectorFound(RssiPercent);
-        }
-        // If detector not found, listen other channels
-        else {
-            if(ANY_OF_4(App.Type, dtXtraNormal, dtXtraWeak, dtUfo, dtDetector)) {
+#if 1 // ======== RX cycle ========
+    int8_t Rssi;
+    switch(App.Type) {
+        case dtUmvos:
+            // Supercycle
+            for(uint32_t j=0; j<CYCLE_CNT; j++) {
+                // Iterate channels
                 for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
                     CC.SetChannel(i);
-                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
+                    uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
                     if(RxRslt == OK) {
 //                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                        App.RxTable.PutInfo(i, PktRx.Type, Rssi);
+                        App.RxTable.PutPkt(i, &PktRx, Rssi);
                     }
-                } // for
-            } // if any of
-        } // if detector found
+                } // for i
+            } // for j
+            // Supercycle completed, switch table
+            uint32_t TimeElapsed = chTimeNow() - LastTime;
+            if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
+            LastTime = chTimeNow();
+            // ...and inform application
+            chSysLock();
+            App.RxTable.SwitchTableI();
+            chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+            chSysUnlock();
+            break;
+
+        default:
+//            chThdSleepMilliseconds(999);
+            break;
+    } // switch
+        // Everyone
+//        CC.SetChannel(FIELD_RX_CHNL);
+//        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
+//        if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
+//            Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
+//            int32_t RssiPercent = dBm2Percent(Rssi);
+//            App.DetectorFound(RssiPercent);
+//        }
+//        // If detector not found, listen other channels
+//        else {
+//            if(ANY_OF_4(App.Type, dtXtraNormal, dtXtraWeak, dtUfo, dtDetector)) {
+//                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+//                    CC.SetChannel(i);
+//                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
+//                    if(RxRslt == OK) {
+////                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+//                        App.RxTable.PutInfo(i, PktRx.Type, Rssi);
+//                    }
+//                } // for
+//            } // if any of
+//        } // if detector found
 //        Uart.Printf("***\r");
-#endif
+#endif // RX
 
 #ifdef TX
         // Transmit
@@ -170,64 +220,64 @@ void rLevel1_t::ITask() {
 //        }
         chThdSleepMilliseconds(99);
 #endif
-    } // while true
 }
 #endif // task
+#endif
     }
 }
 #endif
 
 
 #if 1 // ==== Iterate Channels ====
-void rLevel1_t::IIterateChannels() {
-    int8_t Rssi;
-    /* Iterate Lustrs */
-    CC.SetPktSize(RPKT_LEN);
-    for(uint32_t j=0; j<CYCLE_CNT; j++) {
-        // Iterate channels
-        for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-            CC.SetChannel(i);
-            uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
-            if(RxRslt == OK) {
-//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-//                App.RxTable.PutPkt(&PktRx, Rssi);
-            }
-        } // for i
-    } // for j
-    /* Iterate Lustrs completed, switch table and inform application */
-
-    chSysLock();
-//    App.RxTable.SwitchTableI();
-    chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
-    chSysUnlock();
-}
+//void rLevel1_t::IIterateChannels() {
+//    int8_t Rssi;
+//    /* Iterate Lustrs */
+//    CC.SetPktSize(RPKT_LEN);
+//    for(uint32_t j=0; j<CYCLE_CNT; j++) {
+//        // Iterate channels
+//        for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+//            CC.SetChannel(i);
+//            uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
+//            if(RxRslt == OK) {
+////                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+////                App.RxTable.PutPkt(&PktRx, Rssi);
+//            }
+//        } // for i
+//    } // for j
+//    /* Iterate Lustrs completed, switch table and inform application */
+//
+//    chSysLock();
+////    App.RxTable.SwitchTableI();
+//    chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+//    chSysUnlock();
+//}
 #endif
 
 
 #if 1 // ==== Mesh Rx Cycle ====
 
-static void RxEnd(void *p) {
-//    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
-    Radio.Valets.InRx = false;
-}
-
-void rLevel1_t::IMeshRx() {
-    int8_t RSSI = 0;
-    Valets.RxTmt = CYCLE_TIME;
-    Valets.InRx = true;
-    chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
-    do {
-        Valets.CurrentTime = chTimeNow();
-        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
-        if(RxRslt == OK) { // Pkt received correctly
-            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
-            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, RSSI, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
-//            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
-        } // Pkt Ok
-        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
-    } while(Radio.Valets.InRx);
-    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
-}
+//static void RxEnd(void *p) {
+////    Uart.Printf("RxTmt, t=%u\r", chTimeNow());
+//    Radio.Valets.InRx = false;
+//}
+//
+//void rLevel1_t::IMeshRx() {
+//    int8_t RSSI = 0;
+//    Valets.RxTmt = CYCLE_TIME;
+//    Valets.InRx = true;
+//    chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
+//    do {
+//        Valets.CurrentTime = chTimeNow();
+//        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
+//        if(RxRslt == OK) { // Pkt received correctly
+//            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
+//            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, RSSI, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
+////            Mesh.MsgBox.Post({chTimeNow(), Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+//        } // Pkt Ok
+//        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
+//    } while(Radio.Valets.InRx);
+//    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
+//}
 #endif
 
 #if 1 // ============================
@@ -239,21 +289,6 @@ void rLevel1_t::Init() {
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetPktSize(RPKT_LEN);
-#ifdef DEVTYPE_LUSTRA
-    // Make radio chanel out of ID
-    if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
-        Uart.Printf("Bad ID: %u\r", App.ID);
-        return;
-    }
-    uint8_t Chnl = RCHNL_MIN + App.ID - LUSTRA_MIN_ID;
-    Uart.Printf("RadioChnl: %u\r", Chnl);
-
-    CC.SetChannel(Chnl);
-    PktTx.DmgMin = LUSTRA_MIN_DMG;
-    PktTx.DmgMax = LUSTRA_MAX_DMG;
-    PktTx.LvlMin = Lvl1000ToLvl250(LUSTRA_MIN_LVL);
-    PktTx.LvlMax = Lvl1000ToLvl250(LUSTRA_MAX_LVL);
-#endif
     // Thread
     rThd = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
