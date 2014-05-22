@@ -62,23 +62,25 @@ void rLevel1_t::ITask() {
 //        Uart.Printf("***\r");
 #endif
 
+    int8_t Rssi;
 #if 1 // ======== TX cycle ========
-    // Lustra
-    if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
-        // Setup channel, do nothing if bad ID
-        if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
-            Led.StartBlink(LedBadID);
-            chThdSleepMilliseconds(999);
-            return;
-        }
-        CC.SetChannel(ID_TO_RCHNL(App.ID));
-    }
-
+    uint8_t Indx;
     switch(App.Type) {
-        case dtLustraClean:  CC.TransmitSync((void*)&PktTxLustraClean); break;
-        case dtLustraWeak:   CC.TransmitSync((void*)&PktTxLustraWeak); break;
-        case dtLustraStrong: CC.TransmitSync((void*)&PktTxLustraStrong); break;
-        case dtLustraLethal: CC.TransmitSync((void*)&PktTxLustraLethal); break;
+        case dtLustraClean:
+        case dtLustraWeak:
+        case dtLustraStrong:
+        case dtLustraLethal:
+            // Setup channel, do nothing if bad ID
+            if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
+                Led.StartBlink(LedBadID);
+                chThdSleepMilliseconds(999);
+                return;
+            }
+            CC.SetChannel(ID_TO_RCHNL(App.ID));
+            // Transmit corresponding pkt
+            Indx = App.Type - dtLustraClean;
+            CC.TransmitSync((void*)&PktLustra[Indx]);
+            break;
 
 //        case dtDetector:
 //            CC.SetChannel(FIELD_RX_CHNL);
@@ -90,6 +92,9 @@ void rLevel1_t::ITask() {
 
 #if 1 // ======== RX cycle ========
     switch(App.Type) {
+        case dtUmvos:
+            break;
+
         default:
 //            chThdSleepMilliseconds(999);
             break;
