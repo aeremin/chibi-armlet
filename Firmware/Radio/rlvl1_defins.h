@@ -64,7 +64,8 @@ struct rPkt_t {
 #define LUSTRA_MIN_ID   100
 #define LUSTRA_MAX_ID   140
 
-#define RX_CHNL         9
+#define RCHNL_EMP       7
+#define RCHNL_RX        9
 #define RCHNL_MIN       10
 #define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
 

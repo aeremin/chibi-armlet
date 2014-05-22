@@ -5,8 +5,8 @@
  *      Author: g.kruglov
  */
 
-#ifndef PILL_H_
-#define PILL_H_
+#ifndef PILL_MGR_H_
+#define PILL_MGR_H_
 
 #include "cmd_uart.h"
 #include "ch.h"
@@ -44,4 +44,4 @@ public:
 
 extern PillMgr_t PillMgr;
 
-#endif /* PILL_H_ */
+#endif /* PILL_MGR_H_ */

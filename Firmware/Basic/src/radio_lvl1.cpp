@@ -64,8 +64,13 @@ void rLevel1_t::ITask() {
 
 #if 1 // ======== RX cycle ========
     int8_t Rssi;
+    uint32_t TimeElapsed;
     switch(App.Type) {
+        case dtNothing: chThdSleepMilliseconds(999); break;
+
         case dtUmvos:
+        case dtDetectorMobile:
+        case dtDetectorFixed:
             // Supercycle
             for(uint32_t j=0; j<CYCLE_CNT; j++) {
                 // Iterate channels
@@ -79,7 +84,7 @@ void rLevel1_t::ITask() {
                 } // for i
             } // for j
             // Supercycle completed, switch table
-            uint32_t TimeElapsed = chTimeNow() - LastTime;
+            TimeElapsed = chTimeNow() - LastTime;
             if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
             LastTime = chTimeNow();
             // ...and inform application

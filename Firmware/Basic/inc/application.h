@@ -12,6 +12,7 @@
 #include "sequences.h"
 #include "Dose.h"
 #include "RxTable.h"
+#include "pill.h"
 
 #if 1 // ==== Timings ====
 #define TM_DOSE_INCREASE_MS 999
@@ -47,49 +48,6 @@ enum DeviceType_t {
 
 // ==== Indication constants ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
-
-#if 1 // ==== Pill ====
-enum PillType_t {
-    ptSetID = 1,
-    ptCure = 9,
-    ptDrug = 10,
-};
-#define PILL_TYPEID_SET_ID      1
-#define PILL_TYPEID_CURE        9
-#define PILL_TYPEID_DRUG        10
-#define PILL_TYPEID_PANACEA     11
-#define PILL_TYPEID_AUTODOC     12
-#define PILL_TYPEID_SET_DOSETOP 18
-#define PILL_TYPEID_DIAGNOSTIC  27
-#define PILL_TYPEID_EMP_BREAKER 31
-#define PILL_TYPEID_EMP_REPAIR  32
-#define PILL_TYPEID_EMP_CHARGE  33
-#define
-
-struct Pill_t {
-    int32_t TypeID;
-    union {
-        int32_t DeviceID;
-        int32_t DoseAfter;  // Contains dose value after pill application
-    };
-    union {
-        // Cure / drug
-        struct {
-            int32_t ChargeCnt;
-            int32_t Value;
-        } __attribute__ ((__packed__));
-        int32_t DoseTop;
-    };
-} __attribute__ ((__packed__));
-#define PILL_SZ     sizeof(Pill_t)
-#define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
-
-// Data to save in EE and to write to pill
-struct DataToWrite_t {
-    uint32_t Sz32;
-    int32_t Data[PILL_SZ32];
-};
-#endif // Pill
 
 #if 1 // ==== Eeprom ====
 // Addresses
