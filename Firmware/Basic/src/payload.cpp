@@ -15,12 +15,12 @@ Payload_t Payload;
 
 uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp, PayloadString_t *Ptr) {
     uint8_t Rslt = FAILURE;
-    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
-        Ptr->Hops += 1;
-        Ptr->TimeDiff =  CurrentTimeStamp - Ptr->Timestamp;
-        Ptr->Timestamp = CurrentTimeStamp;
-        InfoBuf[ID] = *Ptr;
-    }
+//    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
+    Ptr->Hops += 1;
+    Ptr->TimeDiff =  CurrentTimeStamp - Ptr->Timestamp;
+    Ptr->Timestamp = CurrentTimeStamp;
+    InfoBuf[ID] = *Ptr;
+//    }
     Console_Send_Info(ID, &InfoBuf[ID]);
     return Rslt;
 }
@@ -59,12 +59,13 @@ void Payload_t::UpdateSelf() {
     InfoBuf[App.ID].Timestamp = Mesh.GetCycleN();
     Console_Send_Info(App.ID, &InfoBuf[App.ID]);
 }
-void Payload_t::CorrectionTimeStamp(uint32_t CorrValue) {
-    Uart.Printf("Correct to %u\r", CorrValue);
-//    for(uint16_t i=0; i<INFO_BUF_SIZE; i++) {
-//        if(InfoBuf[i].Hops != 0) {
-//            InfoBuf[i].Timestamp -= CorrValue;
-//            InfoBuf[i].TimeDiff -= CorrValue;
-//        }
-//    }
+void Payload_t::CorrectionTimeStamp(uint32_t CorrValueMS) {
+    uint32_t CorrValueCycle = CorrValueMS/CYCLE_TIME;
+//    Uart.Printf("Correct to %u\r", CorrValueCycle);
+    for(uint16_t i=0; i<INFO_BUF_SIZE; i++) {
+        if(InfoBuf[i].Hops != 0) {
+            InfoBuf[i].Timestamp -= CorrValueCycle;
+            InfoBuf[i].TimeDiff -= CorrValueCycle;
+        }
+    }
 }

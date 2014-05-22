@@ -25,6 +25,9 @@ void Console_SetTime_Ack(int32_t NewCycDiff) {
     Uart.Printf("#Ack %X\r\n", (uint16_t)NewCycDiff);
 }
 
-void Console_GetMeshInfo_Ack() {
-    Uart.Printf("#Ack %u %u\r\n", MAX_ABONENTS, CYCLE_TIME);
+void Console_GetMeshInfo_Ack(uint32_t Rslt) {
+    if(Rslt == OK) {
+        Uart.Printf("#Ack %u %u\r\n", MAX_ABONENTS, CYCLE_TIME);
+    }
+    else Uart.Ack(Rslt);
 }

@@ -286,13 +286,14 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     else if(PCmd->NameIs("#SetMeshCycle")) {
         uint32_t NewCycle;
         if(PCmd->TryConvertTokenToNumber(&NewCycle) == OK) {  // Next token is number
-            Uart.Printf("New cycle %u\r", NewCycle);
+//            Uart.Printf("New cycle %u\r", NewCycle);
             Mesh.SetCurrCycleN(NewCycle);
+            Uart.Ack(OK);
         }
     }
 
     else if(PCmd->NameIs("GetMeshInfo")) {
-
+        Console_GetMeshInfo_Ack(OK);
     }
 #endif // Mesh
 
