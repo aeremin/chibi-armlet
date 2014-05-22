@@ -49,6 +49,11 @@ enum DeviceType_t {
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
 
 #if 1 // ==== Pill ====
+enum PillType_t {
+    ptSetID = 1,
+    ptCure = 9,
+    ptDrug = 10,
+};
 #define PILL_TYPEID_SET_ID      1
 #define PILL_TYPEID_CURE        9
 #define PILL_TYPEID_DRUG        10
@@ -59,6 +64,7 @@ enum DeviceType_t {
 #define PILL_TYPEID_EMP_BREAKER 31
 #define PILL_TYPEID_EMP_REPAIR  32
 #define PILL_TYPEID_EMP_CHARGE  33
+#define
 
 struct Pill_t {
     int32_t TypeID;

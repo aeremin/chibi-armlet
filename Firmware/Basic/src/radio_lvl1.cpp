@@ -35,34 +35,6 @@ static void rLvl1Thread(void *arg) {
 //#define TX
 //#define LED_RX
 void rLevel1_t::ITask() {
-#if defined DEVTYPE_UMVOS || defined DEVTYPE_DETECTOR
-        int8_t Rssi;
-        // Supercycle
-        for(uint32_t j=0; j<CYCLE_CNT; j++) {
-            // Iterate channels
-            for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-                CC.SetChannel(i);
-                uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
-                if(RxRslt == OK) {
-//                    Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                    App.RxTable.PutPkt(i, &PktRx, Rssi);
-                }
-            } // for i
-        } // for j
-
-        // Supercycle completed, switch table and inform application
-        uint32_t TimeElapsed = chTimeNow() - LastTime;
-        if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
-        LastTime = chTimeNow();
-
-        chSysLock();
-        App.RxTable.SwitchTableI();
-        chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
-        chSysUnlock();
-//        Uart.Printf("***\r");
-#endif
-
-    int8_t Rssi;
 #if 1 // ======== TX cycle ========
     uint8_t Indx;
     switch(App.Type) {
@@ -76,7 +48,7 @@ void rLevel1_t::ITask() {
                 chThdSleepMilliseconds(999);
                 return;
             }
-            CC.SetChannel(ID_TO_RCHNL(App.ID));
+            CC.SetChannel(LUSTRA_ID_TO_RCHNL(App.ID));
             // Transmit corresponding pkt
             Indx = App.Type - dtLustraClean;
             CC.TransmitSync((void*)&PktLustra[Indx]);
@@ -91,8 +63,30 @@ void rLevel1_t::ITask() {
 #endif
 
 #if 1 // ======== RX cycle ========
+    int8_t Rssi;
     switch(App.Type) {
         case dtUmvos:
+            // Supercycle
+            for(uint32_t j=0; j<CYCLE_CNT; j++) {
+                // Iterate channels
+                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                    CC.SetChannel(i);
+                    uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
+                    if(RxRslt == OK) {
+//                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                        App.RxTable.PutPkt(i, &PktRx, Rssi);
+                    }
+                } // for i
+            } // for j
+            // Supercycle completed, switch table
+            uint32_t TimeElapsed = chTimeNow() - LastTime;
+            if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
+            LastTime = chTimeNow();
+            // ...and inform application
+            chSysLock();
+            App.RxTable.SwitchTableI();
+            chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+            chSysUnlock();
             break;
 
         default:
@@ -164,21 +158,6 @@ void rLevel1_t::Init() {
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetPktSize(RPKT_LEN);
-#ifdef DEVTYPE_LUSTRA
-    // Make radio chanel out of ID
-    if((App.ID < LUSTRA_MIN_ID) or (App.ID > LUSTRA_MAX_ID)) {
-        Uart.Printf("Bad ID: %u\r", App.ID);
-        return;
-    }
-    uint8_t Chnl = RCHNL_MIN + App.ID - LUSTRA_MIN_ID;
-    Uart.Printf("RadioChnl: %u\r", Chnl);
-
-    CC.SetChannel(Chnl);
-    PktTx.DmgMin = LUSTRA_MIN_DMG;
-    PktTx.DmgMax = LUSTRA_MAX_DMG;
-    PktTx.LvlMin = Lvl1000ToLvl250(LUSTRA_MIN_LVL);
-    PktTx.LvlMax = Lvl1000ToLvl250(LUSTRA_MAX_LVL);
-#endif
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

@@ -68,7 +68,7 @@ struct rPkt_t {
 #define RCHNL_MIN       10
 #define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
 
-#define ID_TO_RCHNL(ID) ((ID - LUSTRA_MIN_ID) + RCHNL_MIN)
+#define LUSTRA_ID_TO_RCHNL(ID) ((ID - LUSTRA_MIN_ID) + RCHNL_MIN)
 
 #define CYCLE_CNT       4   // Number of cycles in supercycle
 
