@@ -310,6 +310,7 @@ uint8_t App_t::ISetType(uint8_t AType) {
         default: break;
     } // switch
 
+    if(Type != dtDetectorMobile) Beeper.Beep(BeepBeep);
     Led.StartBlink(&TypeColorTbl[AType]);   // Blink with correct color
     // Save in EE if not equal
     uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);

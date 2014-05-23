@@ -106,3 +106,8 @@ void App_t::OnPillConnect() {
     } // if pill flasher
 }
 #endif
+
+#if 1 // ============================= On Disconnect ===========================
+void App_t::OnPillDisconnect() {
+
+}

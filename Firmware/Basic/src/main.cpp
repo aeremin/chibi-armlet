@@ -60,36 +60,32 @@ int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V2);
     Clk.UpdateFreqValues();
-
     // ==== Init OS ====
     halInit();
     chSysInit();
-
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Led.Init();
     PillMgr.Init();
+    Beeper.Init();
 
     App.Init();
     App.PThd = chThdSelf();
     Radio.Init();
+
     // Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
-    if(App.Type != dtDetectorMobile) {
-        Beeper.Init();
-        Beeper.Beep(BeepBeep);
-    }
 
-    // Timers
+    // Common Timers
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
     chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
-    bool PillConnected = false;
+    bool PillWasConnected = false;
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Uart cmd ====
@@ -97,14 +93,15 @@ int main(void) {
 
         // ==== Check pill ====
         if(EvtMsk & EVTMSK_PILL_CHECK) {
-            // Check if new connection occured
-            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
-                if(!PillConnected) {
-                    PillConnected = true;
-                    App.OnPillConnect();
-                }
+            bool IsNowConnected = (PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK);
+            if(IsNowConnected and !PillWasConnected) {  // OnConnect
+                PillWasConnected = true;
+                App.OnPillConnect();
             }
-            else PillConnected = false;
+            else if(!IsNowConnected and PillWasConnected) { // OnDisconnect
+                PillWasConnected = false;
+                App.OnPillDisconnect();
+            }
         } // if EVTMSK_PILL_CHECK
 
         // ==== Dose ====

@@ -84,6 +84,7 @@ public:
     void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
+    void OnPillDisconnect();
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
