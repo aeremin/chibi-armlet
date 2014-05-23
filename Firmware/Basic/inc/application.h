@@ -81,13 +81,13 @@ public:
     uint32_t Damage;
     void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
     void Init();
-    void DetectorFound(int32_t RssiPercent);
     // Events
     void OnPillConnect();
     void OnPillDisconnect();
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
+    void OnPelengFound() {}
     void OnClick();
 };
 

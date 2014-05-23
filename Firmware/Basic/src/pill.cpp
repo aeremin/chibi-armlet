@@ -111,3 +111,4 @@ void App_t::OnPillConnect() {
 void App_t::OnPillDisconnect() {
 
 }
+#endif

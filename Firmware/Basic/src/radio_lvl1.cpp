@@ -54,10 +54,11 @@ void rLevel1_t::ITask() {
             CC.TransmitSync((void*)&PktLustra[Indx]);
             break;
 
-//        case dtDetector:
-//            CC.SetChannel(FIELD_RX_CHNL);
-//            for(uint8_t i=0; i<DETECTOR_TX_CNT; i++) CC.TransmitSync(&PktTx);
-//            break;
+        case dtPelengator:
+            CC.SetChannel(RCHNL_PELENG_RX);
+            for(uint8_t i=0; i<PELENG_TX_CNT; i++) CC.TransmitSync((void*)&PktPelengator);
+            break;
+
         default: break;
     } // switch
 #endif
@@ -65,60 +66,50 @@ void rLevel1_t::ITask() {
 #if 1 // ======== RX cycle ========
     int8_t Rssi;
     uint32_t TimeElapsed;
-    switch(App.Type) {
-        case dtNothing: chThdSleepMilliseconds(999); break;
+    // Everyone
+    CC.SetChannel(RCHNL_PELENG_RX);
+    uint8_t RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
+    if(RxRslt == OK) {
+        Uart.Printf("Ch=%u; Lvl=%d\r", RCHNL_PELENG_RX, Rssi);
+        chSysLock();
+        chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
+        chSysUnlock();
+    }
+    // If detector not found, listen other channels
+    else {
+        switch(App.Type) {
+            case dtNothing: chThdSleepMilliseconds(999); break;
 
-        case dtUmvos:
-        case dtDetectorMobile:
-        case dtDetectorFixed:
-            // Supercycle
-            for(uint32_t j=0; j<CYCLE_CNT; j++) {
-                // Iterate channels
-                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-                    CC.SetChannel(i);
-                    uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &PktRx, &Rssi);
-                    if(RxRslt == OK) {
-//                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-                        App.RxTable.PutPkt(i, &PktRx, Rssi);
-                    }
-                } // for i
-            } // for j
-            // Supercycle completed, switch table
-            TimeElapsed = App.RxTable.PWriteTbl->Age();
-            if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
-            // ...and inform application
-            chSysLock();
-            App.RxTable.SwitchTableI();
-            chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
-            chSysUnlock();
-            break;
+            case dtUmvos:
+            case dtDetectorMobile:
+            case dtDetectorFixed:
+                // Supercycle
+                for(uint32_t j=0; j<CYCLE_CNT; j++) {
+                    // Iterate channels
+                    for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                        CC.SetChannel(i);
+                        RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
+                        if(RxRslt == OK) {
+    //                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+                            App.RxTable.PutPkt(i, &PktRx, Rssi);
+                        }
+                    } // for i
+                } // for j
+                // Supercycle completed, switch table
+                TimeElapsed = App.RxTable.PWriteTbl->Age();
+                if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
+                // ...and inform application
+                chSysLock();
+                App.RxTable.SwitchTableI();
+                chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+                chSysUnlock();
+                break;
 
-        default:
-//            chThdSleepMilliseconds(999);
-            break;
-    } // switch
-        // Everyone
-//        CC.SetChannel(FIELD_RX_CHNL);
-//        RxRslt = CC.ReceiveSync(FIELD_RX_T_MS, &PktRx, &Rssi);
-//        if((RxRslt == OK) and (PktRx.Type == (uint8_t)dtDetector)) {
-//            Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", FIELD_RX_CHNL, PktRx.Type, Rssi);
-//            int32_t RssiPercent = dBm2Percent(Rssi);
-//            App.DetectorFound(RssiPercent);
-//        }
-//        // If detector not found, listen other channels
-//        else {
-//            if(ANY_OF_4(App.Type, dtXtraNormal, dtXtraWeak, dtUfo, dtDetector)) {
-//                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-//                    CC.SetChannel(i);
-//                    RxRslt = CC.ReceiveSync(RCVR_RX_T_MS, &PktRx, &Rssi);
-//                    if(RxRslt == OK) {
-////                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
-//                        App.RxTable.PutInfo(i, PktRx.Type, Rssi);
-//                    }
-//                } // for
-//            } // if any of
-//        } // if detector found
-//        Uart.Printf("***\r");
+            default:
+    //            chThdSleepMilliseconds(999);
+                break;
+        } // switch
+    } // if detector
 #endif // RX
 
 #ifdef TX

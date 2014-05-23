@@ -59,24 +59,38 @@ struct rPkt_t {
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
+#if 1 // ========================== const Pkt_t ================================
+// Lustra constants
+const rPkt_t PktLustra[4] = {
+        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0, 0},        // Clean
+        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 30},       // Weak
+        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 60},       // Strong
+        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0xFF, 0xFF},  // Lethal
+};
+// Pelengator
+const rPkt_t PktPelengator = {0, 0, 0, 0};
+#endif
+
 #if 1 // ======================= Channels & cycles =============================
 #define LUSTRA_CNT      40
 #define LUSTRA_MIN_ID   100
 #define LUSTRA_MAX_ID   140
 
 #define RCHNL_EMP       7
-#define RCHNL_RX        9
+#define RCHNL_PELENG_RX 9
 #define RCHNL_MIN       10
 #define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
 
 #define LUSTRA_ID_TO_RCHNL(ID) ((ID - LUSTRA_MIN_ID) + RCHNL_MIN)
 
 #define CYCLE_CNT       4   // Number of cycles in supercycle
+#define PELENG_TX_CNT   4   // Number of pkts to transmit by pelengator
 
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define RX_T_MS         4
+#define LUSTRA_RX_T_MS  6
+#define PELENG_RX_T_MS  4
 
 #endif
 
