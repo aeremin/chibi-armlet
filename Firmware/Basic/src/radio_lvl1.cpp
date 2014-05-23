@@ -65,12 +65,13 @@ void rLevel1_t::ITask() {
 
 #if 1 // ======== RX cycle ========
     int8_t Rssi;
+    uint8_t RxRslt;
     uint32_t TimeElapsed;
     // Everyone
     CC.SetChannel(RCHNL_PELENG_RX);
-    uint8_t RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
+    RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
     if(RxRslt == OK) {
-        Uart.Printf("Ch=%u; Lvl=%d\r", RCHNL_PELENG_RX, Rssi);
+        Uart.Printf("Peleng %d\r", RCHNL_PELENG_RX, Rssi);
         chSysLock();
         chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
         chSysUnlock();
@@ -90,7 +91,7 @@ void rLevel1_t::ITask() {
                         CC.SetChannel(i);
                         RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
                         if(RxRslt == OK) {
-    //                        Uart.Printf("Ch=%u; T=%u; Lvl=%d\r", i, PktRx.Type, Rssi);
+//                            Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
                             App.RxTable.PutPkt(i, &PktRx, Rssi);
                         }
                     } // for i

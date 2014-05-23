@@ -188,6 +188,7 @@ void App_t::OnRxTableReady() {
     Table_t *PTbl = RxTable.PTable;
     uint32_t NaturalDmg = 1, RadioDmg = 0;
     RxTable.dBm2PercentAll();
+//    Uart.Printf("Age=%u\r", PTbl->Age());
 //    RxTable.Print();
     // Iterate received levels
     for(uint32_t i=0; i<PTbl->Size; i++) {
@@ -210,10 +211,9 @@ void App_t::OnRxTableReady() {
         } // if lvl > min
     } // for
     Damage = NaturalDmg + RadioDmg;
-//    Uart.Printf("Total=%d\r", Damage);
     if(Type == dtUmvos) {
         Dose.Increase(Damage, diUsual);
-        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
+//        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
     }
 }
 

@@ -89,8 +89,8 @@ const rPkt_t PktPelengator = {0, 0, 0, 0};
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define LUSTRA_RX_T_MS  6
-#define PELENG_RX_T_MS  4
+#define PELENG_RX_T_MS  4   // }
+#define LUSTRA_RX_T_MS  5   // } Experimentally checked
 
 #endif
 
