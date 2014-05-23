@@ -21,23 +21,6 @@ extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
 extern void TmrClickCallback(void *p);
 
-// Table of colors depending on type
-#define DEVICETYPE_BLINK_T_MS   999
-const LedChunk_t TypeColorTbl[] = {
-        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
-        {clGreen,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
-        {clBlue,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
-        {clGreen,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
-        {clYellow,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
-        {clRed,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
-        {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
-        {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
-        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
-        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
-        {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
-        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
-};
-
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
 //    Uart.Printf("%S\r", PCmd->Name);
@@ -222,13 +205,8 @@ void App_t::OnClick() {
         int32_t r = rand() % (DMG_SND_MAX - 1);
         int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
 //        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-        if(r < DmgSnd) {
-            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-            Led.StartBlink(LedClick);
-            return;
-        }
+        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
     }
-    Led.SetColor(CLR_NO_DAMAGE);
 }
 #endif // Dose
 

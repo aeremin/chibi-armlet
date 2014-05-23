@@ -11,9 +11,6 @@
 #include "cc1101.h"
 #include "cmd_uart.h"
 
-#include "peripheral.h"
-#include "sequences.h"
-
 #define DBG_PINS
 
 #ifdef DBG_PINS

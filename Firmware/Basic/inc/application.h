@@ -9,7 +9,7 @@
 #define APPLICATION_H_
 
 #include "kl_lib_L15x.h"
-#include "sequences.h"
+#include "colors_sounds.h"
 #include "Dose.h"
 #include "RxTable.h"
 #include "pill.h"

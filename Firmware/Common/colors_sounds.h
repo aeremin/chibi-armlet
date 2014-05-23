@@ -16,42 +16,41 @@
  * ckRepeat => after this, goto begin
  */
 
-#if 1 // ============================ LED RGB ==================================
-// Pill
-const LedChunk_t LedPillCureOk[] = {
-        {clBlue,  540, ckStop},
+#if 1 // ============================ LED blink ================================
+#if 1 // ==== Device type colors ====
+// Table of colors depending on type
+#define DEVICETYPE_BLINK_T_MS   999
+const LedChunk_t TypeColorTbl[] = {
+        {clDimGreen, DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
+        {clGreen,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
+        {clBlue,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
+        {clGreen,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
+        {clYellow,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
+        {clMagenta,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
+        {clCyan,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
+        {clCyan,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
+        {clBlue,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
+        {clRed,      DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
+        {clWhite,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
+        {clDimBlue,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
 };
-const LedChunk_t LedPillBad[] = {
-        {clRed,  540, ckStop},
-};
+#endif
 
-const LedChunk_t LedPillIdSet[] = {
-        {clCyan,  999, ckStop},
-};
-const LedChunk_t LedPillIdNotSet[] = {
-        {clYellow,  999, ckStop},
-};
-const LedChunk_t LedPillSetupOk[] = {
-        {clGreen,  999, ckStop},
-};
+// Pill
+const LedChunk_t LedPillCureOk[] = { {clBlue,  540, ckStop}, };
+const LedChunk_t LedPillBad[] =    { {clRed,  540, ckStop},  };
+
+const LedChunk_t LedPillIdSet[]    = { {clCyan,  999, ckStop},   };
+const LedChunk_t LedPillIdNotSet[] = { {clYellow,  999, ckStop}, };
+const LedChunk_t LedPillSetupOk[]  = { {clGreen,  999, ckStop},  };
 
 // Battery
-const LedChunk_t LedBatteryDischarged[] = {
-        {clRed,  180, ckStop},
-};
+const LedChunk_t LedBatteryDischarged[] = { {clRed,  180, ckStop}, };
 
 // Bad ID
-const LedChunk_t LedBadID[] = {
-        {{99, 0, 0},  99, ckStop},
-};
+const LedChunk_t LedBadID[] = { {{99, 0, 0},  99, ckStop}, };
 
-// Detector blink
-const LedChunk_t LedClick[] = {
-        {{255, 18, 0},  11, ckStop},
-};
-#define CLR_NO_DAMAGE   (Color_t){0, 1, 0}
-
-// Health states
+#if 1 // Health states
 const LedChunk_t LedRedFast[] = {
         {clRed,   36, ckNormal},
         {clBlack, 36, ckRepeat},
@@ -68,8 +67,9 @@ const LedChunk_t LedGreen[] = {
         {clGreen, 36, ckNormal},
         {clBlack, 3006, ckRepeat},
 };
+#endif // health
 
-#endif
+#endif // Colors
 
 // Snd coeffs
 #define DMG_SND_MAX     1000

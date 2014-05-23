@@ -11,7 +11,7 @@
 #include "hal.h"
 #include "clocking_L1xx.h"
 #include "peripheral.h"
-#include "sequences.h"
+#include "colors_sounds.h"
 #include "pill_mgr.h"
 #include "cmd_uart.h"
 #include "application.h"

@@ -63,6 +63,11 @@ struct Color_t {
 #define clCyan      ((Color_t){0, 255, 255})
 #define clWhite     ((Color_t){255, 255, 255})
 
+// Dim colors
+#define clDimRed    ((Color_t){1, 0, 0})
+#define clDimGreen  ((Color_t){0, 1, 0})
+#define clDimBlue   ((Color_t){0, 0, 1})
+
 // Timer
 #define LED_TIM         TIM3
 #define LED_RED_CCR     CCR4
