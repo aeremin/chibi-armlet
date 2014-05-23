@@ -184,8 +184,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
 #if 1 // =============================== Dose ==================================
 void App_t::OnRxTableReady() {
-//    uint32_t TimeElapsed = chTimeNow() - LastTime;
-//    LastTime = chTimeNow();
     // Radio damage
     Table_t *PTbl = RxTable.PTable;
     uint32_t NaturalDmg = 1, RadioDmg = 0;

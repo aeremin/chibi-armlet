@@ -84,9 +84,8 @@ void rLevel1_t::ITask() {
                 } // for i
             } // for j
             // Supercycle completed, switch table
-            TimeElapsed = chTimeNow() - LastTime;
+            TimeElapsed = App.RxTable.PWriteTbl->Age();
             if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
-            LastTime = chTimeNow();
             // ...and inform application
             chSysLock();
             App.RxTable.SwitchTableI();

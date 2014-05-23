@@ -27,6 +27,8 @@ struct Row_t {
 struct Table_t {
     uint32_t Size;
     Row_t Row[ROW_CNT];
+    uint32_t TimeWhenStarted;
+    uint32_t Age() { return chTimeNow() - TimeWhenStarted; }
 };
 
 class RxTable_t {
@@ -64,7 +66,9 @@ public:
             PWriteTbl = &ITbl[0];
             PTable    = &ITbl[1];
         }
-        PWriteTbl->Size = 0; // Reset table
+        // Reset table
+        PWriteTbl->Size = 0;
+        PWriteTbl->TimeWhenStarted = chTimeNow();
     }
 
     void dBm2PercentAll() {
@@ -90,10 +94,9 @@ public:
                         PTable->Row[i].Rssi);
 //                Beeper.Beep(BeepShort);
 //            }
-        }
-    }
-
-
+        } // for
+    } // void print
+    friend class rLevel1_t;
 };
 
 #endif /* SENSORTABLE_H_ */

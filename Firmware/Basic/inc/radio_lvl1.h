@@ -16,7 +16,6 @@
 class rLevel1_t {
 private:
     rPkt_t PktRx;
-    uint32_t LastTime;
 public:
     void Init();
     // Inner use
