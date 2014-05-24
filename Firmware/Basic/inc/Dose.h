@@ -83,6 +83,12 @@ public:
             RenewIndication();
     }
     uint32_t Get() { return IDose; }
+    // Amount > 0 => add dose
+    void Modify(int32_t Amount, DoIndication_t DoIndication) {
+        int32_t Dz = IDose;
+
+    }
+
     void Increase(int32_t Amount, DoIndication_t DoIndication) {
         int32_t Dz = IDose;
         // Increase no more than up to near death
