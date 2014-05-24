@@ -86,6 +86,7 @@ void LedRGB_t::IStartBlinkI(const LedChunk_t *PLedChunk) {
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
     if(PLedChunk == nullptr) {
         SetColor(clBlack);
+        if(IOnBlinkEnd != nullptr) IOnBlinkEnd();
         return;
     }
     // Process chunk

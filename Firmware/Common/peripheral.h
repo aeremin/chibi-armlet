@@ -92,6 +92,7 @@ class LedRGB_t {
 private:
     const LedChunk_t *IPFirstChunk;
     VirtualTimer ITmr;
+    ftVoidVoid IOnBlinkEnd;
     void ISetRed  (uint8_t AValue) {LED_TIM->LED_RED_CCR   = AValue;}
     void ISetGreen(uint8_t AValue) {LED_TIM->LED_GREEN_CCR = AValue;}
     void ISetBlue (uint8_t AValue) {LED_TIM->LED_BLUE_CCR  = AValue;}
@@ -102,8 +103,9 @@ public:
         ISetGreen(AColor.Green);
         ISetBlue(AColor.Blue);
     }
-    void StartBlink(const LedChunk_t *PLedChunk) {
+    void StartBlink(const LedChunk_t *PLedChunk, ftVoidVoid OnBlinkEnd = nullptr) {
         chSysLock();
+        IOnBlinkEnd = OnBlinkEnd;
         IPFirstChunk = PLedChunk; // Save first chunk
         IStartBlinkI(PLedChunk);
         chSysUnlock();

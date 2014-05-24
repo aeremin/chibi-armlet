@@ -45,7 +45,7 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 #define RLVL_4M                 700     // 1...20m
 #define RLVL_10M                600
 #define RLVL_50M                1
-#define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
+#define RLVL_PELENGATOR         RLVL_4M // LED will lit if rlevel is higher
 
 #endif
 
@@ -77,7 +77,7 @@ const rPkt_t PktPelengator = {0, 0, 0, 0};
 #define LUSTRA_MAX_ID   140
 
 #define RCHNL_EMP       7
-#define RCHNL_PELENG_RX 9
+#define RCHNL_PELENG    9
 #define RCHNL_MIN       10
 #define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
 

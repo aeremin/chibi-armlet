@@ -9,7 +9,6 @@
 #define APPLICATION_H_
 
 #include "kl_lib_L15x.h"
-#include "colors_sounds.h"
 #include "Dose.h"
 #include "RxTable.h"
 #include "pill.h"
@@ -37,14 +36,6 @@ enum DeviceType_t {
     dtPelengator = 10,
     dtPillFlasher = 11
 };
-
-// Sensitivity Constants, percent [1...1000]. Feel if RxLevel > SnsConst.
-#define RLVL_NEVER              10000
-#define RLVL_2M                 800     // 0...4m
-#define RLVL_4M                 700     // 1...20m
-#define RLVL_10M                600
-#define RLVL_50M                1
-#define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
 
 // ==== Indication constants ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
@@ -87,7 +78,8 @@ public:
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
-    void OnPelengFound() {}
+    void OnPelengReceived();
+    void OnPelengatorLost();
     void OnClick();
 };
 

@@ -5,8 +5,8 @@
  *      Author: kreyl
  */
 
-#ifndef SEQUENCES_H_
-#define SEQUENCES_H_
+#ifndef COLORS_SOUNDS_H_
+#define COLORS_SOUNDS_H_
 
 #include "peripheral.h"
 
@@ -18,21 +18,52 @@
 
 #if 1 // ============================ LED blink ================================
 #if 1 // ==== Device type colors ====
+const Color_t ClrDevType[] = {
+        clDimGreen, // dtNothing
+        clGreen,    // dtUmvos
+        clBlue,     // dtLustraClean
+        clGreen,    // dtLustraWeak
+        clYellow,   // dtLustraStrong
+        clMagenta,  // dtLustraLethal
+        clCyan,     // dtDetectorMobile
+        clCyan,     // dtDetectorFixed
+        clBlue,     // dtEmpMech
+        clRed,      // dtEmpGrenade
+        clWhite,    // dtPelengator
+        clDimBlue,  // dtPillFlasher
+};
+
 // Table of colors depending on type
 #define DEVICETYPE_BLINK_T_MS   999
 const LedChunk_t TypeColorTbl[] = {
-        {clDimGreen, DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
-        {clGreen,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
-        {clBlue,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
-        {clGreen,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
-        {clYellow,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
-        {clMagenta,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
-        {clCyan,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
-        {clCyan,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
-        {clBlue,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
-        {clRed,      DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
-        {clWhite,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
-        {clDimBlue,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
+        {ClrDevType[ 0], DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
+        {ClrDevType[ 1], DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
+        {ClrDevType[ 2], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
+        {ClrDevType[ 3], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
+        {ClrDevType[ 4], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
+        {ClrDevType[ 5], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
+        {ClrDevType[ 6], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
+        {ClrDevType[ 7], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
+        {ClrDevType[ 8], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
+        {ClrDevType[ 9], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
+        {ClrDevType[10], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
+        {ClrDevType[11], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
+};
+
+#define DEVICETYPE_PELENG_T_MS   9999
+const LedChunk_t TypeColorTblPeleng[] = {
+        {ClrDevType[ 0], DEVICETYPE_PELENG_T_MS, ckStop}, // dtNothing
+        {ClrDevType[ 1], DEVICETYPE_PELENG_T_MS, ckStop}, // dtUmvos
+        {ClrDevType[ 2], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraClean
+        {ClrDevType[ 3], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraWeak
+        {ClrDevType[ 4], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraStrong
+        {ClrDevType[ 5], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraLethal
+        {ClrDevType[ 6], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorMobile
+        {ClrDevType[ 7], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorFixed
+        {ClrDevType[ 8], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpMech
+        {ClrDevType[ 9], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpGrenade
+        {ClrDevType[10], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPelengator
+        {ClrDevType[11], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPillFlasher
 };
 #endif
 
@@ -227,4 +258,4 @@ const VibroChunk_t Brr10[] = {
 
 #endif
 
-#endif /* SEQUENCES_H_ */
+#endif /* COLORS_SOUNDS_H_ */

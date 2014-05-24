@@ -6,6 +6,7 @@
  */
 
 #include "application.h"
+#include "colors_sounds.h"
 #include "cmd_uart.h"
 #include "pill_mgr.h"
 #include "peripheral.h"
@@ -165,7 +166,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 }
 #endif
 
-#if 1 // =============================== Dose ==================================
+#if 1 // =============================== Radio =================================
 void App_t::OnRxTableReady() {
     // Radio damage
     Table_t *PTbl = RxTable.PTable;
@@ -197,6 +198,25 @@ void App_t::OnRxTableReady() {
     if(Type == dtUmvos) {
         Dose.Increase(Damage, diUsual);
 //        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
+    }
+}
+
+void FOnPelengatorLost() { chEvtSignalI(App.PThd, EVTMSK_PELENG_LOST); }
+
+void App_t::OnPelengReceived() {
+    int32_t Rssi = dBm2Percent(Radio.PelengRssi);
+    Uart.Printf("Peleng %d\r", Rssi);
+    if(Rssi > RLVL_PELENGATOR)
+        Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
+}
+void App_t::OnPelengatorLost() {
+    switch(Type) {
+        case dtUmvos: Dose.RenewIndication(); break;
+        case dtDetectorFixed:
+            break;
+        case dtEmpMech:
+            break;
+        default: break;
     }
 }
 

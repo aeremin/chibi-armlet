@@ -119,6 +119,7 @@ int main(void) {
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
         if(EvtMsk & EVTMSK_CLICK) App.OnClick();
-        if(EvtMsk & EVTMSK_PELENG_FOUND) App.OnPelengFound();
+        if(EvtMsk & EVTMSK_PELENG_FOUND) App.OnPelengReceived();
+        if(EvtMsk & EVTMSK_PELENG_LOST)  App.OnPelengatorLost();
     } // while true
 }

@@ -10,6 +10,8 @@
 
 #include "eestore.h"
 #include "rlvl1_defins.h"
+#include "peripheral.h"
+#include "colors_sounds.h"
 
 struct DoseConsts_t {
     int32_t Top;       // Death; top value
