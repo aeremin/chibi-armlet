@@ -201,13 +201,11 @@ void App_t::OnRxTableReady() {
     }
 }
 
+// ==== Pelengator ====
 void FOnPelengatorLost() { chEvtSignalI(App.PThd, EVTMSK_PELENG_LOST); }
 
 void App_t::OnPelengReceived() {
-    int32_t Rssi = dBm2Percent(Radio.PelengRssi);
-    Uart.Printf("Peleng %d\r", Rssi);
-    if(Rssi > RLVL_PELENGATOR)
-        Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
+    Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
 }
 void App_t::OnPelengatorLost() {
     switch(Type) {
@@ -220,6 +218,7 @@ void App_t::OnPelengatorLost() {
     }
 }
 
+// ==== Detector's click ====
 void App_t::OnClick() {
     if(Damage > 0) {
         int32_t r = rand() % (DMG_SND_MAX - 1);

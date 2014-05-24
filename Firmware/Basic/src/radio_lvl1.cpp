@@ -69,12 +69,15 @@ void rLevel1_t::ITask() {
     CC.SetChannel(RCHNL_PELENG);
     RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
     if(RxRslt == OK) {
-        PelengRssi = Rssi;
-        chSysLock();
-        chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
-        chSysUnlock();
-        return; // Get out if pelengator found
-    }
+        int32_t RssiPercent = dBm2Percent(Rssi);
+//        Uart.Printf("Peleng %d\r", RssiPercent);
+        if(RssiPercent > RLVL_PELENGATOR) {
+            chSysLock();
+            chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
+            chSysUnlock();
+            return; // Get out if pelengator found
+        }
+    } // if OK
     // If pelengator not found, listen other channels
     switch(App.Type) {
         case dtNothing: chThdSleepMilliseconds(999); break;

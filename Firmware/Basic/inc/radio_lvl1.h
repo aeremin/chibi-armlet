@@ -17,7 +17,6 @@ class rLevel1_t {
 private:
     rPkt_t PktRx;
 public:
-    int32_t PelengRssi;
     void Init();
     // Inner use
     void ITask();
