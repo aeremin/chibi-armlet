@@ -24,25 +24,35 @@ enum PillType_t {
 };
 
 struct Pill_t {
-    union {
+    union { // Type
         int32_t TypeInt32;
-        PillType_t Type;
+        PillType_t Type;// __attribute__((aligned(4)));    // offset 0
     };
-    union {
+    union {                 // Offset 4
         int32_t DeviceID;
         int32_t DoseAfter;  // Contains dose value after pill application
     };
     union {
         // Cure / drug
         struct {
-            int32_t ChargeCnt;
-            int32_t Value;
-        } __attribute__ ((__packed__));
-        int32_t DoseTop;
-    };
+            int32_t ChargeCnt;  // offset 8
+            int32_t Value;      // offset 12
+        };
+        // Set DoseTop / Diagnostic
+        struct {
+            int32_t DoseTop;        // offset 8
+            int32_t Reserved01;
+        };
+    }; // union
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
+
+// Inner Pill addresses
+#define PILL_TYPE_ADDR      0
+#define PILL_DOSEAFTER_ADDR 4
+#define PILL_CHARGECNT_ADDR 8
+#define PILL_VALUE_ADDR     12
 
 // Data to save in EE and to write to pill
 struct DataToWrite_t {

@@ -53,13 +53,18 @@ enum DeviceType_t {
 // ==== Application class ====
 class App_t {
 private:
+    // Pill
     Pill_t Pill;
     DataToWrite_t Data2Wr;  // for pill flasher
+    inline void IPillHandlerPillFlasher();
+    inline void IPillHandlerUmvos();
+    // Common
     uint8_t ISetID(uint32_t NewID);
     uint8_t ISetType(uint8_t AType);
     Dose_t Dose;
     Eeprom_t EE;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
+    void SaveDoseToPill();
     uint32_t LastTime;
 public:
     uint32_t ID;
@@ -69,7 +74,7 @@ public:
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
     // Radio & damage
     RxTable_t RxTable;
-    uint32_t Damage;
+    int32_t Damage;
     void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
     void Init();
     // Events

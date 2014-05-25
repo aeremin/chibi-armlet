@@ -170,7 +170,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 void App_t::OnRxTableReady() {
     // Radio damage
     Table_t *PTbl = RxTable.PTable;
-    uint32_t NaturalDmg = 1, RadioDmg = 0;
+    int32_t NaturalDmg = 1, RadioDmg = 0;
     RxTable.dBm2PercentAll();
 //    Uart.Printf("Age=%u\r", PTbl->Age());
 //    RxTable.Print();
@@ -195,18 +195,16 @@ void App_t::OnRxTableReady() {
         } // if lvl > min
     } // for
     Damage = NaturalDmg + RadioDmg;
-    if(Type == dtUmvos) {
-        Dose.Increase(Damage, diUsual);
-//        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
-    }
+    if(Type == dtUmvos) Dose.Modify(Damage, diUsual);
 }
 
-// ==== Pelengator ====
+#if 1 // ==== Pelengator ====
 void FOnPelengatorLost() { chEvtSignalI(App.PThd, EVTMSK_PELENG_LOST); }
 
 void App_t::OnPelengReceived() {
     Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
 }
+
 void App_t::OnPelengatorLost() {
     switch(Type) {
         case dtUmvos: Dose.RenewIndication(); break;
@@ -217,6 +215,7 @@ void App_t::OnPelengatorLost() {
         default: break;
     }
 }
+#endif
 
 // ==== Detector's click ====
 void App_t::OnClick() {

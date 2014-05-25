@@ -12,6 +12,7 @@
 #include "rlvl1_defins.h"
 #include "peripheral.h"
 #include "colors_sounds.h"
+#include "cmd_uart.h"
 
 struct DoseConsts_t {
     int32_t Top;       // Death; top value
@@ -77,36 +78,30 @@ public:
         IDose = ADose;
         HealthState_t OldState = State;
         ConvertDoseToState();
-        if(     (DoIndication == diAlwaysIndicate) or
-                ((State != OldState) and (DoIndication == diUsual))
-                )
+        if((DoIndication == diAlwaysIndicate) or
+          ((State != OldState) and (DoIndication == diUsual)))
             RenewIndication();
     }
-    uint32_t Get() { return IDose; }
-    // Amount > 0 => add dose
+    int32_t Get() { return IDose; }
     void Modify(int32_t Amount, DoIndication_t DoIndication) {
         int32_t Dz = IDose;
-
-    }
-
-    void Increase(int32_t Amount, DoIndication_t DoIndication) {
-        int32_t Dz = IDose;
-        // Increase no more than up to near death
-        if(Dz < Consts.RedFast) {
-            if(Amount > (Consts.RedFast - Dz)) Dz = Consts.RedFast;
+        if(Amount >= 0) { // Doze increase
+            // Increase no more than up to near death
+            if(Dz < Consts.RedFast) {
+                if(Amount > (Consts.RedFast - Dz)) Dz = Consts.RedFast;
+                else Dz += Amount;
+            }
+            // Near death, increase no more than 1 at a time
+            else if(Dz < Consts.Top) Dz++;  // After death, no need to increase
+        }
+        else { // Amount < 0, Dose decrease
+            if((- Amount) > Dz) Dz = 0;
             else Dz += Amount;
         }
-        // Near death, increase no more than 1 at a time
-        else if(Dz < Consts.Top) Dz++;  // After death, no need to increase
-//        Uart.Printf("Dz=%u\r", Dz);
         Set(Dz, DoIndication);
+        Uart.Printf("Dz=%d; Dmg=%d\r", IDose, Amount);
     }
-    void Decrease(int32_t Amount, DoIndication_t DoIndication) {
-        int32_t Dz = IDose;
-        if(Amount > Dz) Dz = 0;
-        else Dz -= Amount;
-        Set(Dz, DoIndication);
-    }
+    void Reset() { Modify(MIN_INT32, diNeverIndicate); }
     // Save if changed
     uint8_t Save() {
         int32_t OldDose = 0;
@@ -117,8 +112,8 @@ public:
     }
     // Try load from EEPROM, set 0 if failed
     void Load() {
-        uint32_t FDose = 0;
-        EEStore.Get(&FDose);     // Try to read
+        int32_t FDose = 0;
+        EEStore.Get((uint32_t*)&FDose);     // Try to read
         Set(FDose, diUsual);
     }
 };

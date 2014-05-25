@@ -21,13 +21,16 @@
 #define countof(A)  (sizeof(A)/sizeof(A[0]))
 #endif
 
+// Constants
 #ifndef TRUE
 #define TRUE 1
 #endif
-
 #ifndef FALSE
 #define FALSE 0
 #endif
+#define MAX_INT32       0x7FFFFFFF
+#define MIN_INT32       (-2147483647)
+#define MAX_UINT32      0xFFFFFFFF
 
 // Return values
 #define OK              0
