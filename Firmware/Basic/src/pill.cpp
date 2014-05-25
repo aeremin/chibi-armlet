@@ -63,6 +63,7 @@ void App_t::IPillHandlerUmvos() {
 
         default:
             Uart.Printf("Unknown Pill\r");
+            rslt = FAILURE;
             break;
     } // switch
     // Save DoseAfter
@@ -109,11 +110,15 @@ void App_t::OnPillConnect() {
     int32_t *p = (int32_t*)&Pill;
     for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
     Uart.Printf("\r\n");
-    switch(Type) {
-        case dtUmvos:       IPillHandlerUmvos();       break;
-        case dtPillFlasher: IPillHandlerPillFlasher(); break;
-        default: break;
-    }
+    // Everyone
+    if(Pill.Type == ptSetType) ISetType(Pill.DeviceType);
+    else {
+        switch(Type) {
+            case dtUmvos:       IPillHandlerUmvos();       break;
+            case dtPillFlasher: IPillHandlerPillFlasher(); break;
+            default: break;
+        }
+    } // if set type
 }
 #endif
 
