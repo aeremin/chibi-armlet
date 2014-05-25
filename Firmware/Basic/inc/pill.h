@@ -28,21 +28,18 @@ struct Pill_t {
         int32_t TypeInt32;
         PillType_t Type;// __attribute__((aligned(4)));    // offset 0
     };
-    union {                 // Offset 4
-        int32_t DeviceID;
-        int32_t DoseAfter;  // Contains dose value after pill application
-    };
+    // Contains dose value after pill application
+    int32_t DoseAfter; // Offset 4
     union {
+        int32_t DeviceID;       // offset 8
         // Cure / drug
         struct {
             int32_t ChargeCnt;  // offset 8
             int32_t Value;      // offset 12
         };
         // Set DoseTop / Diagnostic
-        struct {
-            int32_t DoseTop;        // offset 8
-            int32_t Reserved01;
-        };
+        int32_t DoseTop;        // offset 8
+        int32_t DeviceType;     // offset 8
     }; // union
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
@@ -52,6 +49,7 @@ struct Pill_t {
 #define PILL_TYPE_ADDR      0
 #define PILL_DOSEAFTER_ADDR 4
 #define PILL_CHARGECNT_ADDR 8
+#define PILL_DOSETOP_ADDR   8
 #define PILL_VALUE_ADDR     12
 
 // Data to save in EE and to write to pill

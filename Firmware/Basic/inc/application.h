@@ -64,7 +64,6 @@ private:
     Dose_t Dose;
     Eeprom_t EE;
     void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
-    void SaveDoseToPill();
     uint32_t LastTime;
 public:
     uint32_t ID;

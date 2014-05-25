@@ -159,7 +159,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         }
         else Uart.Ack(CMD_ERROR);
     }
-    else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Get());
+    else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Value);
 #endif // Dose
 
     else if(*PCmd->Name == '#') Uart.Ack(CMD_UNKNOWN);  // reply only #-started stuff

@@ -35,16 +35,16 @@ enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 
 class Dose_t {
 private:
-    int32_t IDose;
     EEStore_t EEStore;   // EEPROM storage for dose
     void ConvertDoseToState() {
-        if     (IDose >= Consts.Top)     State = hsDeath;
-        else if(IDose >= Consts.RedFast) State = hsRedFast;
-        else if(IDose >= Consts.Red)     State = hsRedSlow;
-        else if(IDose >= Consts.Yellow)  State = hsYellow;
+        if     (Value >= Consts.Top)     State = hsDeath;
+        else if(Value >= Consts.RedFast) State = hsRedFast;
+        else if(Value >= Consts.Red)     State = hsRedSlow;
+        else if(Value >= Consts.Yellow)  State = hsYellow;
         else                             State = hsGreen;
     }
 public:
+    int32_t Value;
     DoseConsts_t Consts;
     HealthState_t State;
     void RenewIndication() {
@@ -75,16 +75,15 @@ public:
         } // switch
     }
     void Set(int32_t ADose, DoIndication_t DoIndication) {
-        IDose = ADose;
+        Value = ADose;
         HealthState_t OldState = State;
         ConvertDoseToState();
         if((DoIndication == diAlwaysIndicate) or
           ((State != OldState) and (DoIndication == diUsual)))
             RenewIndication();
     }
-    int32_t Get() { return IDose; }
     void Modify(int32_t Amount, DoIndication_t DoIndication) {
-        int32_t Dz = IDose;
+        int32_t Dz = Value;
         if(Amount >= 0) { // Doze increase
             // Increase no more than up to near death
             if(Dz < Consts.RedFast) {
@@ -99,16 +98,16 @@ public:
             else Dz += Amount;
         }
         Set(Dz, DoIndication);
-        Uart.Printf("Dz=%d; Dmg=%d\r", IDose, Amount);
+        Uart.Printf("Dz=%d; Dmg=%d\r", Value, Amount);
     }
     void Reset() { Modify(MIN_INT32, diNeverIndicate); }
     // Save if changed
     uint8_t Save() {
-        int32_t OldDose = 0;
-        if(EEStore.Get((uint32_t*)&OldDose) == OK) {
-            if(OldDose == IDose) return OK;
+        int32_t OldValue = 0;
+        if(EEStore.Get((uint32_t*)&OldValue) == OK) {
+            if(OldValue == Value) return OK;
         }
-        return EEStore.Put((uint32_t*)&IDose);
+        return EEStore.Put((uint32_t*)&Value);
     }
     // Try load from EEPROM, set 0 if failed
     void Load() {

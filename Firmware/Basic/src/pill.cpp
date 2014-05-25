@@ -8,14 +8,9 @@
 #include "application.h"
 #include "pill_mgr.h"
 
-void App_t::SaveDoseToPill() {
-    int32_t Dz = Dose.Get();
-    PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dz, 4);
-}
-
 #if 1 // ================================ On Connect ===========================
 void App_t::IPillHandlerUmvos() {
-    uint8_t rslt __attribute__((unused));
+    uint8_t rslt = OK;
     switch(Pill.Type) {
 #if 0 // ==== Set ID ====
         case PILL_TYPEID_SET_ID:
@@ -43,54 +38,46 @@ void App_t::IPillHandlerUmvos() {
 #endif
         // ==== Cure ====
         case ptCure:
-            // Check charge count, decrease it and write it back
-            if(Pill.ChargeCnt > 0) {
+            if(Pill.ChargeCnt > 0) {    // Check charge count, decrease it and write it back
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
+                if(rslt == OK) {    // Modify dose if not dead
+                    if(Dose.State != hsDeath) Dose.Modify(Pill.Value, diNeverIndicate);
+                }
             }
-            else rslt = FAILURE; // Discharged pill
-            if(rslt == OK) {
-                // Modify dose if not dead
-                if(Dose.State != hsDeath) Dose.Modify(Pill.Value, diNeverIndicate);
-                Beeper.Beep(BeepPillOk);
-                Led.StartBlink(LedPillCureOk);
-            }
-            else {
-                Beeper.Beep(BeepPillBad);
-                Led.StartBlink(LedPillBad);
-            }
-            SaveDoseToPill();
-            chThdSleepMilliseconds(1008);   // Let indication to complete
-            Dose.RenewIndication();
+            else rslt = FAILURE;
             break;
 
         // ==== Panacea ====
-        case ptPanacea:
-            Dose.Reset();
-            Beeper.Beep(BeepPillOk);
-            Led.StartBlink(LedPillCureOk);
-            SaveDoseToPill();               // will be always zero, but simplifies pill parsing
-            chThdSleepMilliseconds(1008);   // Let indication to complete
-            Dose.RenewIndication();
-            break;
+        case ptPanacea: Dose.Reset(); break;
 
         // ==== Set DoseTop ====
         case ptSetDoseTop:
             Dose.Consts.Setup(Pill.DoseTop);
             SaveDoseTop();
             Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-            Led.StartBlink(LedPillSetupOk);
-            Beeper.Beep(BeepPillOk);
-            chThdSleepMilliseconds(1008);
             break;
 
-
+        // ==== Diagnostic ====
+        case ptDiagnostic: PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSETOP_ADDR), &Dose.Consts.Top, 4); break;
 
         default:
             Uart.Printf("Unknown Pill\r");
-            Beeper.Beep(BeepPillBad);
             break;
     } // switch
+    // Save DoseAfter
+    PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
+    // ==== Indication ====
+    if(rslt == OK) {
+        Beeper.Beep(BeepPillOk);
+        Led.StartBlink(LedPillCureOk);
+    }
+    else {
+        Beeper.Beep(BeepPillBad);
+        Led.StartBlink(LedPillBad);
+    }
+    chThdSleepMilliseconds(1008);   // Let indication to complete
+    Dose.RenewIndication();
 }
 
 void App_t::IPillHandlerPillFlasher() {
