@@ -41,11 +41,23 @@ void App_t::IPillHandlerUmvos() {
             if(Pill.ChargeCnt > 0) {    // Check charge count, decrease it and write it back
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
-                if(rslt == OK) {    // Modify dose if not dead
-                    if(Dose.State != hsDeath) Dose.Modify(Pill.Value, diNeverIndicate);
+                if((rslt == OK) and (Dose.State != hsDeath)) {    // Modify dose if not dead
+                    Dose.Modify(Pill.Value, diNeverIndicate);
                 }
             }
             else rslt = FAILURE;
+            break;
+
+        // ==== Drug ====
+        case ptDrug:
+            if(Pill.ChargeCnt > 0) {
+                Pill.ChargeCnt--;
+                rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
+                if(rslt == OK) {
+                    if(Dose.State != hsDeath) Dose.Modify(Pill.Value, diNeverIndicate);
+                }
+
+            }
             break;
 
         // ==== Panacea ====

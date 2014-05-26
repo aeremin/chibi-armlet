@@ -19,7 +19,6 @@ enum PillType_t {
     ptEmpBreaker = 31,
     ptEmpRepair = 32,
     ptElectrostation = 33,
-    ptBattery = 34,
     ptSetType = 99,
 };
 
@@ -40,7 +39,9 @@ struct Pill_t {
         // Set DoseTop / Diagnostic
         int32_t DoseTop;        // offset 8
         int32_t DeviceType;     // offset 8
+        int32_t DeviceCapacity; // offset 8
     }; // union
+    int32_t Time;
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
