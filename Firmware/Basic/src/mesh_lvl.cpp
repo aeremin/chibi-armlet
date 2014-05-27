@@ -48,16 +48,15 @@ static void MeshPktBucket(void *arg) {
 }
 #endif
 
-void Mesh_t::Init(uint32_t ID) {
-    if(ID == 0) {
+void Mesh_t::Init() {
+    if(App.ID == 0) {
         Uart.Printf("Msh: WrongID\r");
         return;
     }
     // Init Thread
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
     IPBktHanlder = chThdCreateStatic(waMeshPktBucket, sizeof(waMeshPktBucket), NORMALPRIO, (tfunc_t)MeshPktBucket, NULL);
-    SelfID = (uint8_t)ID;
-    SleepTime = ((SelfID-1)*SLOT_TIME);
+    UpdateSleepTime();
     MsgBox.Init();
     IGenerateRandomTable(RND_TBL_BUFFER_SZ);
 
@@ -68,9 +67,9 @@ void Mesh_t::Init(uint32_t ID) {
     CycleTmr.EnableIrqOnUpdate();
     CycleTmr.Enable();
     nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
-    Uart.Printf("Msh Init ID=%u\r", SelfID);
+    Uart.Printf("Msh Init ID=%u\r", App.ID);
 
-    IResetTimeAge(SelfID);
+    IResetTimeAge(App.ID);
     IPktPutCycle(AbsCycle);
     PreparePktPayload();
     IsInit = true;
@@ -156,7 +155,7 @@ void Mesh_t::IUpdateTimer() {
 }
 
 void Mesh_t::PreparePktPayload() {
-    PktTx.MeshData.SelfID = SelfID;
+    PktTx.MeshData.SelfID = App.ID;
     PayloadString_t *PlStr;
     uint16_t NextID = 0;
     NextID = Payload.GetNextInfoID();

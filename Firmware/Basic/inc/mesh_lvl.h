@@ -16,6 +16,7 @@
 
 #include "mesh_params.h"
 #include "payload.h"
+#include "application.h"
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
 #define CIRC_PKT_BUF_SZ     21 // MAX_ABONENTS FIXME: 5 size set to debug only
@@ -54,7 +55,7 @@ private:
     uint32_t CurrCycle;
     uint32_t RxCycleN;
     uint32_t SleepTime;
-    uint16_t SelfID;
+//    uint16_t SelfID;
 //    uint8_t NeedToSendTable;
 
     // Synchronization
@@ -80,7 +81,7 @@ private:
     uint16_t IGetTimeOwner()                        { return PktTx.MeshData.TimeOwnerID; }
     void ITimeAgeCounter() {
         if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) PktTx.MeshData.TimeAge++;
-        else IResetTimeAge(SelfID);
+        else IResetTimeAge(App.ID);
     }
     void IResetTimeAge(uint16_t NewID)              { PktTx.MeshData.TimeAge = 0; PktTx.MeshData.TimeOwnerID = NewID; }
     uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
@@ -95,7 +96,7 @@ public:
                 RxCycleN(*PRndTable),
                 SleepTime(0),
 //                NeedUpdateTime(false),
-                SelfID(0),
+//                SelfID(0),
                 GetPrimaryPkt(false),
                 PriorityID(0),
                 NewCycleN(0),
@@ -110,12 +111,13 @@ public:
     Thread *IPThread, *IPBktHanlder;
     bool IsInit;
 
-    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
+//    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
+    void UpdateSleepTime()              { SleepTime = ((App.ID-1)*SLOT_TIME); }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
     void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; INewRxCycle(); }
-    void Init(uint32_t ID);
+    void Init();
 
     MeshPkt_t PktRx, PktTx;
     MsgBox_t<mshMsg_t, MESH_PKT_SZ> MsgBox;

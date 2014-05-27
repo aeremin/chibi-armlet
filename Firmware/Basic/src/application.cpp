@@ -152,7 +152,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     else if(PCmd->NameIs("#SetID")) {
         if(PCmd->TryConvertTokenToNumber(&dw32) == OK) {  // Next token is number
             b = ISetID(dw32);
-            Mesh.NewSelfID(dw32);
+            Mesh.UpdateSleepTime();
             Uart.Ack(b);
         }
         else Uart.Ack(CMD_ERROR);
