@@ -70,6 +70,7 @@ private:
     void INewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
     void IIncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; INewRxCycle(); } }
     void IGenerateRandomTable(uint32_t Size) {
+        srand(App.ID);
         for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
             RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
         }
