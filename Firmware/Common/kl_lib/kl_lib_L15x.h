@@ -80,7 +80,7 @@ typedef void (*ftVoidVoid)(void);
 #define DMA_PRIORITY_HIGH       STM32_DMA_CR_PL(0b10)
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
 
-// Big-Endian Writing in array
+// Different conversions
 class Convert {
 public:
     static void U16ToArrAsBE(uint8_t *PArr, uint16_t N) {
