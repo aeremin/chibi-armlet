@@ -13,7 +13,7 @@
 Payload_t Payload;
 
 
-uint8_t Payload_t::WriteInfo(uint16_t ID, int8_t RSSI, uint32_t CurrentTimeStamp, PayloadString_t *Ptr) {
+uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrentTimeStamp, PayloadString_t *Ptr) {
     uint8_t Rslt = FAILURE;
 //    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
     Ptr->Hops += 1;
