@@ -33,6 +33,33 @@ struct DoseConsts_t {
 enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 
+#if 1 // ==== Drug ====
+class Drug_t {
+private:
+    uint32_t ITimeLeft_ms;
+    int32_t IValue;
+public:
+    void Set(int32_t AValue, int32_t ATime_s) {
+        chSysLock();
+        IValue = AValue;
+        ITimeLeft_ms = (uint32_t)(ATime_s * 1000);  // convert seconds to milliseconds
+    }
+    bool IsActive() { return (IValue > 0); }
+    void ModifyDamage(int32_t &Damage, uint32_t TimeElapsed_ms) {
+        if(IValue <= 0) return; // Not active
+        // Process damage
+        IValue -= Damage;
+        if(IValue < 0) Damage = -IValue;   // Drug have come to the end
+        else {
+            Damage = 0;
+            // Process time
+            if(TimeElapsed_ms > ITimeLeft_ms) IValue = 0;   // Drug have come to the end
+            else ITimeLeft_ms -= TimeElapsed_ms;
+        } // if value < 0
+    } // Utilize
+};
+#endif
+
 class Dose_t {
 private:
     EEStore_t EEStore;   // EEPROM storage for dose
@@ -47,6 +74,7 @@ public:
     int32_t Value;
     DoseConsts_t Consts;
     HealthState_t State;
+    Drug_t Drug;
     void RenewIndication() {
         Beeper.Stop();
         Led.StopBlink();
@@ -74,6 +102,7 @@ public:
             default: break;
         } // switch
     }
+#if 1 // ==== Dose set/modify/reset ====
     void Set(int32_t ADose, DoIndication_t DoIndication) {
         Value = ADose;
         HealthState_t OldState = State;
@@ -101,6 +130,9 @@ public:
         Uart.Printf("Dz=%d; Dmg=%d\r", Value, Amount);
     }
     void Reset() { Modify(MIN_INT32, diNeverIndicate); }
+#endif
+
+#if 1 // ==== Load/Save ====
     // Save if changed
     uint8_t Save() {
         int32_t OldValue = 0;
@@ -115,6 +147,7 @@ public:
         EEStore.Get((uint32_t*)&FDose);     // Try to read
         Set(FDose, diUsual);
     }
+#endif
 };
 
 #endif /* DOSE_H_ */

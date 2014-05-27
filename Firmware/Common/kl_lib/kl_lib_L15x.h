@@ -134,7 +134,7 @@ void __attribute__ ((weak)) _init(void)  {}
 }
 #endif
 
-#if 1 // =========================== Time ======================================
+#if 0 // =========================== Time ======================================
 static inline bool TimeElapsed(systime_t *PSince, uint32_t Delay_ms) {
     chSysLock();
     bool Rslt = (systime_t)(chTimeNow() - *PSince) > MS2ST(Delay_ms);

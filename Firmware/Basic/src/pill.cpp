@@ -12,30 +12,7 @@
 void App_t::IPillHandlerUmvos() {
     uint8_t rslt = OK;
     switch(Pill.Type) {
-#if 0 // ==== Set ID ====
-        case PILL_TYPEID_SET_ID:
-            if(ID == 0) {
-                Pill.DeviceID++;
-                rslt = PillMgr.Write(PILL_I2C_ADDR, &Pill, (sizeof(Pill.TypeID) + sizeof(Pill.DeviceID)));
-                if(rslt == OK) {
-                    ISetID(Pill.DeviceID-1);
-                    Led.StartBlink(LedPillIdSet);
-                    Beeper.Beep(BeepPillOk);
-                }
-                else {
-                    Uart.Printf("Pill Write Error\r");
-                    Led.StartBlink(LedPillIdNotSet);
-                    Beeper.Beep(BeepPillBad);
-                }
-            }
-            else {
-                Uart.Printf("ID already set: %u\r", ID);
-                Led.StartBlink(LedPillIdNotSet);
-                Beeper.Beep(BeepPillBad);
-            }
-            chThdSleepMilliseconds(1800);
-            break;
-#endif
+
         // ==== Cure ====
         case ptCure:
             if(Pill.ChargeCnt > 0) {    // Check charge count, decrease it and write it back
@@ -54,14 +31,17 @@ void App_t::IPillHandlerUmvos() {
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
                 if(rslt == OK) {
-                    if(Dose.State != hsDeath) Dose.Modify(Pill.Value, diNeverIndicate);
+                    if(Dose.State != hsDeath) Dose.Drug.Set(Pill.Value, Pill.Time_s);
                 }
-
             }
+            else rslt = FAILURE;
             break;
 
         // ==== Panacea ====
-        case ptPanacea: Dose.Reset(); break;
+        case ptPanacea:
+            Dose.Reset();
+            Dose.Drug.Set(0, 0); // Reset drug
+            break;
 
         // ==== Set DoseTop ====
         case ptSetDoseTop:
@@ -114,6 +94,7 @@ void App_t::IPillHandlerPillFlasher() {
     }
 }
 
+// Everybody starts here
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
     // Print pill

@@ -24,11 +24,11 @@ enum PillType_t {
 
 struct Pill_t {
     union { // Type
-        int32_t TypeInt32;
+        int32_t TypeInt32;      // offset 0
         PillType_t Type;// __attribute__((aligned(4)));    // offset 0
     };
     // Contains dose value after pill application
-    int32_t DoseAfter; // Offset 4
+    int32_t DoseAfter;          // Offset 4
     union {
         int32_t DeviceID;       // offset 8
         // Cure / drug
@@ -41,7 +41,7 @@ struct Pill_t {
         int32_t DeviceType;     // offset 8
         int32_t DeviceCapacity; // offset 8
     }; // union
-    int32_t Time;
+    int32_t Time_s;             // offset 16
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))

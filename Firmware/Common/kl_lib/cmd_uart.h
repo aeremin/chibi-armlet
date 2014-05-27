@@ -36,8 +36,8 @@
                             STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */
 
 #if UART_RX_ENABLED // ==== RX ====
-#define UART_RXBUF_SZ       72 // unprocessed bytes
-#define UART_CMD_BUF_SZ     54 // payload bytes
+#define UART_RXBUF_SZ       108 // unprocessed bytes
+#define UART_CMD_BUF_SZ     72 // payload bytes
 #define UART_RX_PIN         10
 #define UART_RX_REG         UART->DR
 
