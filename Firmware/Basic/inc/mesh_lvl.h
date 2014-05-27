@@ -55,6 +55,7 @@ private:
     uint32_t CurrCycle;
     uint32_t RxCycleN;
     uint32_t SleepTime;
+    int8_t PreliminaryRSSI;
 //    uint16_t SelfID;
 //    uint8_t NeedToSendTable;
 
@@ -97,6 +98,7 @@ public:
                 SleepTime(0),
 //                NeedUpdateTime(false),
 //                SelfID(0),
+                PreliminaryRSSI(STATIONARY_MIN_LEVEL),
                 GetPrimaryPkt(false),
                 PriorityID(0),
                 NewCycleN(0),

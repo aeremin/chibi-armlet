@@ -117,16 +117,21 @@ void Mesh_t::IPktHandler(){
     do {
         PktBucket.ReadPkt(&MeshMsg);
         MeshPayload_t *pMP = &MeshMsg.MeshPayload;
+
         if(PriorityID > pMP->TimeOwnerID) GetPrimaryPkt = true;
-        else if(PriorityID == pMP->TimeOwnerID) {
-            if(IGetTimeAge() > pMP->TimeAge) {  /* compare TimeAge */
-                GetPrimaryPkt = true;                   /* need to update */
-            }
+
+        else if(PriorityID == pMP->TimeOwnerID) {  /* compare TimeAge */
+            if(IGetTimeAge() > pMP->TimeAge) GetPrimaryPkt = true;  /* need to update */
         }
 
         if(pMP->SelfID < STATIONARY_ID) {
-            Uart.Printf("Hear stationary deviece\r");
-        }
+            Uart.Printf("Hear %d, %d\r", MeshMsg.RSSI, PreliminaryRSSI);
+            if(MeshMsg.RSSI > PreliminaryRSSI) {
+                PreliminaryRSSI = MeshMsg.RSSI;
+                Payload.NewLocation(pMP->SelfID);
+                Uart.Printf("Stationary device %d\r", PreliminaryRSSI);
+            }
+        };
 
         if(GetPrimaryPkt) {
             CycleTmr.Disable();
@@ -139,6 +144,7 @@ void Mesh_t::IPktHandler(){
 }
 
 void Mesh_t::IUpdateTimer() {
+    PreliminaryRSSI = STATIONARY_MIN_LEVEL;
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
         if(*PTimeToWakeUp < timeNow) {
@@ -149,7 +155,8 @@ void Mesh_t::IUpdateTimer() {
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
         GetPrimaryPkt = false;
-        chThdSleepUntil(*PTimeToWakeUp); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
+        Uart.Printf("Update Timer\r");
+        if(*PTimeToWakeUp > chTimeNow()) chThdSleepUntil(*PTimeToWakeUp); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
         CycleTmr.Enable();
     }
 }

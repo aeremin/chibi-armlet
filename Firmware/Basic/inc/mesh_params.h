@@ -15,7 +15,8 @@
  */
 
 //#define SELF_MESH_ID        1
-#define STATIONARY_ID       10
+#define STATIONARY_ID           10
+#define STATIONARY_MIN_LEVEL    -120
 
 
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
