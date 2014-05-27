@@ -48,20 +48,19 @@ void rLevel1_t::ITask() {
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
-
-//                Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
-//                        Mesh.PktTx.MeshData.SelfID,
-//                        Mesh.PktTx.MeshData.CycleN,
-//                        Mesh.PktTx.MeshData.TimeOwnerID,
-//                        Mesh.PktTx.MeshData.TimeAge,
-//                        Mesh.PktTx.PayloadID,
-//                        Mesh.PktTx.Payload.Hops,
-//                        Mesh.PktTx.Payload.Timestamp,
-//                        Mesh.PktTx.Payload.TimeDiff,
-//                        Mesh.PktTx.Payload.Reason,
-//                        Mesh.PktTx.Payload.Location,
-//                        Mesh.PktTx.Payload.Emotion
-//                        );
+//                    Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
+//                            Mesh.PktTx.MeshData.SelfID,
+//                            Mesh.PktTx.MeshData.CycleN,
+//                            Mesh.PktTx.MeshData.TimeOwnerID,
+//                            Mesh.PktTx.MeshData.TimeAge,
+//                            Mesh.PktTx.PayloadID,
+//                            Mesh.PktTx.Payload.Hops,
+//                            Mesh.PktTx.Payload.Timestamp,
+//                            Mesh.PktTx.Payload.TimeDiff,
+//                            Mesh.PktTx.Payload.Reason,
+//                            Mesh.PktTx.Payload.Location,
+//                            Mesh.PktTx.Payload.Emotion
+//                            );
 //                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
                 } // Mesh Tx
             } // Mesh Init
@@ -306,6 +305,7 @@ void rLevel1_t::IMeshRx() {
 //            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
             Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
             Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+
         } // Pkt Ok
         Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);

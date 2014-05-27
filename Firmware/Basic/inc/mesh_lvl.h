@@ -68,12 +68,16 @@ private:
     Timer_t CycleTmr;
     CircBufPkt_t PktBucket;
     void INewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
-    void IIncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; INewRxCycle(); } }
+    void IIncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; INewRxCycle(); }  }
     void IGenerateRandomTable(uint32_t Size) {
         srand(App.ID);
-        for(uint8_t i=0; i<RND_TBL_BUFFER_SZ; i++) {
-            RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES);
+        RndTableBuf[0] = 0;
+        Uart.Printf("%u ", RndTableBuf[0]);
+        for(uint8_t i=1; i<RND_TBL_BUFFER_SZ; i++) {
+            RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES-1);
+            Uart.Printf("%u ", RndTableBuf[i]);
         }
+        Uart.Printf("\r");
     }
 
     void INewCycle();
@@ -119,7 +123,14 @@ public:
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
-    void SetCurrCycleN(uint32_t ANew)   { AbsCycle = ANew; CurrCycle = 0; INewRxCycle(); }
+    int32_t SetCurrCycleN(uint32_t ANew)   {
+        int32_t Diff = AbsCycle;
+        AbsCycle = ANew;
+        CurrCycle = 0;
+        INewRxCycle();
+        Diff = AbsCycle - Diff;
+        return Diff;
+    }
     void Init();
 
     MeshPkt_t PktRx, PktTx;

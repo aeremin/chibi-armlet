@@ -24,7 +24,7 @@ public:
     Payload_t(): PStr(InfoBuf),
                  PNext(InfoBuf)   {}
     PayloadString_t *PStr, *PNext;
-    uint8_t WriteInfo(uint16_t ID, uint32_t CurrentTimeStamp, PayloadString_t *Ptr);
+    uint8_t WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_t *Ptr);
     void WritePayload(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion);
     void NewLocation(uint32_t NewLoc)       { InfoBuf[App.ID].Location = NewLoc;    }
     void NewReason(uint32_t NewReason)      { InfoBuf[App.ID].Reason = NewReason;   }

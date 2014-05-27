@@ -53,12 +53,18 @@ void Mesh_t::Init() {
         Uart.Printf("Msh: WrongID\r");
         return;
     }
-    // Init Thread
-    IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
     IPBktHanlder = chThdCreateStatic(waMeshPktBucket, sizeof(waMeshPktBucket), NORMALPRIO, (tfunc_t)MeshPktBucket, NULL);
+
     UpdateSleepTime();
     MsgBox.Init();
     IGenerateRandomTable(RND_TBL_BUFFER_SZ);
+
+    IResetTimeAge(App.ID);
+    IPktPutCycle(AbsCycle);
+    PreparePktPayload();
+
+    // Init Thread
+    IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
 
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetCounterFreq(1000);
@@ -68,10 +74,6 @@ void Mesh_t::Init() {
     CycleTmr.Enable();
     nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
     Uart.Printf("Msh Init ID=%u\r", App.ID);
-
-    IResetTimeAge(App.ID);
-    IPktPutCycle(AbsCycle);
-    PreparePktPayload();
     IsInit = true;
 }
 
@@ -86,11 +88,12 @@ void Mesh_t::ITask() {
 #if 1 // ==== Inner functions ====
 
 void Mesh_t::INewCycle() {
-//    Uart.Printf("i,%u, t=%u\r", AbsCycle, chTimeNow());
+//    Uart.Printf("i,%u, t=%u, Rx=%u\r", AbsCycle, chTimeNow(), RxCycleN);
 //    Beeper.Beep(ShortBeep);
     IIncCurrCycle();
     ITimeAgeCounter();
     Payload.UpdateSelf();  /* Update Self Payload */
+    Uart.Printf("Curr %u, Rx=%u\r", CurrCycle, RxCycleN);
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
@@ -125,11 +128,11 @@ void Mesh_t::IPktHandler(){
         }
 
         if(pMP->SelfID < STATIONARY_ID) {
-            Uart.Printf("Hear %d, %d\r", MeshMsg.RSSI, PreliminaryRSSI);
+            Uart.Printf("Hear %d, %d\r\n", MeshMsg.RSSI, PreliminaryRSSI);
             if(MeshMsg.RSSI > PreliminaryRSSI) {
                 PreliminaryRSSI = MeshMsg.RSSI;
                 Payload.NewLocation(pMP->SelfID);
-                Uart.Printf("Stationary device %d\r", PreliminaryRSSI);
+                Uart.Printf("Stationary device %d\r\n", PreliminaryRSSI);
             }
         };
 

@@ -13,15 +13,17 @@
 Payload_t Payload;
 
 
-uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrentTimeStamp, PayloadString_t *Ptr) {
+uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_t *Ptr) {
     uint8_t Rslt = FAILURE;
 //    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
+    if(ID == App.ID) return Rslt;
     Ptr->Hops += 1;
-    Ptr->TimeDiff =  CurrentTimeStamp - Ptr->Timestamp;
-    Ptr->Timestamp = CurrentTimeStamp;
+    Uart.Printf("%d, %d\r\n", (Ptr->Timestamp), CurrSelfCycle);
+    Ptr->TimeDiff =  (Ptr->Timestamp) - CurrSelfCycle;
+    Ptr->Timestamp = CurrSelfCycle;
     InfoBuf[ID] = *Ptr;
 //    }
-    Console_Send_Info(ID, &InfoBuf[ID]);
+//    Console_Send_Info(ID, &InfoBuf[ID]);
     return Rslt;
 }
 
