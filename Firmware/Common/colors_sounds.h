@@ -32,39 +32,6 @@ const Color_t ClrDevType[] = {
         clWhite,    // dtPelengator
         clDimBlue,  // dtPillFlasher
 };
-
-// Table of colors depending on type
-#define DEVICETYPE_BLINK_T_MS   999
-const LedChunk_t TypeColorTbl[] = {
-        {ClrDevType[ 0], DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
-        {ClrDevType[ 1], DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
-        {ClrDevType[ 2], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
-        {ClrDevType[ 3], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
-        {ClrDevType[ 4], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
-        {ClrDevType[ 5], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
-        {ClrDevType[ 6], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
-        {ClrDevType[ 7], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
-        {ClrDevType[ 8], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
-        {ClrDevType[ 9], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
-        {ClrDevType[10], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
-        {ClrDevType[11], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
-};
-
-#define DEVICETYPE_PELENG_T_MS   9999
-const LedChunk_t TypeColorTblPeleng[] = {
-        {ClrDevType[ 0], DEVICETYPE_PELENG_T_MS, ckStop}, // dtNothing
-        {ClrDevType[ 1], DEVICETYPE_PELENG_T_MS, ckStop}, // dtUmvos
-        {ClrDevType[ 2], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraClean
-        {ClrDevType[ 3], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraWeak
-        {ClrDevType[ 4], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraStrong
-        {ClrDevType[ 5], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraLethal
-        {ClrDevType[ 6], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorMobile
-        {ClrDevType[ 7], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorFixed
-        {ClrDevType[ 8], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpMech
-        {ClrDevType[ 9], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpGrenade
-        {ClrDevType[10], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPelengator
-        {ClrDevType[11], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPillFlasher
-};
 #endif
 
 // Pill

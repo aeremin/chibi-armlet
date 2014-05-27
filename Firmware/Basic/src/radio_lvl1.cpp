@@ -29,88 +29,9 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-//#define TX
+#define TX
 //#define LED_RX
 void rLevel1_t::ITask() {
-#if 1 // ======== TX cycle ========
-    switch(App.Type) {
-        case dtLustraClean:
-        case dtLustraWeak:
-        case dtLustraStrong:
-        case dtLustraLethal:
-            // Setup channel, do nothing if bad ID
-            if((App.ID >= LUSTRA_MIN_ID) and (App.ID <= LUSTRA_MAX_ID)) {
-                CC.SetChannel(LUSTRA_ID_TO_RCHNL(App.ID));
-                // Transmit corresponding pkt
-                uint8_t Indx = App.Type - dtLustraClean;
-                CC.TransmitSync((void*)&PktLustra[Indx]);
-            }
-            else {
-                Led.StartBlink(LedBadID);
-                chThdSleepMilliseconds(999);
-                return;
-            }
-            break;
-
-        case dtPelengator:
-            CC.SetChannel(RCHNL_PELENG);
-            for(uint8_t i=0; i<PELENG_TX_CNT; i++) CC.TransmitSync((void*)&PktPelengator);
-            break;
-
-        default: break;
-    } // switch
-#endif
-
-#if 1 // ======== RX cycle ========
-    int8_t Rssi;
-    uint8_t RxRslt = FAILURE;
-    uint32_t TimeElapsed;
-    // Everyone listen to pelengator
-    CC.SetChannel(RCHNL_PELENG);
-    RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
-    if(RxRslt == OK) {
-        int32_t RssiPercent = dBm2Percent(Rssi);
-//        Uart.Printf("Peleng %d\r", RssiPercent);
-        if(RssiPercent > RLVL_PELENGATOR) {
-            chSysLock();
-            chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
-            chSysUnlock();
-            return; // Get out if pelengator found
-        }
-    } // if OK
-    // If pelengator not found, listen other channels
-    switch(App.Type) {
-        case dtNothing: chThdSleepMilliseconds(999); break;
-
-        case dtUmvos:
-        case dtDetectorMobile:
-        case dtDetectorFixed:
-            // Supercycle
-            for(uint32_t j=0; j<CYCLE_CNT; j++) {
-                // Iterate channels
-                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
-                    CC.SetChannel(i);
-                    RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
-                    if(RxRslt == OK) {
-//                            Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
-                        App.RxTable.PutPkt(i, &PktRx, Rssi);
-                    }
-                } // for i
-            } // for j
-            // Supercycle completed, switch table
-            TimeElapsed = App.RxTable.PWriteTbl->Age();
-            if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
-            // ...and inform application
-            chSysLock();
-            App.RxTable.SwitchTableI();
-            chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
-            chSysUnlock();
-            break;
-
-        default: break;
-    } // switch
-#endif // RX
-
 #ifdef TX
         // Transmit
         DBG1_SET();

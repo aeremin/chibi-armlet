@@ -62,7 +62,7 @@ void CmdUart_t::CompleteCmd() {
     PCmdWrite = (PCmdWrite == &ICmd[0])? &ICmd[1] : &ICmd[0];
     PCmdWrite->Cnt = 0;
     chSysUnlock();
-    App.OnUartCmd(PCmdRead);
+//    App.OnUartCmd(PCmdRead);
 }
 #endif
 

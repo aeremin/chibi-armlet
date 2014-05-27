@@ -15,7 +15,7 @@
 
 class rLevel1_t {
 private:
-    rPkt_t PktRx;
+    rPkt_t PktRx, PktTx;
 public:
     void Init();
     // Inner use
