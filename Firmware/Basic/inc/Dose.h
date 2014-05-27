@@ -43,6 +43,7 @@ public:
         chSysLock();
         IValue = AValue;
         ITimeLeft_ms = (uint32_t)(ATime_s * 1000);  // convert seconds to milliseconds
+        chSysUnlock();
     }
     bool IsActive() { return (IValue > 0); }
     void ModifyDamage(int32_t &Damage, uint32_t TimeElapsed_ms) {
