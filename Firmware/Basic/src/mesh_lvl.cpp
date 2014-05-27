@@ -117,17 +117,22 @@ void Mesh_t::IPktHandler(){
     PriorityID = IGetTimeOwner();
     do {
         PktBucket.ReadPkt(&MeshMsg);
-        if(PriorityID > MeshMsg.MeshPayload.TimeOwnerID) GetPrimaryPkt = true;
-        else if(PriorityID == MeshMsg.MeshPayload.TimeOwnerID) {
-            if(IGetTimeAge() > MeshMsg.MeshPayload.TimeAge) {  /* compare TimeAge */
+        MeshPayload_t *pMP = &MeshMsg.MeshPayload;
+        if(PriorityID > pMP->TimeOwnerID) GetPrimaryPkt = true;
+        else if(PriorityID == pMP->TimeOwnerID) {
+            if(IGetTimeAge() > pMP->TimeAge) {  /* compare TimeAge */
                 GetPrimaryPkt = true;                   /* need to update */
             }
         }
 
+        if(pMP->SelfID < STATIONARY_ID) {
+            Uart.Printf("Hear stationary deviece\r");
+        }
+
         if(GetPrimaryPkt) {
             CycleTmr.Disable();
-            *PNewCycleN = MeshMsg.MeshPayload.CycleN + 1;
-            PriorityID = MeshMsg.MeshPayload.TimeOwnerID;
+            *PNewCycleN = pMP->CycleN + 1;
+            PriorityID = pMP->TimeOwnerID;
             IResetTimeAge(PriorityID);
             *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
