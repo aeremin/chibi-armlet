@@ -7,6 +7,7 @@
 
 #include "application.h"
 #include "pill_mgr.h"
+#include "indication.h"
 
 #if 1 // ================================ On Connect ===========================
 void App_t::IPillHandlerUmvos() {

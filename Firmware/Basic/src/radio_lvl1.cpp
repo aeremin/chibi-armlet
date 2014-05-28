@@ -10,6 +10,7 @@
 #include "application.h"
 #include "cc1101.h"
 #include "cmd_uart.h"
+#include "indication.h"
 
 #define DBG_PINS
 
@@ -46,7 +47,7 @@ void rLevel1_t::ITask() {
                 CC.TransmitSync((void*)&PktLustra[Indx]);
             }
             else {
-                Led.StartBlink(LedBadID);
+                Indication.LustraBadID();
                 chThdSleepMilliseconds(999);
                 return;
             }

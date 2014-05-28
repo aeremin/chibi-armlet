@@ -9,7 +9,7 @@
 #include "colors_sounds.h"
 #include "cmd_uart.h"
 #include "pill_mgr.h"
-#include "peripheral.h"
+#include "indication.h"
 #include "evt_mask.h"
 #include "eestore.h"
 #include "radio_lvl1.h"

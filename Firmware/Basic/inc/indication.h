@@ -15,21 +15,28 @@
 #define TM_CLICK_MS          18      // for Detector
 #endif
 
+enum LongState_t {lsNone, lsSetType, lsPeleng};
+
 class Indication_t {
 private:
     LedRGB_t Led;
-    Beeper_t Beeper;
+    LongState_t LongState;
+    // Dose indication
+    inline int32_t IDoseUmvos();
+    inline int32_t IDoseDetectorMobile();
+//    inline
 public:
     Thread *PThd;
     VirtualTimer TmrClick;
     void Init();
     void Reset();
     // Commands
-    void PillGood();
-    void PillBad();
+    void PillGood() {}
+    void PillBad() {}
     void HealthRenew();
     void PelengReceived();
     void PelengLost();
+    void LustraBadID() {}
     // Inner use
     void ITask();
 };

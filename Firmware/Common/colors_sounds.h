@@ -16,92 +16,6 @@
  * ckRepeat => after this, goto begin
  */
 
-#if 1 // ============================ LED blink ================================
-#if 1 // ==== Device type colors ====
-const Color_t ClrDevType[] = {
-        clDimGreen, // dtNothing
-        clGreen,    // dtUmvos
-        clBlue,     // dtLustraClean
-        clGreen,    // dtLustraWeak
-        clYellow,   // dtLustraStrong
-        clMagenta,  // dtLustraLethal
-        clCyan,     // dtDetectorMobile
-        clCyan,     // dtDetectorFixed
-        clBlue,     // dtEmpMech
-        clRed,      // dtEmpGrenade
-        clWhite,    // dtPelengator
-        clDimBlue,  // dtPillFlasher
-};
-
-// Table of colors depending on type
-#define DEVICETYPE_BLINK_T_MS   999
-const LedChunk_t TypeColorTbl[] = {
-        {ClrDevType[ 0], DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
-        {ClrDevType[ 1], DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
-        {ClrDevType[ 2], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
-        {ClrDevType[ 3], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
-        {ClrDevType[ 4], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
-        {ClrDevType[ 5], DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
-        {ClrDevType[ 6], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
-        {ClrDevType[ 7], DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
-        {ClrDevType[ 8], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
-        {ClrDevType[ 9], DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
-        {ClrDevType[10], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
-        {ClrDevType[11], DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
-};
-
-#define DEVICETYPE_PELENG_T_MS   9999
-const LedChunk_t TypeColorTblPeleng[] = {
-        {ClrDevType[ 0], DEVICETYPE_PELENG_T_MS, ckStop}, // dtNothing
-        {ClrDevType[ 1], DEVICETYPE_PELENG_T_MS, ckStop}, // dtUmvos
-        {ClrDevType[ 2], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraClean
-        {ClrDevType[ 3], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraWeak
-        {ClrDevType[ 4], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraStrong
-        {ClrDevType[ 5], DEVICETYPE_PELENG_T_MS, ckStop}, // dtLustraLethal
-        {ClrDevType[ 6], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorMobile
-        {ClrDevType[ 7], DEVICETYPE_PELENG_T_MS, ckStop}, // dtDetectorFixed
-        {ClrDevType[ 8], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpMech
-        {ClrDevType[ 9], DEVICETYPE_PELENG_T_MS, ckStop}, // dtEmpGrenade
-        {ClrDevType[10], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPelengator
-        {ClrDevType[11], DEVICETYPE_PELENG_T_MS, ckStop}, // dtPillFlasher
-};
-#endif
-
-// Pill
-const LedChunk_t LedPillCureOk[] = { {clBlue,  540, ckStop}, };
-const LedChunk_t LedPillBad[] =    { {clRed,  540, ckStop},  };
-
-const LedChunk_t LedPillIdSet[]    = { {clCyan,  999, ckStop},   };
-const LedChunk_t LedPillIdNotSet[] = { {clYellow,  999, ckStop}, };
-const LedChunk_t LedPillSetupOk[]  = { {clGreen,  999, ckStop},  };
-
-// Battery
-const LedChunk_t LedBatteryDischarged[] = { {clRed,  180, ckStop}, };
-
-// Bad ID
-const LedChunk_t LedBadID[] = { {{99, 0, 0},  99, ckStop}, };
-
-#if 1 // Health states
-const LedChunk_t LedRedFast[] = {
-        {clRed,   36, ckNormal},
-        {clBlack, 36, ckRepeat},
-};
-const LedChunk_t LedRedSlow[] = {
-        {clRed,   36, ckNormal},
-        {clBlack, 1008, ckRepeat},
-};
-const LedChunk_t LedYellow[] = {
-        {clYellow, 36, ckNormal},
-        {clBlack,  3006, ckRepeat},
-};
-const LedChunk_t LedGreen[] = {
-        {clGreen, 36, ckNormal},
-        {clBlack, 3006, ckRepeat},
-};
-#endif // health
-
-#endif // Colors
-
 // Snd coeffs
 #define DMG_SND_MAX     1000
 #define DMG_SND_BCKGND  40
@@ -155,6 +69,60 @@ const BeepChunk_t BeepRedFast[] = {
         {0, 0, 54, ckRepeat},
 };
 #endif
+
+#if 1 // ============================ LED blink ================================
+// Timings
+#define T_PAUSE_MS          36  // time between blinks
+#define T_SETTYPE_BLINK_MS  999 // Time to shine with device' color when type set
+
+#if 1 // ==== Device type colors ====
+const Color_t DeviceColor[] = {
+        clDimGreen, // dtNothing
+        clGreen,    // dtUmvos
+        clBlue,     // dtLustraClean
+        clGreen,    // dtLustraWeak
+        clYellow,   // dtLustraStrong
+        clMagenta,  // dtLustraLethal
+        clCyan,     // dtDetectorMobile
+        clCyan,     // dtDetectorFixed
+        clBlue,     // dtEmpMech
+        clRed,      // dtEmpGrenade
+        clWhite,    // dtPelengator
+        clDimBlue,  // dtPillFlasher
+};
+#endif
+
+// Pill
+const LedChunk_t LedPillCureOk[] = { {clBlue,  540, ckStop}, };
+const LedChunk_t LedPillBad[] =    { {clRed,  540, ckStop},  };
+
+const LedChunk_t LedPillIdSet[]    = { {clCyan,  999, ckStop},   };
+const LedChunk_t LedPillIdNotSet[] = { {clYellow,  999, ckStop}, };
+const LedChunk_t LedPillSetupOk[]  = { {clGreen,  999, ckStop},  };
+
+// Battery
+const LedChunk_t LedBatteryDischarged[] = { {clRed,  180, ckStop}, };
+
+// Bad ID
+const LedChunk_t LedBadID[] = { {{99, 0, 0},  99, ckStop}, };
+
+#if 1 // ==== Health states ====
+struct BlinkBeep_t {
+    Color_t Color;
+    uint16_t TimeOn_ms, TimeOff_ms;
+    const BeepChunk_t *PBeep;
+};
+const BlinkBeep_t BBHealth[] = {
+        {clGreen,  36, 3006, nullptr},   // hsGreen
+        {clYellow, 36, 3006, nullptr},   // hsYellow
+        {clRed,    36, 1008, nullptr},   // hsRedSlow
+        {clRed,    36, 54,   BeepShort}, // hsRedFast
+        {clRed,    36, 0,    nullptr},   // hsDeath
+};
+#endif // health
+
+#endif // Colors
+
 
 #if VIBRO_ENABLED // =================== Vibro =================================
 /* Every sequence is an array of VibroChunk_t:
@@ -253,9 +221,9 @@ const VibroChunk_t Brr10[] = {
         {stOn,  BRR_MS, ckNormal}, {stOff, BRR_PAUSE_MS, ckNormal},
         {stOn,  BRR_MS, ckStop},
 };
-
-
-
 #endif
+
+
+
 
 #endif /* COLORS_SOUNDS_H_ */

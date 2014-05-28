@@ -30,7 +30,7 @@ struct DoseConsts_t {
 // Default Dose constants
 #define DOSE_DEFAULT_TOP    10800
 
-enum HealthState_t {hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
+enum HealthState_t {hsGreen=0, hsYellow=1, hsRedSlow=2, hsRedFast=3, hsDeath=4};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 
 #if 1 // ==== Drug ====
@@ -76,41 +76,41 @@ public:
     DoseConsts_t Consts;
     HealthState_t State;
     Drug_t Drug;
-    void RenewIndication() {
-        Beeper.Stop();
-        Led.StopBlink();
-        switch(State) {
-            case hsDeath:
-                Led.SetColor(clRed);
-                Beeper.Beep(BeepDeath);
-                break;
-            case hsRedFast:
-                Led.StartBlink(LedRedFast);
-                Beeper.Beep(BeepRedFast);
-                break;
-            case hsRedSlow:
-                Led.StartBlink(LedRedSlow);
-                Beeper.Beep(BeepBeep);
-                break;
-            case hsYellow:
-                Led.StartBlink(LedYellow);
-                Beeper.Beep(BeepBeep);
-                break;
-            case hsGreen:
-                Led.StartBlink(LedGreen);
-                Beeper.Beep(BeepBeep);
-                break;
-            default: break;
-        } // switch
-    }
+//    void RenewIndication() {
+//        Beeper.Stop();
+//        Led.StopBlink();
+//        switch(State) {
+//            case hsDeath:
+//                Led.SetColor(clRed);
+//                Beeper.Beep(BeepDeath);
+//                break;
+//            case hsRedFast:
+//                Led.StartBlink(LedRedFast);
+//                Beeper.Beep(BeepRedFast);
+//                break;
+//            case hsRedSlow:
+//                Led.StartBlink(LedRedSlow);
+//                Beeper.Beep(BeepBeep);
+//                break;
+//            case hsYellow:
+//                Led.StartBlink(LedYellow);
+//                Beeper.Beep(BeepBeep);
+//                break;
+//            case hsGreen:
+//                Led.StartBlink(LedGreen);
+//                Beeper.Beep(BeepBeep);
+//                break;
+//            default: break;
+//        } // switch
+//    }
 #if 1 // ==== Dose set/modify/reset ====
     void Set(int32_t ADose, DoIndication_t DoIndication) {
         Value = ADose;
-        HealthState_t OldState = State;
+//        HealthState_t OldState = State;
         ConvertDoseToState();
-        if((DoIndication == diAlwaysIndicate) or
-          ((State != OldState) and (DoIndication == diUsual)))
-            RenewIndication();
+//        if((DoIndication == diAlwaysIndicate) or
+//          ((State != OldState) and (DoIndication == diUsual)))
+//            RenewIndication();
     }
     void Modify(int32_t Amount, DoIndication_t DoIndication) {
         int32_t Dz = Value;

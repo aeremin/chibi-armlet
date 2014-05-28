@@ -12,6 +12,8 @@
 #include "cmd_uart.h"
 
 #if 1 // =============================== Beep ==================================
+Beeper_t Beeper;
+
 #define BEEP_TOP_VALUE   22
 // Timer callback
 void BeeperTmrCallback(void *p) {
@@ -51,13 +53,6 @@ void Beeper_t::Shutdown() {
 #endif
 
 #if 1 // ============================== LED RGB ================================
-// Timer callback
-static void LedTmrCallback(void *p) {
-    chSysLockFromIsr();
-    Led.IStartBlinkI((const LedChunk_t*)p);
-    chSysUnlockFromIsr();
-}
-
 void LedRGB_t::Init() {
     // ==== GPIO ====
     PinSetupAlterFunc(LED_GPIO, LED_P1, omPushPull, pudNone, LED_ALTERFUNC);
@@ -77,26 +72,6 @@ void LedRGB_t::Init() {
     LED_TIM->CCER = TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
     // Initial value
     SetColor(clBlack);
-}
-
-void LedRGB_t::IStartBlinkI(const LedChunk_t *PLedChunk) {
-    // Reset timer
-    if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
-    if(PLedChunk == nullptr) {
-        SetColor(clBlack);
-        if(IOnBlinkEnd != nullptr) IOnBlinkEnd();
-        return;
-    }
-    // Process chunk
-    SetColor(PLedChunk->Color);
-    // Proceed sequence, stop it or restart
-    const LedChunk_t *PCh = nullptr;
-    switch(PLedChunk->ChunkKind) {
-        case ckNormal: PCh = PLedChunk + 1; break;
-        case ckStop:                        break;
-        case ckRepeat: PCh = IPFirstChunk;  break;
-    }
-    chVTSetI(&ITmr, MS2ST(PLedChunk->Time_ms), LedTmrCallback, (void*)PCh); // Start timer
 }
 #endif
 

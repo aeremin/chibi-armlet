@@ -26,6 +26,38 @@ Indication_t Indication;
 //}
 #endif
 
+#if 1 // ==== Dose indication ====
+int32_t Indication_t::IDoseUmvos() {
+    // Check if status changed
+//    static HealthState_t OldState = hsDeath;
+//    if(App.Dose.State != OldState) {
+//        OldState = App.Dose.State;
+//
+//    }
+    const BlinkBeep_t *pbb = &BBHealth[App.Dose.State];
+    if(clBlack != pbb->Color) {
+        Led.SetColor(pbb->Color);
+        if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
+        chThdSleepMilliseconds(pbb->TimeOn_ms);
+        Led.SetColor(clBlack);
+    }
+    else Led.SetColor(clBlack);
+    return pbb->TimeOff_ms;
+}
+
+int32_t Indication_t::IDoseDetectorMobile() {
+    if(App.Damage > 0) {
+        int32_t r = rand() % (DMG_SND_MAX - 1);
+        int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (App.Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
+//        Uart.Printf("%d; %d\r", Damage, DmgSnd);
+        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
+    }
+    return 18;
+}
+
+#endif
+
+
 #if 1 // ===================== Thread & Task ===================================
 static WORKING_AREA(waIndicationThread, 128);
 static void IndicationThread(void *arg) {
@@ -34,50 +66,27 @@ static void IndicationThread(void *arg) {
 }
 
 void Indication_t::ITask() {
-    // ==== Dose indication ====
+    int32_t SleepInterval = 0;
+    // ==== Quick status indication ====
     switch(App.Type) {
-        case dtUmvos:
-            switch(App.Dose.State) {
-                case hsDeath:
-                    Led.SetColor(clRed);
-                    Beeper.Beep(BeepDeath);
-                    break;
-                case hsRedFast:
-                    Led.StartBlink(LedRedFast);
-                    Beeper.Beep(BeepRedFast);
-                    break;
-                case hsRedSlow:
-                    Led.StartBlink(LedRedSlow);
-                    Beeper.Beep(BeepBeep);
-                    break;
-                case hsYellow:
-                    Led.StartBlink(LedYellow);
-                    Beeper.Beep(BeepBeep);
-                    break;
-                case hsGreen:
-                    Led.StartBlink(LedGreen);
-                    Beeper.Beep(BeepBeep);
-                    break;
-            }
-            break;
-
-        case dtDetectorMobile:
-            if(App.Damage > 0) {
-                int32_t r = rand() % (DMG_SND_MAX - 1);
-                int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (App.Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
-        //        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-                if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-            }
-            chThdSleepMilliseconds(18);
-            break;
-
+        case dtUmvos:          SleepInterval = IDoseUmvos(); break;
+        case dtDetectorMobile: SleepInterval = IDoseDetectorMobile(); break;
         default: break;
     } // switch
+    chThdSleepMilliseconds(T_PAUSE_MS);
 
-
-
-
-
+    // ==== Battery ====
+    // ==== Pill ====
+    // ==== Long status indication ====
+    if(LongState == lsSetType) {
+        Led.SetColor(DeviceColor[App.Type]);   // Blink with correct color
+        Beeper.Beep(BeepBeep);
+        LongState = lsNone;
+        chThdSleepMilliseconds(T_SETTYPE_BLINK_MS);
+        SleepInterval -= T_SETTYPE_BLINK_MS;
+    }
+    // Sleep after all
+    if(SleepInterval > 20) chThdSleepMilliseconds(SleepInterval);
 }
 
 void Indication_t::Init() {
@@ -109,38 +118,36 @@ void Indication_t::Reset() {
             if(tmp1 != 0) tmp1--;
             TIM2->PSC = (uint16_t)tmp1;
             TIM2->CCR2 = 20;
-            // Setup click timer
-            chVTSet(&TmrClick, MS2ST(TM_CLICK_MS), TmrClickCallback, nullptr);
             break;
         default: break;
     }
     // Indicate type
     if(App.Type != dtDetectorMobile) Beeper.Beep(BeepBeep);
-    Led.StartBlink(&TypeColorTbl[App.Type]);   // Blink with correct color
+    LongState = lsSetType;
 }
 #endif
 
 void Indication_t::HealthRenew() {
     // Play sound
-    switch(App.Dose.State) {
-        case hsDeath: Beeper.Beep(BeepDeath); break;
-        case hsRedFast:
-            Led.StartBlink(LedRedFast);
-            Beeper.Beep(BeepRedFast);
-            break;
-        case hsRedSlow:
-            Led.StartBlink(LedRedSlow);
-            Beeper.Beep(BeepBeep);
-            break;
-        case hsYellow:
-            Led.StartBlink(LedYellow);
-            Beeper.Beep(BeepBeep);
-            break;
-        case hsGreen:
-            Led.StartBlink(LedGreen);
-            Beeper.Beep(BeepBeep);
-            break;
-    }
+//    switch(App.Dose.State) {
+//        case hsDeath: Beeper.Beep(BeepDeath); break;
+//        case hsRedFast:
+//            Led.StartBlink(LedRedFast);
+//            Beeper.Beep(BeepRedFast);
+//            break;
+//        case hsRedSlow:
+//            Led.StartBlink(LedRedSlow);
+//            Beeper.Beep(BeepBeep);
+//            break;
+//        case hsYellow:
+//            Led.StartBlink(LedYellow);
+//            Beeper.Beep(BeepBeep);
+//            break;
+//        case hsGreen:
+//            Led.StartBlink(LedGreen);
+//            Beeper.Beep(BeepBeep);
+//            break;
+//    }
 
 }
 

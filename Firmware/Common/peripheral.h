@@ -52,7 +52,7 @@ extern Beeper_t Beeper;
 struct Color_t {
     uint8_t Red, Green, Blue;
     bool operator == (const Color_t AColor) { return ((Red == AColor.Red) and (Green == AColor.Green) and (Blue == AColor.Blue)); }
-    //bool operator != (const Color_t AColor) { return ((this->Red != AColor.Red) || (this->Green != AColor.Green) || (this->Blue != AColor.Blue)); }
+    bool operator != (const Color_t AColor) { return ((Red != AColor.Red) or  (Green != AColor.Green) or  (Blue != AColor.Blue)); }
 };
 #define clBlack     ((Color_t){0,   0,   0})
 #define clRed       ((Color_t){255, 0,   0})
@@ -90,9 +90,6 @@ struct LedChunk_t {
 
 class LedRGB_t {
 private:
-    const LedChunk_t *IPFirstChunk;
-    VirtualTimer ITmr;
-    ftVoidVoid IOnBlinkEnd;
     void ISetRed  (uint8_t AValue) {LED_TIM->LED_RED_CCR   = AValue;}
     void ISetGreen(uint8_t AValue) {LED_TIM->LED_GREEN_CCR = AValue;}
     void ISetBlue (uint8_t AValue) {LED_TIM->LED_BLUE_CCR  = AValue;}
@@ -103,21 +100,6 @@ public:
         ISetGreen(AColor.Green);
         ISetBlue(AColor.Blue);
     }
-    void StartBlink(const LedChunk_t *PLedChunk, ftVoidVoid OnBlinkEnd = nullptr) {
-        chSysLock();
-        IOnBlinkEnd = OnBlinkEnd;
-        IPFirstChunk = PLedChunk; // Save first chunk
-        IStartBlinkI(PLedChunk);
-        chSysUnlock();
-    }
-    void StopBlink() {
-        chSysLock();
-        if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
-        SetColor(clBlack);
-        chSysUnlock();
-    }
-    // Inner use
-    void IStartBlinkI(const LedChunk_t *PLedChunk);
 };
 
 extern LedRGB_t Led;
