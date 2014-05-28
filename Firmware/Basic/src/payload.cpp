@@ -18,7 +18,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_
 //    if(InfoBuf[ID].Timestamp < CurrentTimeStamp) {
     if(ID == App.ID) return Rslt;
     Ptr->Hops += 1;
-    Uart.Printf("%d, %d\r\n", (Ptr->Timestamp), CurrSelfCycle);
+//    Uart.Printf("%d, %d\r\n", (Ptr->Timestamp), CurrSelfCycle);
     Ptr->TimeDiff =  (Ptr->Timestamp) - CurrSelfCycle;
     Ptr->Timestamp = CurrSelfCycle;
     InfoBuf[ID] = *Ptr;
@@ -59,7 +59,7 @@ void Payload_t::WritePayload(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewL
 
 void Payload_t::UpdateSelf() {
     InfoBuf[App.ID].Timestamp = Mesh.GetCycleN();
-    Console_Send_Info(App.ID, &InfoBuf[App.ID]);
+//    Console_Send_Info(App.ID, &InfoBuf[App.ID]);
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValueMS) {
     uint32_t CorrValueCycle = CorrValueMS/CYCLE_TIME;

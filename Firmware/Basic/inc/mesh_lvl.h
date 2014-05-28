@@ -67,8 +67,22 @@ private:
 
     Timer_t CycleTmr;
     CircBufPkt_t PktBucket;
-    void INewRxCycle()       { RxCycleN = *PRndTable; PRndTable++; if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;   }
-    void IIncCurrCycle()     { AbsCycle++; CurrCycle++; if(CurrCycle >= COUNT_OF_CYCLES) { CurrCycle = 0; INewRxCycle(); }  }
+    mshMsg_t *PMeshMsg;
+
+
+    void INewRxCycle()       {
+        PRndTable++;
+        if(PRndTable > RndTableBuf + RND_TBL_BUFFER_SZ) PRndTable = RndTableBuf;
+        RxCycleN = *PRndTable;
+    }
+
+    void IIncCurrCycle()     {
+        AbsCycle++; CurrCycle++;
+        if(CurrCycle >= COUNT_OF_CYCLES) {
+            CurrCycle = 0;
+            INewRxCycle();
+        }
+    }
     void IGenerateRandomTable(uint32_t Size) {
         srand(App.ID);
         RndTableBuf[0] = 0;
@@ -98,7 +112,7 @@ private:
 public:
     Mesh_t() :  PRndTable(RndTableBuf),
                 AbsCycle(0),
-                CurrCycle(COUNT_OF_CYCLES),
+                CurrCycle(0),
                 RxCycleN(*PRndTable),
                 SleepTime(0),
 //                NeedUpdateTime(false),

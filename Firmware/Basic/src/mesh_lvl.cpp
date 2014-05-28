@@ -53,17 +53,18 @@ void Mesh_t::Init() {
         Uart.Printf("Msh: WrongID\r");
         return;
     }
+    /* Create thread Bucket Handler */
     IPBktHanlder = chThdCreateStatic(waMeshPktBucket, sizeof(waMeshPktBucket), NORMALPRIO, (tfunc_t)MeshPktBucket, NULL);
 
-    UpdateSleepTime();
+    UpdateSleepTime();          /* count sleep time due to App.ID */
     MsgBox.Init();
     IGenerateRandomTable(RND_TBL_BUFFER_SZ);
 
-    IResetTimeAge(App.ID);
-    IPktPutCycle(AbsCycle);
+    IResetTimeAge(App.ID);      /* TimeAge = 0; TimeOwner = App.ID */
+    IPktPutCycle(AbsCycle);     /* CycleN = AbsCycle */
     PreparePktPayload();
 
-    // Init Thread
+    /* Create Mesh Thread */
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
 
     CycleTmr.Init(MESH_TIM);
@@ -90,36 +91,38 @@ void Mesh_t::ITask() {
 void Mesh_t::INewCycle() {
 //    Uart.Printf("i,%u, t=%u, Rx=%u\r", AbsCycle, chTimeNow(), RxCycleN);
 //    Beeper.Beep(ShortBeep);
-    IIncCurrCycle();
-    ITimeAgeCounter();
-    Payload.UpdateSelf();  /* Update Self Payload */
-    Uart.Printf("Curr %u, Rx=%u\r", CurrCycle, RxCycleN);
+    Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
+//    Uart.Printf("Curr %u, Rx=%u\r", CurrCycle, RxCycleN);
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
+//        Uart.Printf("Mesh Rx\r");
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
         mshMsg_t MeshPkt;
         do {
             if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
-                IPktHandlerStart();
+                Uart.Printf("MsgFetch Ok\r");
                 PktBucket.WritePkt(MeshPkt);
+                IPktHandlerStart();
             }
         } while(Radio.Valets.InRx);
     }
     // ==== TX ====
     else {
+//        Uart.Printf("Mesh Tx\r");
         IPktPutCycle(AbsCycle);
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
         chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
         PreparePktPayload();
     }
+    IIncCurrCycle();
+    ITimeAgeCounter();
 }
 
 void Mesh_t::IPktHandler(){
-    mshMsg_t MeshMsg;
     PriorityID = IGetTimeOwner();
     do {
-        PktBucket.ReadPkt(&MeshMsg);
-        MeshPayload_t *pMP = &MeshMsg.MeshPayload;
+        PktBucket.ReadPkt(PMeshMsg); /* Read Pkt from Buffer */
+        MeshPayload_t *pMP = &PMeshMsg->MeshPayload;
 
         if(PriorityID > pMP->TimeOwnerID) GetPrimaryPkt = true;
 
@@ -128,9 +131,9 @@ void Mesh_t::IPktHandler(){
         }
 
         if(pMP->SelfID < STATIONARY_ID) {
-            Uart.Printf("Hear %d, %d\r\n", MeshMsg.RSSI, PreliminaryRSSI);
-            if(MeshMsg.RSSI > PreliminaryRSSI) {
-                PreliminaryRSSI = MeshMsg.RSSI;
+            Uart.Printf("Hear %d, %d\r\n", PMeshMsg->RSSI, PreliminaryRSSI);
+            if(PMeshMsg->RSSI > PreliminaryRSSI) {
+                PreliminaryRSSI = PMeshMsg->RSSI;
                 Payload.NewLocation(pMP->SelfID);
                 Uart.Printf("Stationary device %d\r\n", PreliminaryRSSI);
             }
@@ -141,7 +144,7 @@ void Mesh_t::IPktHandler(){
             *PNewCycleN = pMP->CycleN + 1;
             PriorityID = pMP->TimeOwnerID;
             IResetTimeAge(PriorityID);
-            *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
+            *PTimeToWakeUp = PMeshMsg->Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
     } while(PktBucket.GetFilledSlots() != 0);
 }
