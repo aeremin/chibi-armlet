@@ -44,13 +44,9 @@ void rLevel1_t::ITask() {
 
                 CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
                 CC.SetPktSize(MESH_PKT_SZ);
-                if(EvtMsk & EVTMSK_MESH_RX) {
-                    Uart.Printf("Rf Rx\r");
-                    IMeshRx();
-                }
+                if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
-                    Uart.Printf("Rf Tx\r");
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
 //                    Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
 //                            Mesh.PktTx.MeshData.SelfID,
@@ -293,12 +289,12 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh Rx Cycle ====
 
 static void RxEnd(void *p) {
-    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
+//    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
     Radio.Valets.InRx = false;
 }
 
 void rLevel1_t::IMeshRx() {
-    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
+//    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
     Valets.RxTmt = CYCLE_TIME;
     Valets.InRx = true;
@@ -307,10 +303,10 @@ void rLevel1_t::IMeshRx() {
         Valets.CurrentTime = chTimeNow();
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
-            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
+//            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
             Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
-            uint8_t r = Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
-            Uart.Printf("rst MsgPost %u, t=%u\r", r, chTimeNow());
+            Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+//            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
         Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);

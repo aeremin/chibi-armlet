@@ -67,8 +67,7 @@ private:
 
     Timer_t CycleTmr;
     CircBufPkt_t PktBucket;
-    mshMsg_t *PMeshMsg;
-
+    mshMsg_t MeshMsg;
 
     void INewRxCycle()       {
         PRndTable++;
@@ -85,13 +84,11 @@ private:
     }
     void IGenerateRandomTable(uint32_t Size) {
         srand(App.ID);
-        RndTableBuf[0] = 0;
-        Uart.Printf("%u ", RndTableBuf[0]);
+        RndTableBuf[0] = 1;
         for(uint8_t i=1; i<RND_TBL_BUFFER_SZ; i++) {
             RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES-1);
-            Uart.Printf("%u ", RndTableBuf[i]);
         }
-        Uart.Printf("\r");
+        RxCycleN = *PRndTable;
     }
 
     void INewCycle();
@@ -110,7 +107,8 @@ private:
         chEvtSignal(IPBktHanlder, EVTMSK_BKT_NOT_EMPTY);
     }
 public:
-    Mesh_t() :  PRndTable(RndTableBuf),
+    Mesh_t() :
+                PRndTable(RndTableBuf),
                 AbsCycle(0),
                 CurrCycle(0),
                 RxCycleN(*PRndTable),

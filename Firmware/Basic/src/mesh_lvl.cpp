@@ -89,10 +89,10 @@ void Mesh_t::ITask() {
 #if 1 // ==== Inner functions ====
 
 void Mesh_t::INewCycle() {
-//    Uart.Printf("i,%u, t=%u, Rx=%u\r", AbsCycle, chTimeNow(), RxCycleN);
 //    Beeper.Beep(ShortBeep);
+    IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
-//    Uart.Printf("Curr %u, Rx=%u\r", CurrCycle, RxCycleN);
+//    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
 //        Uart.Printf("Mesh Rx\r");
@@ -100,9 +100,9 @@ void Mesh_t::INewCycle() {
         mshMsg_t MeshPkt;
         do {
             if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
-                Uart.Printf("MsgFetch Ok\r");
-                PktBucket.WritePkt(MeshPkt);
+//                Uart.Printf("MsgFetch Ok\r");
                 IPktHandlerStart();
+                PktBucket.WritePkt(MeshPkt);
             }
         } while(Radio.Valets.InRx);
     }
@@ -114,15 +114,14 @@ void Mesh_t::INewCycle() {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
         PreparePktPayload();
     }
-    IIncCurrCycle();
     ITimeAgeCounter();
 }
 
 void Mesh_t::IPktHandler(){
     PriorityID = IGetTimeOwner();
     do {
-        PktBucket.ReadPkt(PMeshMsg); /* Read Pkt from Buffer */
-        MeshPayload_t *pMP = &PMeshMsg->MeshPayload;
+        PktBucket.ReadPkt(&MeshMsg); /* Read Pkt from Buffer */
+        MeshPayload_t *pMP = &MeshMsg.MeshPayload;
 
         if(PriorityID > pMP->TimeOwnerID) GetPrimaryPkt = true;
 
@@ -131,11 +130,9 @@ void Mesh_t::IPktHandler(){
         }
 
         if(pMP->SelfID < STATIONARY_ID) {
-            Uart.Printf("Hear %d, %d\r\n", PMeshMsg->RSSI, PreliminaryRSSI);
-            if(PMeshMsg->RSSI > PreliminaryRSSI) {
-                PreliminaryRSSI = PMeshMsg->RSSI;
+            if(MeshMsg.RSSI > PreliminaryRSSI) {
+                PreliminaryRSSI = MeshMsg.RSSI;
                 Payload.NewLocation(pMP->SelfID);
-                Uart.Printf("Stationary device %d\r\n", PreliminaryRSSI);
             }
         };
 
@@ -144,7 +141,7 @@ void Mesh_t::IPktHandler(){
             *PNewCycleN = pMP->CycleN + 1;
             PriorityID = pMP->TimeOwnerID;
             IResetTimeAge(PriorityID);
-            *PTimeToWakeUp = PMeshMsg->Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
+            *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
     } while(PktBucket.GetFilledSlots() != 0);
 }
