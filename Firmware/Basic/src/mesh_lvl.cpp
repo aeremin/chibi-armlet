@@ -31,7 +31,7 @@ CH_IRQ_HANDLER(MESH_TIM_IRQ_HANDLER) {
 }
 }
 
-static WORKING_AREA(waMeshLvlThread, 256);
+static WORKING_AREA(waMeshLvlThread, 512);
 __attribute__ ((__noreturn__))
 static void MeshLvlThread(void *arg) {
     chRegSetThreadName("MeshLvl");
