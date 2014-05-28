@@ -93,6 +93,7 @@ void Mesh_t::INewCycle() {
     IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
+    Uart.Printf("NewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
