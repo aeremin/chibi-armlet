@@ -95,12 +95,10 @@ void Mesh_t::INewCycle() {
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
-//        Uart.Printf("Mesh Rx\r");
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
         mshMsg_t MeshPkt;
         do {
             if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
-//                Uart.Printf("MsgFetch Ok\r");
                 IPktHandlerStart();
                 PktBucket.WritePkt(MeshPkt);
             }
