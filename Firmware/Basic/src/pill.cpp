@@ -61,37 +61,24 @@ void App_t::IPillHandlerUmvos() {
     // Save DoseAfter
     PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
     // ==== Indication ====
-    if(rslt == OK) {
-        Beeper.Beep(BeepPillOk);
-        Led.StartBlink(LedPillCureOk);
-    }
-    else {
-        Beeper.Beep(BeepPillBad);
-        Led.StartBlink(LedPillBad);
-    }
-    chThdSleepMilliseconds(1008);   // Let indication to complete
-    Dose.RenewIndication();
+    if(rslt == OK) Indication.PillGood();
+    else Indication.PillBad();
+    Indication.HealthRenew();
 }
 
 void App_t::IPillHandlerPillFlasher() {
-    uint8_t b = FAILURE;
+    uint8_t rslt = FAILURE;
     // Write pill if data exists
     EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
     if(Data2Wr.Sz32 != 0) {
         Uart.Printf("#PillWrite32 0");
         for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
         Uart.Printf("\r\n");
-        b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
-        Uart.Ack(b);
+        rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
+        Uart.Ack(rslt);
     }
-    if(b == OK) {
-        Led.StartBlink(LedPillSetupOk);
-        Beeper.Beep(BeepPillOk);
-    }
-    else {
-        Led.StartBlink(LedPillBad);
-        Beeper.Beep(BeepPillBad);
-    }
+    if(rslt == OK) Indication.PillGood();
+    else Indication.PillBad();
 }
 
 // Everybody starts here

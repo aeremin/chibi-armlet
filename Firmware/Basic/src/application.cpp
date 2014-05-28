@@ -20,7 +20,6 @@ App_t App;
 // Timers callbacks prototypes
 extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
-extern void TmrClickCallback(void *p);
 
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
@@ -215,35 +214,6 @@ void App_t::OnRxTableReady() {
         Dose.Modify(Damage, diUsual);
     }
 }
-
-#if 1 // ==== Pelengator ====
-void FOnPelengatorLost() { chEvtSignalI(App.PThd, EVTMSK_PELENG_LOST); }
-
-void App_t::OnPelengReceived() {
-    Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
-}
-
-void App_t::OnPelengatorLost() {
-    switch(Type) {
-        case dtUmvos: Dose.RenewIndication(); break;
-        case dtDetectorFixed:
-            break;
-        case dtEmpMech:
-            break;
-        default: break;
-    }
-}
-#endif
-
-// ==== Detector's click ====
-void App_t::OnClick() {
-    if(Damage > 0) {
-        int32_t r = rand() % (DMG_SND_MAX - 1);
-        int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
-//        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-    }
-}
 #endif // Dose
 
 #if 1 // ========================= Application =================================
@@ -275,16 +245,13 @@ uint8_t App_t::ISetType(uint8_t AType) {
     chSysLock();
     if(chVTIsArmedI(&TmrDoseSave))    chVTResetI(&TmrDoseSave);
     if(chVTIsArmedI(&TmrMeasurement)) chVTResetI(&TmrMeasurement);
-    if(chVTIsArmedI(&TmrClick))       chVTResetI(&TmrClick);
+
     switch(App.Type) {
         case dtUmvos:
 //            chVTSetI(&TmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
 #if DO_DOSE_SAVE
             chVTSetI(&TmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
 #endif
-            break;
-        case dtDetectorMobile:
-            chVTSetI(&TmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
             break;
         default: break;
     }
@@ -303,27 +270,11 @@ uint8_t App_t::ISetType(uint8_t AType) {
             Dose.Load();
 #endif
             break;
-
-        case dtDetectorMobile:
-            rccEnableTIM2(FALSE);
-            PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
-            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-            TIM2->CR2 = 0;
-            TIM2->ARR = 22;
-            TIM2->CCMR1 |= (0b111 << 12);
-            TIM2->CCER  |= TIM_CCER_CC2E;
-            tmp1 = TIM2->ARR * 1000;
-            tmp1 = Clk.APB1FreqHz / tmp1;
-            if(tmp1 != 0) tmp1--;
-            TIM2->PSC = (uint16_t)tmp1;
-            TIM2->CCR2 = 20;
-            break;
-
         default: break;
     } // switch
 
-    if(Type != dtDetectorMobile) Beeper.Beep(BeepBeep);
-    Led.StartBlink(&TypeColorTbl[AType]);   // Blink with correct color
+    Indication.Reset();
+
     // Save in EE if not equal
     uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
     uint8_t rslt = OK;

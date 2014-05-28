@@ -13,7 +13,6 @@
 
 #if 1 // =============================== Beep ==================================
 #define BEEP_TOP_VALUE   22
-Beeper_t Beeper;
 // Timer callback
 void BeeperTmrCallback(void *p) {
     chSysLockFromIsr();
@@ -52,7 +51,6 @@ void Beeper_t::Shutdown() {
 #endif
 
 #if 1 // ============================== LED RGB ================================
-LedRGB_t Led;
 // Timer callback
 static void LedTmrCallback(void *p) {
     chSysLockFromIsr();

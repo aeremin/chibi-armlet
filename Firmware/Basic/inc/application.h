@@ -18,7 +18,6 @@
 #define TM_DOSE_SAVE_MS     2007
 #define TM_PILL_CHECK_MS    360    // Check if pill connected every TM_PILL_CHECK
 #define TM_MEASUREMENT_MS   5004
-#define TM_CLICK            18      // for Detector
 #endif
 
 // ========= Device types =========
@@ -70,7 +69,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement;
     // Radio & damage
     RxTable_t RxTable;
     int32_t Damage;
@@ -82,9 +81,7 @@ public:
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
-    void OnPelengReceived();
-    void OnPelengatorLost();
-    void OnClick();
+    friend class Indication_t;
 };
 
 extern App_t App;

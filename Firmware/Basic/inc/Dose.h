@@ -30,7 +30,7 @@ struct DoseConsts_t {
 // Default Dose constants
 #define DOSE_DEFAULT_TOP    10800
 
-enum HealthState_t {hsNone=0, hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
+enum HealthState_t {hsGreen, hsYellow, hsRedSlow, hsRedFast, hsDeath};
 enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 
 #if 1 // ==== Drug ====

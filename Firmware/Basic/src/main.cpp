@@ -10,7 +10,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
-#include "peripheral.h"
+#include "indication.h"
 #include "colors_sounds.h"
 #include "pill_mgr.h"
 #include "cmd_uart.h"
@@ -47,13 +47,6 @@ void TmrMeasurementCallback(void *p) {
     chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlockFromIsr();
 }
-
-void TmrClickCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_CLICK);
-    chVTSetI(&App.TmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
-    chSysUnlockFromIsr();
-}
 #endif
 
 int main(void) {
@@ -65,9 +58,8 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Led.Init();
+    Indication.Init();
     PillMgr.Init();
-    Beeper.Init();
 
     App.Init();
     App.PThd = chThdSelf();
@@ -118,7 +110,6 @@ int main(void) {
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
-        if(EvtMsk & EVTMSK_CLICK) App.OnClick();
         if(EvtMsk & EVTMSK_PELENG_FOUND) App.OnPelengReceived();
         if(EvtMsk & EVTMSK_PELENG_LOST)  App.OnPelengatorLost();
     } // while true
