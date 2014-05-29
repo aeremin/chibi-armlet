@@ -37,6 +37,8 @@
 
 
 #define TIME_AGE_THRESHOLD  20 /* Cycles */
+#define START_CYCLE         1
+
 
 struct meshradio_t {
     VirtualTimer RxVT;

@@ -62,6 +62,7 @@ void Mesh_t::Init() {
 
     IResetTimeAge(App.ID);      /* TimeAge = 0; TimeOwner = App.ID */
     IPktPutCycle(AbsCycle);     /* CycleN = AbsCycle */
+    Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
     PreparePktPayload();
 
     /* Create Mesh Thread */
@@ -92,7 +93,7 @@ void Mesh_t::ITask() {
 #if 1 // ==== Inner functions ====
 
 void Mesh_t::INewCycle() {
-//    Beeper.Beep(ShortBeep);
+//    Beeper.Beep(BeepShort);
     IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
@@ -160,7 +161,7 @@ void Mesh_t::IUpdateTimer() {
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
         GetPrimaryPkt = false;
-        Uart.Printf("Update Timer\r");
+        Uart.Printf("Sleep from %u to %u\r", chTimeNow(), *PTimeToWakeUp);
         if(*PTimeToWakeUp > chTimeNow()) chThdSleepUntil(*PTimeToWakeUp); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
         CycleTmr.Enable();
     }

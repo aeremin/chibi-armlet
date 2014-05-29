@@ -109,7 +109,7 @@ private:
 public:
     Mesh_t() :
                 PRndTable(RndTableBuf),
-                AbsCycle(0),
+                AbsCycle(START_CYCLE),
                 CurrCycle(0),
                 RxCycleN(*PRndTable),
                 SleepTime(0),
@@ -131,7 +131,7 @@ public:
     bool IsInit;
 
 //    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
-    void UpdateSleepTime()              { SleepTime = ((App.ID-1)*SLOT_TIME); }
+    void UpdateSleepTime()              { SleepTime = ((App.ID)*SLOT_TIME); }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }

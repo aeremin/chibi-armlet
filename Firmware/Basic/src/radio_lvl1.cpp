@@ -297,7 +297,7 @@ static void RxEnd(void *p) {
 void rLevel1_t::IMeshRx() {
 //    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
-    Valets.RxTmt = CYCLE_TIME;
+    Valets.RxTmt = SLOT_TIME;
     Valets.InRx = true;
     chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME), RxEnd, nullptr); /* Set VT */
     do {
@@ -324,7 +324,9 @@ void rLevel1_t::IMeshRx() {
             Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
-        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
+
+        if(chTimeNow() < Valets.CurrentTime + SLOT_TIME) chThdSleepUntil(Valets.CurrentTime + SLOT_TIME);
+//        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);
     Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
 }

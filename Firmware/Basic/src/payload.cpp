@@ -14,42 +14,35 @@ Payload_t Payload;
 
 
 uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_t *Ptr) {
+//    PayloadString_t *pPS = &TmpPayload;
     uint8_t Rslt = FAILURE;
-    if(ID == App.ID) return Rslt;
-    if(Ptr->Timestamp > InfoBuf[ID].Timestamp) {
-        Ptr->Hops += 1;
-//        Uart.Printf("%d-%d\r\n", (Ptr->Timestamp), CurrSelfCycle);
-        Ptr->TimeDiff =  (Ptr->Timestamp) - CurrSelfCycle;
+    if(ID == App.ID) Rslt = OK;
+    else {
+        int32_t TimeDiff = Ptr->Timestamp;
+        uint8_t Hops = Ptr->Hops;
+        Hops += 1;
+        TimeDiff -= CurrSelfCycle;
+
+        Ptr->Hops = Hops;
         Ptr->Timestamp = CurrSelfCycle;
+        Ptr->TimeDiff = TimeDiff;
         InfoBuf[ID] = *Ptr;
+        Console.Send_Info(ID, &InfoBuf[ID]);
     }
-    Console.Send_Info(ID, &InfoBuf[ID]);
     return Rslt;
 }
 
-uint8_t Payload_t::PrintNextInfo() {
-    do {
-        PStr++;
-        if(PStr == InfoBuf + App.ID)  break;
-        else if(PStr >= InfoBuf + INFO_BUF_SIZE) PStr = InfoBuf;
-    } while (PStr->Hops == 0);
-    Console.Send_Info((uint16_t)(PStr - InfoBuf), PStr);
-    return OK;
-}
-
 uint16_t Payload_t::GetNextInfoID() {
-    do {
+    do{
         PNext++;
-        if(PNext >= InfoBuf + INFO_BUF_SIZE) {
-            PNext = InfoBuf;
-            return (uint16_t)App.ID; // Self Info
-        }
-    } while(PNext->Hops == 0);
-    return (uint16_t)(PNext - InfoBuf);
+        if(PNext > (InfoBuf + INFO_BUF_SIZE - 1)) PNext = InfoBuf;
+    } while(PNext->Timestamp == 0);
+    return (uint16_t)((PNext - InfoBuf));
 }
 
-void Payload_t::WritePayload(uint16_t IDv, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
+void Payload_t::WritePayload(uint16_t IDv, uint8_t Hops, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
     PayloadString_t *p = &InfoBuf[IDv];
+    p->Hops = Hops;
     p->Timestamp = TimeStampValue;
     p->Location = NewLocation;
     p->Reason = NewReason;
