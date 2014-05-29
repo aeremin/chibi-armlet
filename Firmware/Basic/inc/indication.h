@@ -16,11 +16,13 @@
 #endif
 
 enum LongState_t {lsNone, lsSetType, lsPeleng};
+enum PillState_t {piNone, piGood, piBad};
 
 class Indication_t {
 private:
     LedRGB_t Led;
     LongState_t LongState;
+    PillState_t PillState;
     // Dose indication
     inline int32_t IDoseUmvos();
     inline int32_t IDoseDetectorMobile();
@@ -31,8 +33,8 @@ public:
     void Init();
     void Reset();
     // Commands
-    void PillGood() {}
-    void PillBad() {}
+    void PillGood() { PillState = piGood; }
+    void PillBad()  { PillState = piBad; }
     void HealthRenew();
     void PelengReceived();
     void PelengLost();

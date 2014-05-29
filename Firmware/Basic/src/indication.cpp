@@ -39,10 +39,10 @@ int32_t Indication_t::IDoseUmvos() {
         Led.SetColor(pbb->Color);
         if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
         chThdSleepMilliseconds(pbb->TimeOn_ms);
-        Led.SetColor(clBlack);
     }
-    else Led.SetColor(clBlack);
-    return pbb->TimeOff_ms;
+    Led.SetColor(clBlack);
+    chThdSleepMilliseconds(T_PAUSE_MS);
+    return pbb->TimeOff_ms - T_PAUSE_MS;
 }
 
 int32_t Indication_t::IDoseDetectorMobile() {
@@ -73,20 +73,30 @@ void Indication_t::ITask() {
         case dtDetectorMobile: SleepInterval = IDoseDetectorMobile(); break;
         default: break;
     } // switch
-    chThdSleepMilliseconds(T_PAUSE_MS);
 
     // ==== Battery ====
+
     // ==== Pill ====
+    if(PillState != piNone) {
+        Led.SetColor(BBPill[PillState].Color);
+        Beeper.Beep(BBPill[PillState].PBeep);
+        chThdSleepMilliseconds(BBPill[PillState].TimeOn_ms);
+        Led.SetColor(clBlack);
+        PillState = piNone;
+        SleepInterval -= BBPill[PillState].TimeOn_ms;
+    }
+
     // ==== Long status indication ====
     if(LongState == lsSetType) {
         Led.SetColor(DeviceColor[App.Type]);   // Blink with correct color
         Beeper.Beep(BeepBeep);
         LongState = lsNone;
         chThdSleepMilliseconds(T_SETTYPE_BLINK_MS);
+        Led.SetColor(clBlack);
         SleepInterval -= T_SETTYPE_BLINK_MS;
     }
     // Sleep after all
-    if(SleepInterval > 20) chThdSleepMilliseconds(SleepInterval);
+    if(SleepInterval > 2) chThdSleepMilliseconds(SleepInterval);
 }
 
 void Indication_t::Init() {

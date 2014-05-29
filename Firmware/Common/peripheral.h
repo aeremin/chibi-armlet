@@ -81,13 +81,6 @@ struct Color_t {
 #define LED_P2          1   // }
 #define LED_P3          5   // } No need to diff between colors, see CCR above
 
-struct LedChunk_t {
-    Color_t Color;
-    uint16_t Time_ms;
-    ChunkKind_t ChunkKind;
-};
-#define LED_CHUNK_SZ   sizeof(LedChunk_t)
-
 class LedRGB_t {
 private:
     void ISetRed  (uint8_t AValue) {LED_TIM->LED_RED_CCR   = AValue;}

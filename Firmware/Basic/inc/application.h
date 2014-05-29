@@ -55,8 +55,8 @@ private:
     // Pill
     Pill_t Pill;
     DataToWrite_t Data2Wr;  // for pill flasher
-    inline void IPillHandlerPillFlasher();
-    inline void IPillHandlerUmvos();
+    inline uint8_t IPillHandlerPillFlasher();
+    inline uint8_t IPillHandlerUmvos();
     // Common
     uint8_t ISetID(uint32_t NewID);
     uint8_t ISetType(uint8_t AType);

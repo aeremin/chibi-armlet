@@ -10,7 +10,7 @@
 #include "indication.h"
 
 #if 1 // ================================ On Connect ===========================
-void App_t::IPillHandlerUmvos() {
+uint8_t App_t::IPillHandlerUmvos() {
     uint8_t rslt = OK;
     switch(Pill.Type) {
 
@@ -62,12 +62,11 @@ void App_t::IPillHandlerUmvos() {
     // Save DoseAfter
     PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
     // ==== Indication ====
-    if(rslt == OK) Indication.PillGood();
-    else Indication.PillBad();
     Indication.HealthRenew();
+    return rslt;
 }
 
-void App_t::IPillHandlerPillFlasher() {
+uint8_t App_t::IPillHandlerPillFlasher() {
     uint8_t rslt = FAILURE;
     // Write pill if data exists
     EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
@@ -78,28 +77,32 @@ void App_t::IPillHandlerPillFlasher() {
         rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
         Uart.Ack(rslt);
     }
-    if(rslt == OK) Indication.PillGood();
-    else Indication.PillBad();
+    return rslt;
 }
 
 // Everybody starts here
 void App_t::OnPillConnect() {
-    if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
-    // Print pill
-    Uart.Printf("#PillRead32 0 16\r\n");
-    Uart.Printf("#PillData32 ");
-    int32_t *p = (int32_t*)&Pill;
-    for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
-    Uart.Printf("\r\n");
-    // Everyone
-    if(Pill.Type == ptSetType) ISetType(Pill.DeviceType);
-    else {
-        switch(Type) {
-            case dtUmvos:       IPillHandlerUmvos();       break;
-            case dtPillFlasher: IPillHandlerPillFlasher(); break;
-            default: break;
-        }
-    } // if set type
+    uint8_t rslt = PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
+    if(rslt == OK) {
+        // Print pill
+        Uart.Printf("#PillRead32 0 16\r\n");
+        Uart.Printf("#PillData32 ");
+        int32_t *p = (int32_t*)&Pill;
+        for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
+        Uart.Printf("\r\n");
+        // Everyone
+        if(Pill.Type == ptSetType) ISetType(Pill.DeviceType);
+        else {
+            switch(Type) {
+                case dtUmvos:       rslt = IPillHandlerUmvos();       break;
+                case dtPillFlasher: rslt = IPillHandlerPillFlasher(); break;
+                default: break;
+            }
+        } // if set type
+    } // if read ok
+    // Indication
+    if(rslt == OK) Indication.PillGood();
+    else Indication.PillBad();
 }
 #endif
 
