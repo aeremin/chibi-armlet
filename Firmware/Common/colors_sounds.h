@@ -72,12 +72,14 @@ const BeepChunk_t BeepRedFast[] = {
 
 #if 1 // ============================ LED blink ================================
 struct BlinkBeep_t {
-    Color_t Color;
-    uint16_t TimeOn_ms, TimeOff_ms;
+    Color_t Color1;
+    uint16_t Time1_ms;
+    Color_t Color2;
+    uint16_t Time2_ms;
     const BeepChunk_t *PBeep;
 };
 // Timings
-#define T_PAUSE_MS          36  // time between blinks
+//#define T_PAUSE_MS          54  // time between blinks
 #define T_SETTYPE_BLINK_MS  999 // Time to shine with device' color when type set
 
 #if 1 // ==== Device type colors ====
@@ -99,20 +101,20 @@ const Color_t DeviceColor[] = {
 
 // Pill
 const BlinkBeep_t BBPill[] = {
-        {clBlack,  0,  0, nullptr},     // No Pill
-        {clBlue, 702, 54, BeepPillOk},  // Pill Good
-        {clRed,  702, 54, BeepPillBad}, // Pill Bad
+        {clBlack,  0, clBlack, 0,  nullptr},     // No Pill
+        {clBlue, 702, clBlack, 504, BeepPillOk},  // Pill Good
+        {clRed,  702, clBlack, 504, BeepPillBad}, // Pill Bad
 };
 
 // Battery
 
 #if 1 // ==== Health states ====
 const BlinkBeep_t BBHealth[] = {
-        {clGreen,  36, 3006, nullptr},   // hsGreen
-        {clYellow, 36, 3006, nullptr},   // hsYellow
-        {clRed,    36, 1008, nullptr},   // hsRedSlow
-        {clRed,    36, 54,   BeepShort}, // hsRedFast
-        {clRed,    36, 0,    nullptr},   // hsDeath
+        {clGreen,  36, clBlack, 3006, nullptr},   // hsGreen
+        {clYellow, 36, clBlack, 3006, nullptr},   // hsYellow
+        {clRed,    36, clBlack, 1008, nullptr},   // hsRedSlow
+        {clRed,    36, clBlack, 54,   BeepShort}, // hsRedFast
+        {clRed,    36, clRed,   9999, BeepDeath}, // hsDeath
 };
 #endif // health
 

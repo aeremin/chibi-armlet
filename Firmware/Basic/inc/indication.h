@@ -23,24 +23,23 @@ private:
     LedRGB_t Led;
     LongState_t LongState;
     PillState_t PillState;
-    // Dose indication
-    inline int32_t IDoseUmvos();
-    inline int32_t IDoseDetectorMobile();
-//    inline
+    void WaitEvent(uint32_t t_ms);
 public:
     Thread *PThd;
     VirtualTimer TmrClick;
     void Init();
     void Reset();
     // Commands
-    void PillGood() { PillState = piGood; }
-    void PillBad()  { PillState = piBad; }
+    void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
+    void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void HealthRenew();
     void PelengReceived();
     void PelengLost();
     void LustraBadID() {}
     // Inner use
-    void ITask();
+    inline void ITask();
+    inline int32_t ITaskUmvos();
+    inline int32_t IDoseDetectorMobile();
 };
 
 extern Indication_t Indication;
