@@ -13,11 +13,17 @@
 #include "application.h"
 #include "mesh_params.h"
 
+#define SEND_IN_COUNT   1
 
-void Console_Send_Info(uint16_t ID, PayloadString_t *Ptr);
+class Console_t {
+private:
+    uint8_t Cnt;
+public:
+    Console_t() : Cnt(0) {}
+    void Send_Info(uint16_t ID, PayloadString_t *Ptr);
+    void SetTime_Ack(int32_t NewCycDiff);
+    void GetMeshInfo_Ack(uint32_t Rslt);
+};
 
-void Console_SetTime_Ack(int32_t NewCycDiff);
-
-void Console_GetMeshInfo_Ack(uint32_t Rslt);
-
+extern Console_t Console;
 #endif /* CONSOLE_H_ */

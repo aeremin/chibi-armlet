@@ -24,7 +24,7 @@
 #define MESH_CHANNEL        1     /* mesh RF channel */
 
 /* SLOT_TIME is equivalent to doubled time of transmit rf packet */
-#define SLOT_TIME           30    /* 26 ms normal time for transmit packet, take it as 30 ms */
+#define SLOT_TIME           10    /* 3 ms normal time for transmit packet, take it as 10 ms */
 
 #define COUNT_OF_CYCLES     5     /* count of cycles in supercycle */
 

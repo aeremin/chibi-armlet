@@ -288,12 +288,12 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         uint32_t NewCycle;
         if(PCmd->TryConvertTokenToNumber(&NewCycle) == OK) {  // Next token is number
 //            Uart.Printf("New cycle %u\r", NewCycle);
-            Console_SetTime_Ack(Mesh.SetCurrCycleN(NewCycle));
+            Console.SetTime_Ack(Mesh.SetCurrCycleN(NewCycle));
         }
     }
 
     else if(PCmd->NameIs("#GetMeshInfo")) {
-        Console_GetMeshInfo_Ack(OK);
+        Console.GetMeshInfo_Ack(OK);
     }
 #endif // Mesh
 

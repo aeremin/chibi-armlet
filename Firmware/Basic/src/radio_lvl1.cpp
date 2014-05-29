@@ -48,26 +48,26 @@ void rLevel1_t::ITask() {
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
-                    Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}, %u\r",
-                            Mesh.PktTx.MeshData.SelfID,
-                            Mesh.PktTx.MeshData.CycleN,
-                            Mesh.PktTx.MeshData.TimeOwnerID,
-                            Mesh.PktTx.MeshData.TimeAge,
-                            Mesh.PktTx.PayloadID,
-                            Mesh.PktTx.Payload.Hops,
-                            Mesh.PktTx.Payload.Timestamp,
-                            Mesh.PktTx.Payload.TimeDiff,
-                            Mesh.PktTx.Payload.Reason,
-                            Mesh.PktTx.Payload.Location,
-                            Mesh.PktTx.Payload.Emotion,
-                            chTimeNow()
-                            );
+//                    Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}, %u\r",
+//                            Mesh.PktTx.MeshData.SelfID,
+//                            Mesh.PktTx.MeshData.CycleN,
+//                            Mesh.PktTx.MeshData.TimeOwnerID,
+//                            Mesh.PktTx.MeshData.TimeAge,
+//                            Mesh.PktTx.PayloadID,
+//                            Mesh.PktTx.Payload.Hops,
+//                            Mesh.PktTx.Payload.Timestamp,
+//                            Mesh.PktTx.Payload.TimeDiff,
+//                            Mesh.PktTx.Payload.Reason,
+//                            Mesh.PktTx.Payload.Location,
+//                            Mesh.PktTx.Payload.Emotion,
+//                            chTimeNow()
+//                            );
 //                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
                 } // Mesh Tx
             } // Mesh Init
-            else chThdSleepMilliseconds(999);
+            else chThdSleepMilliseconds(41);
         }
-        else chThdSleepMilliseconds(999);
+        else chThdSleepMilliseconds(41);
     }
 }
 #endif
@@ -290,12 +290,12 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh Rx Cycle ====
 
 static void RxEnd(void *p) {
-    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
+//    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
     Radio.Valets.InRx = false;
 }
 
 void rLevel1_t::IMeshRx() {
-    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
+//    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
     Valets.RxTmt = CYCLE_TIME;
     Valets.InRx = true;
@@ -305,21 +305,21 @@ void rLevel1_t::IMeshRx() {
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
 //            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
-            Uart.Printf("rRxPkt: %u %u %u %u  {%u %u %u %d %u %u %u} %d, t=%u\r",
-                    Mesh.PktRx.MeshData.SelfID,
-                    Mesh.PktRx.MeshData.CycleN,
-                    Mesh.PktRx.MeshData.TimeOwnerID,
-                    Mesh.PktRx.MeshData.TimeAge,
-                    Mesh.PktRx.PayloadID,
-                    Mesh.PktRx.Payload.Hops,
-                    Mesh.PktRx.Payload.Timestamp,
-                    Mesh.PktRx.Payload.TimeDiff,
-                    Mesh.PktRx.Payload.Reason,
-                    Mesh.PktRx.Payload.Location,
-                    Mesh.PktRx.Payload.Emotion,
-                    RSSI,
-                    chTimeNow()
-                    );
+//            Uart.Printf("rRxPkt: %u %u %u %u  {%u %u %u %d %u %u %u} %d, t=%u\r",
+//                    Mesh.PktRx.MeshData.SelfID,
+//                    Mesh.PktRx.MeshData.CycleN,
+//                    Mesh.PktRx.MeshData.TimeOwnerID,
+//                    Mesh.PktRx.MeshData.TimeAge,
+//                    Mesh.PktRx.PayloadID,
+//                    Mesh.PktRx.Payload.Hops,
+//                    Mesh.PktRx.Payload.Timestamp,
+//                    Mesh.PktRx.Payload.TimeDiff,
+//                    Mesh.PktRx.Payload.Reason,
+//                    Mesh.PktRx.Payload.Location,
+//                    Mesh.PktRx.Payload.Emotion,
+//                    RSSI,
+//                    chTimeNow()
+//                    );
             Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
             Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
@@ -334,12 +334,13 @@ void rLevel1_t::IMeshRx() {
 void rLevel1_t::Init() {
 #ifdef DBG_PINS
     PinSetupOut(DBG_GPIO1, DBG_PIN1, omPushPull);
+    DBG1_CLR();
 #endif
     // Init radioIC
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetPktSize(RPKT_LEN);
     // Thread
-    rThd = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
+    rThd = chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }
 #endif

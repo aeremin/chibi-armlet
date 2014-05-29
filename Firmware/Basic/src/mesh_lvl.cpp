@@ -67,15 +67,18 @@ void Mesh_t::Init() {
     /* Create Mesh Thread */
     IPThread = chThdCreateStatic(waMeshLvlThread, sizeof(waMeshLvlThread), NORMALPRIO, (tfunc_t)MeshLvlThread, NULL);
 
+    nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
     CycleTmr.Init(MESH_TIM);
     CycleTmr.SetCounterFreq(1000);
     CycleTmr.SetTopValue(CYCLE_TIME-1);
     CycleTmr.SetCounter(0);
     CycleTmr.EnableIrqOnUpdate();
-    CycleTmr.Enable();
-    nvicEnableVector(MESH_TIM_IRQ, CORTEX_PRIORITY_MASK(IRQ_PRIO_HIGH));
-    Uart.Printf("Msh Init ID=%u\r", App.ID);
     IsInit = true;
+
+    chThdSleepMilliseconds(121); /* Do radio thd sleep 41 */
+
+    CycleTmr.Enable();           /* Enable Cycle Timer */
+    Uart.Printf("Msh Init ID=%u\r", App.ID);
 }
 
 void Mesh_t::ITask() {
@@ -93,7 +96,7 @@ void Mesh_t::INewCycle() {
     IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
-    Uart.Printf("NewCyc, t=%u\r", chTimeNow());
+//    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);

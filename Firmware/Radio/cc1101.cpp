@@ -229,7 +229,7 @@ void cc1101_t::RfConfig() {
     WriteRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
     WriteRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
     WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
-    WriteRegister(CC_PKTLEN,   7);                   // Packet length, dummy
+//    WriteRegister(CC_PKTLEN,   7);                   // Packet length, dummy
 
     WriteRegister(CC_PATABLE, CC_Pwr0dBm);
 
