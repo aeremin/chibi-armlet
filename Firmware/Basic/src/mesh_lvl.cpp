@@ -60,7 +60,7 @@ void Mesh_t::Init() {
     MsgBox.Init();
     IGenerateRandomTable(RND_TBL_BUFFER_SZ);
 
-    IResetTimeAge(App.ID);      /* TimeAge = 0; TimeOwner = App.ID */
+    IResetTimeAge(App.ID, 0);   /* TimeAge = 0; TimeOwner = App.ID */
     IPktPutCycle(AbsCycle);     /* CycleN = AbsCycle */
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
     PreparePktPayload();
@@ -126,10 +126,16 @@ void Mesh_t::IPktHandler(){
         PktBucket.ReadPkt(&MeshMsg); /* Read Pkt from Buffer */
         MeshPayload_t *pMP = &MeshMsg.MeshPayload;
 
-        if(PriorityID > pMP->TimeOwnerID) GetPrimaryPkt = true;
+        if(PriorityID > pMP->TimeOwnerID) {
+            IResetTimeAge(PriorityID, 0);
+            GetPrimaryPkt = true;
+        }
 
         else if(PriorityID == pMP->TimeOwnerID) {  /* compare TimeAge */
-            if(IGetTimeAge() > pMP->TimeAge) GetPrimaryPkt = true;  /* need to update */
+            if(IGetTimeAge() > pMP->TimeAge) {
+                IResetTimeAge(PriorityID, pMP->TimeAge);
+                GetPrimaryPkt = true;  /* need to update */
+            }
         }
 
         if(pMP->SelfID < STATIONARY_ID) {
@@ -143,7 +149,6 @@ void Mesh_t::IPktHandler(){
             CycleTmr.Disable();
             *PNewCycleN = pMP->CycleN + 1;
             PriorityID = pMP->TimeOwnerID;
-            IResetTimeAge(PriorityID);
             *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
     } while(PktBucket.GetFilledSlots() != 0);

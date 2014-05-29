@@ -98,9 +98,9 @@ private:
     uint16_t IGetTimeOwner()                        { return PktTx.MeshData.TimeOwnerID; }
     void ITimeAgeCounter() {
         if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) PktTx.MeshData.TimeAge++;
-        else IResetTimeAge(App.ID);
+        else IResetTimeAge(App.ID, 0);
     }
-    void IResetTimeAge(uint16_t NewID)              { PktTx.MeshData.TimeAge = 0; PktTx.MeshData.TimeOwnerID = NewID; }
+    void IResetTimeAge(uint16_t NewID, uint8_t TA)  { PktTx.MeshData.TimeAge = TA; PktTx.MeshData.TimeOwnerID = NewID; }
     uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
 
     void IPktHandlerStart() {
