@@ -26,20 +26,18 @@ private:
     void WaitEvent(uint32_t t_ms);
 public:
     Thread *PThd;
-    VirtualTimer TmrClick;
     void Init();
     void Reset();
     // Commands
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
-    void HealthRenew();
     void PelengReceived();
     void PelengLost();
     void LustraBadID() {}
     // Inner use
     inline void ITask();
     inline int32_t ITaskUmvos();
-    inline int32_t IDoseDetectorMobile();
+    inline int32_t ITaskDetectorMobile();
 };
 
 extern Indication_t Indication;

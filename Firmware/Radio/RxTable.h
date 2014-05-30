@@ -92,7 +92,6 @@ public:
                         PTable->Row[i].DmgMin,
                         PTable->Row[i].DmgMax,
                         PTable->Row[i].Rssi);
-//                Beeper.Beep(BeepShort);
 //            }
         } // for
     } // void print

@@ -20,7 +20,7 @@ uint8_t App_t::IPillHandlerUmvos() {
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
                 if((rslt == OK) and (Dose.State != hsDeath)) {    // Modify dose if not dead
-                    Dose.Modify(Pill.Value, diNeverIndicate);
+                    Dose.Modify(Pill.Value);
                 }
             }
             else rslt = FAILURE;
@@ -47,8 +47,7 @@ uint8_t App_t::IPillHandlerUmvos() {
         // ==== Set DoseTop ====
         case ptSetDoseTop:
             Dose.Consts.Setup(Pill.DoseTop);
-            SaveDoseTop();
-            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            Dose.SaveTop();
             break;
 
         // ==== Diagnostic ====
@@ -61,8 +60,6 @@ uint8_t App_t::IPillHandlerUmvos() {
     } // switch
     // Save DoseAfter
     PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
-    // ==== Indication ====
-    Indication.HealthRenew();
     return rslt;
 }
 

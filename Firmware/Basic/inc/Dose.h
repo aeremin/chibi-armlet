@@ -13,6 +13,7 @@
 #include "peripheral.h"
 #include "colors_sounds.h"
 #include "cmd_uart.h"
+#include "ee.h"
 
 struct DoseConsts_t {
     int32_t Top;       // Death; top value
@@ -24,6 +25,7 @@ struct DoseConsts_t {
         RedFast = Top - 7;
         Red = (Top * 2) / 3;
         Yellow = Top / 3;
+        Uart.Printf("Top=%u; Red=%u; Yellow=%u\r\n", Top, Red, Yellow);
     }
 };
 
@@ -31,7 +33,6 @@ struct DoseConsts_t {
 #define DOSE_DEFAULT_TOP    10800
 
 enum HealthState_t {hsGreen=0, hsYellow=1, hsRedSlow=2, hsRedFast=3, hsDeath=4};
-enum DoIndication_t {diUsual, diAlwaysIndicate, diNeverIndicate};
 
 #if 1 // ==== Drug ====
 class Drug_t {
@@ -61,6 +62,7 @@ public:
 };
 #endif
 
+#if 1 // ==== Dose ====
 class Dose_t {
 private:
     EEStore_t EEStore;   // EEPROM storage for dose
@@ -76,43 +78,12 @@ public:
     DoseConsts_t Consts;
     HealthState_t State;
     Drug_t Drug;
-//    void RenewIndication() {
-//        Beeper.Stop();
-//        Led.StopBlink();
-//        switch(State) {
-//            case hsDeath:
-//                Led.SetColor(clRed);
-//                Beeper.Beep(BeepDeath);
-//                break;
-//            case hsRedFast:
-//                Led.StartBlink(LedRedFast);
-//                Beeper.Beep(BeepRedFast);
-//                break;
-//            case hsRedSlow:
-//                Led.StartBlink(LedRedSlow);
-//                Beeper.Beep(BeepBeep);
-//                break;
-//            case hsYellow:
-//                Led.StartBlink(LedYellow);
-//                Beeper.Beep(BeepBeep);
-//                break;
-//            case hsGreen:
-//                Led.StartBlink(LedGreen);
-//                Beeper.Beep(BeepBeep);
-//                break;
-//            default: break;
-//        } // switch
-//    }
 #if 1 // ==== Dose set/modify/reset ====
-    void Set(int32_t ADose, DoIndication_t DoIndication) {
+    void Set(int32_t ADose) {
         Value = ADose;
-//        HealthState_t OldState = State;
         ConvertDoseToState();
-//        if((DoIndication == diAlwaysIndicate) or
-//          ((State != OldState) and (DoIndication == diUsual)))
-//            RenewIndication();
     }
-    void Modify(int32_t Amount, DoIndication_t DoIndication) {
+    void Modify(int32_t Amount) {
         int32_t Dz = Value;
         if(Amount >= 0) { // Doze increase
             // Increase no more than up to near death
@@ -127,15 +98,15 @@ public:
             if((- Amount) > Dz) Dz = 0;
             else Dz += Amount;
         }
-        Set(Dz, DoIndication);
+        Set(Dz);
         Uart.Printf("Dz=%d; Dmg=%d\r", Value, Amount);
     }
-    void Reset() { Modify(MIN_INT32, diNeverIndicate); }
+    void Reset() { Modify(MIN_INT32); }
 #endif
 
 #if 1 // ==== Load/Save ====
-    // Save if changed
-    uint8_t Save() {
+    // Value: Save if changed
+    uint8_t SaveValue() {
         int32_t OldValue = 0;
         if(EEStore.Get((uint32_t*)&OldValue) == OK) {
             if(OldValue == Value) return OK;
@@ -143,12 +114,21 @@ public:
         return EEStore.Put((uint32_t*)&Value);
     }
     // Try load from EEPROM, set 0 if failed
-    void Load() {
+    void LoadValue() {
         int32_t FDose = 0;
         EEStore.Get((uint32_t*)&FDose);     // Try to read
-        Set(FDose, diUsual);
+        Set(FDose);
+    }
+
+    // ==== Top ====
+    void SaveTop() { EE.Write32(EE_DOSETOP_ADDR, Consts.Top); }
+    void LoadTop() {
+        uint32_t tmp1 = EE.Read32(EE_DOSETOP_ADDR);
+        if(tmp1 == 0) tmp1 = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
+        Consts.Setup(tmp1);
     }
 #endif
 };
+#endif // Dose
 
 #endif /* DOSE_H_ */

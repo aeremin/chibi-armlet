@@ -58,6 +58,7 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
+    Uart.Printf("\rRst\r\n");
     Indication.Init();
     PillMgr.Init();
 

@@ -53,6 +53,7 @@
 enum BitOrder_t {boMSB, boLSB};
 enum LowHigh_t  {Low, High};
 enum RiseFall_t {Rising, Falling};
+enum Inverted_t {invNotInverted, invInverted};
 
 typedef void (*ftVoidVoid)(void);
 
@@ -268,9 +269,17 @@ private:
 public:
     __IO uint32_t *PCCR;    // Made public to allow DMA
     void SetFreqHz(uint32_t FreqHz);
-    void Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, bool Inverted=false);
+    void Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, Inverted_t Inverted=invNotInverted);
+    void SetTop(uint16_t Value) { Tim->ARR = Value; }
+    void SetPsc(uint16_t Value) { Tim->PSC = Value; }
     void Set(uint16_t Value) { *PCCR = Value; }
+    void SetupChannel(uint8_t Chnl, Inverted_t Inverted);
     void Off() { *PCCR = 0; }
+    void Deinit() { Tim->CR1 = 0; }
+    void Enable()  { Tim->CR1 |=  TIM_CR1_CEN; }
+    void Disable() { Tim->CR1 &= ~TIM_CR1_CEN; }
+    void EnableOnePulseMode()  { Tim->CR1 |=  TIM_CR1_OPM;  }
+    void DisableOnePulseMode() { Tim->CR1 &= ~TIM_CR1_OPM; }
 };
 
 #if 1 // ==== External IRQ ====
@@ -333,7 +342,6 @@ public:
 enum TmrTrigInput_t {tiITR0=0x00, tiITR1=0x10, tiITR2=0x20, tiITR3=0x30, tiTIED=0x40, tiTI1FP1=0x50, tiTI2FP2=0x60, tiETRF=0x70};
 enum TmrMasterMode_t {mmReset=0x00, mmEnable=0x10, mmUpdate=0x20, mmComparePulse=0x30, mmCompare1=0x40, mmCompare2=0x50, mmCompare3=0x60, mmCompare4=0x70};
 enum TmrSlaveMode_t {smDisable=0, smEncoder1=1, smEncoder2=2, smEncoder3=3, smReset=4, smGated=5, smTrigger=6, smExternal=7};
-enum Inverted_t {invNotInverted, invInverted};
 enum ExtTrigPol_t {etpInverted=0x8000, etpNotInverted=0x0000};
 enum ExtTrigPsc_t {etpOff=0x0000, etpDiv2=0x1000, etpDiv4=0x2000, etpDiv8=0x30000};
 

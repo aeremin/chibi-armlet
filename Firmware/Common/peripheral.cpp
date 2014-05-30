@@ -47,8 +47,12 @@ void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
     chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)PCh);
 }
 
-void Beeper_t::Shutdown() {
+void Beeper_t::Disable() {
+    chSysLock();
+    if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
     PinSetupAnalog(GPIOB, 3);
+    IPin.Disable();
+    chSysUnlock();
 }
 #endif
 

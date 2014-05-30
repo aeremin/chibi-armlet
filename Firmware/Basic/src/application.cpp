@@ -17,6 +17,8 @@
 #include <cstdlib>
 
 App_t App;
+Eeprom_t EE;
+
 // Timers callbacks prototypes
 extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
@@ -140,7 +142,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         int32_t NewTop;
         if(PCmd->TryConvertTokenToNumber(&NewTop) == OK) {  // Next token is number
             Dose.Consts.Setup(NewTop);
-            SaveDoseTop();
+            Dose.SaveTop();
             Uart.Printf("Top=%d; Red=%d; Yellow=%d\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             Uart.Ack(OK);
         }
@@ -152,7 +154,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         int32_t NewDose;
         if(PCmd->TryConvertTokenToNumber(&NewDose) == OK) {  // Next token is number
             if(NewDose <= Dose.Consts.Top) {
-                Dose.Set(NewDose, diAlwaysIndicate);
+                Dose.Set(NewDose);
                 Uart.Ack(OK);
             }
         }
@@ -207,11 +209,11 @@ void App_t::OnRxTableReady() {
     } // for
     Damage = NaturalDmg + RadioDmg;
     // TODO: Damage *= CountOfSecondsElapsedSinceLastTime
-    Uart.Printf("Dmg=%d\r", Damage);
+//    Uart.Printf("Dmg=%d\r", Damage);
     // React depending on device type and damage level
     if(Type == dtUmvos) {
         if(Dose.Drug.IsActive()) Dose.Drug.ModifyDamage(Damage, PTbl->Age());
-        Dose.Modify(Damage, diUsual);
+        Dose.Modify(Damage);
     }
 }
 #endif // Dose
@@ -258,14 +260,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     chSysUnlock();
 
     // Reinit constants
-    uint32_t tmp1;
     switch(Type) {
         case dtUmvos:
-            // Read dose constants
-            tmp1 = EE.Read32(EE_DOSETOP_ADDR);
-            if(tmp1 == 0) tmp1 = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
-            Dose.Consts.Setup(tmp1);
-            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r\n", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
+            Dose.LoadTop(); // Read dose constants
 #if DO_DOSE_SAVE
             Dose.Load();
 #endif
@@ -276,9 +273,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     Indication.Reset();
 
     // Save in EE if not equal
-    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
+//    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
     uint8_t rslt = OK;
-    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
+//    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
     Uart.Printf("Type=%u\r\n", Type);
     return rslt;
 }

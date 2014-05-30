@@ -64,43 +64,36 @@ void Timer_t::InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t I
 #endif
 
 #if 1 // ============================= PWM pin =================================
-void PwmPin_t::Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, bool Inverted) {
+void PwmPin_t::Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, Inverted_t Inverted) {
     Tim = PTim;
-    if(Tim == TIM2) {
-        rccEnableTIM2(FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF1);
-    }
-    else if(Tim == TIM3) {
-        rccEnableTIM3(FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
-    }
-    else if(Tim == TIM4) {
-        rccEnableTIM4(FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
-    }
-    else if(Tim == TIM9) {
-        rccEnableTIM9(FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    }
-    else if(Tim == TIM10) {
-        rccEnableAPB2(RCC_APB2ENR_TIM10EN, FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    }
-    else if(Tim == TIM11) {
-        rccEnableAPB2(RCC_APB2ENR_TIM11EN, FALSE);
-        PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    }
+    if     (Tim == TIM2)  { rccEnableTIM2(FALSE); }
+    else if(Tim == TIM3)  { rccEnableTIM3(FALSE); }
+    else if(Tim == TIM4)  { rccEnableTIM4(FALSE); }
+    else if(Tim == TIM9)  { rccEnableTIM9(FALSE); }
+    else if(Tim == TIM10) { rccEnableAPB2(RCC_APB2ENR_TIM10EN, FALSE); }
+    else if(Tim == TIM11) { rccEnableAPB2(RCC_APB2ENR_TIM11EN, FALSE); }
     // Clock src
     if(ANY_OF_3(Tim, TIM2, TIM3, TIM4)) PClk = &Clk.APB1FreqHz;
     else PClk = &Clk.APB2FreqHz;
 
     // Common
-    Tim->CR1 = TIM_CR1_CEN; // Enable timer, set clk division to 0, AutoReload not buffered
+    Tim->CNT = 0;
     Tim->CR2 = 0;
     Tim->ARR = TopValue;
-
     // Output
-    uint16_t tmp = Inverted? 0b111 : 0b110; // PWM mode 1 or 2
+    SetupChannel(Chnl, Inverted);
+    // Pin
+    if     (Tim == TIM2)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF1);
+    else if(Tim == TIM3)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
+    else if(Tim == TIM4)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
+    else if(Tim == TIM9)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
+    else if(Tim == TIM10) PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
+    else if(Tim == TIM11) PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
+    Tim->CR1 = TIM_CR1_CEN; // Enable timer, set clk division to 0, AutoReload not buffered
+}
+
+void PwmPin_t::SetupChannel(uint8_t Chnl, Inverted_t Inverted) {
+    uint16_t tmp = (Inverted == invInverted)? 0b111 : 0b110; // PWM mode 1 or 2
     switch(Chnl) {
         case 1:
             PCCR = &Tim->CCR1;
@@ -126,7 +119,7 @@ void PwmPin_t::Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t C
             Tim->CCER  |= TIM_CCER_CC4E;
             break;
 
-        default: break;
+        default: return; break;
     }
     *PCCR = 0;
 }

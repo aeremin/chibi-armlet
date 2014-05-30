@@ -40,7 +40,7 @@ public:
         IPin.Set(0);
     }
     void Init();
-    void Shutdown();
+    void Disable();
     // Inner use
     PwmPin_t IPin;
 };
