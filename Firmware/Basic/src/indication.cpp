@@ -62,29 +62,25 @@ static void IndicationThread(void *arg) {
 }
 
 void Indication_t::ITask() {
-    // After Type Setup, demonstrate device'color
-    if(LongState == lsSetType) {
+    // Indication depends on device type. Every function returns required sleep interval until next call.
+    int32_t SleepInterval;
+    switch(App.Type) {
+        case dtUmvos:          SleepInterval = Indication.ITaskUmvos(); break;
+        case dtDetectorMobile: SleepInterval = Indication.ITaskDetectorMobile(); break;
+        default: SleepInterval = 999; break;
+    } // switch
+
+#if 1 // ==== Wait Event ====
+    uint32_t EvtMsk = chEvtWaitAnyTimeout(ALL_EVENTS, SleepInterval);
+    // ==== Type changed ====
+    if(EvtMsk & EVTMSK_TYPE_CHANGED) {
         Led.SetColor(DeviceColor[App.Type]);   // Blink with correct color
         if(App.Type != dtDetectorMobile) Beeper.Beep(BeepBeep);
-        LongState = lsNone;
         chThdSleepMilliseconds(T_SETTYPE_BLINK_MS);
         Led.SetColor(clBlack);
         chThdSleepMilliseconds(T_SETTYPE_BLINK_MS);
     }
-    // Indication depends on device type. Every function returns required sleep interval until next call.
-    else {
-        int32_t SleepInterval;
-        switch(App.Type) {
-            case dtUmvos:          SleepInterval = Indication.ITaskUmvos(); break;
-            case dtDetectorMobile: SleepInterval = Indication.ITaskDetectorMobile(); break;
-            default: SleepInterval = 999; break;
-        } // switch
-        WaitEvent(SleepInterval);
-    }
-}
 
-void Indication_t::WaitEvent(uint32_t t_ms) {
-    uint32_t EvtMsk = chEvtWaitAnyTimeout(ALL_EVENTS, t_ms);
     // ==== Pill ====
     if(EvtMsk & EVTMSK_PILL_CHECK) {
         if(PillState != piNone) {
@@ -97,9 +93,16 @@ void Indication_t::WaitEvent(uint32_t t_ms) {
             chThdSleepMilliseconds(p->Time2_ms);
         }
     } // pill
-}
 
-//    // ==== Battery ====
+    // ==== Pelengator ====
+    if(EvtMsk & EVTMSK_PELENG_FOUND) {
+        Led.SetColor(DeviceColor[App.Type]);
+        chThdSleepMilliseconds(T_PELENG_BLINK_MS);
+        Led.SetColor(clBlack);
+    }
+#endif // Event
+}
+    // ==== Battery ====
 
 void Indication_t::Init() {
     Led.Init();
@@ -108,7 +111,7 @@ void Indication_t::Init() {
     PThd = chThdCreateStatic(waIndicationThread, sizeof(waIndicationThread), LOWPRIO, (tfunc_t)IndicationThread, NULL);
 }
 
-void Indication_t::Reset() {
+void Indication_t::ProcessTypeChange() {
     // Setup beeper to beep or to click
     if(App.Type == dtDetectorMobile) {
         TIM2->CR1 = TIM_CR1_OPM;
@@ -123,45 +126,6 @@ void Indication_t::Reset() {
     }
     else Beeper.Init();
 
-    // Init depending on type
-//    switch(App.Type) {
-//        case dtDetectorMobile:
-//            break;
-//        default: break;
-//    }
-    // Indicate type
-    LongState = lsSetType;
+    chEvtSignal(PThd, EVTMSK_TYPE_CHANGED);
 }
 #endif
-
-#if 1 // ==== Pill ====
-//Beeper.Beep(BeepPillOk);
-//Led.StartBlink(LedPillCureOk);
-//}
-//else {
-//Beeper.Beep(BeepPillBad);
-//Led.StartBlink(LedPillBad);
-//}
-//chThdSleepMilliseconds(1008);   // Let indication to complete
-#endif
-
-#if 1 // ==== Pelengator ====
-//void FOnPelengatorLost() { chEvtSignalI(App.PThd, EVTMSK_PELENG_LOST); }
-//
-//void Indication_t::PelengReceived() {
-//    Led.StartBlink(&TypeColorTblPeleng[Type], FOnPelengatorLost);
-//}
-//
-//void Indication_t::PelengLost() {
-//    switch(Type) {
-//        case dtUmvos: Dose.RenewIndication(); break;
-//        case dtDetectorFixed:
-//            break;
-//        case dtEmpMech:
-//            break;
-//        default: break;
-//    }
-//}
-#endif
-
-

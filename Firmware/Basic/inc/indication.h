@@ -15,24 +15,21 @@
 #define TM_CLICK_MS          18      // for Detector
 #endif
 
-enum LongState_t {lsNone, lsSetType, lsPeleng};
 enum PillState_t {piNone, piGood, piBad};
 
 class Indication_t {
 private:
     LedRGB_t Led;
-    LongState_t LongState;
     PillState_t PillState;
-    void WaitEvent(uint32_t t_ms);
+//    void WaitEvent(uint32_t t_ms);
 public:
     Thread *PThd;
     void Init();
-    void Reset();
     // Commands
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
-    void PelengReceived();
-    void PelengLost();
+    void PelengReceived() { }
+    void ProcessTypeChange();
     void LustraBadID() {}
     // Inner use
     inline void ITask();

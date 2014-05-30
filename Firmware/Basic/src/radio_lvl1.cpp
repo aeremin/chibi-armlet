@@ -74,7 +74,7 @@ void rLevel1_t::ITask() {
 //        Uart.Printf("Peleng %d\r", RssiPercent);
         if(RssiPercent > RLVL_PELENGATOR) {
             chSysLock();
-            chEvtSignalI(App.PThd, EVTMSK_PELENG_FOUND);
+            chEvtSignalI(Indication.PThd, EVTMSK_PELENG_FOUND);
             chSysUnlock();
             return; // Get out if pelengator found
         }
