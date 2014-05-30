@@ -97,24 +97,28 @@ void PwmPin_t::SetupChannel(uint8_t Chnl, Inverted_t Inverted) {
     switch(Chnl) {
         case 1:
             PCCR = &Tim->CCR1;
+            Tim->CCMR1 &= ~TIM_CCMR1_OC1M;
             Tim->CCMR1 |= (tmp << 4);
             Tim->CCER  |= TIM_CCER_CC1E;
             break;
 
         case 2:
             PCCR = &Tim->CCR2;
+            Tim->CCMR1 &= ~TIM_CCMR1_OC2M;
             Tim->CCMR1 |= (tmp << 12);
             Tim->CCER  |= TIM_CCER_CC2E;
             break;
 
         case 3:
             PCCR = &Tim->CCR3;
+            Tim->CCMR2 &= ~TIM_CCMR2_OC3M;
             Tim->CCMR2 |= (tmp << 4);
             Tim->CCER  |= TIM_CCER_CC3E;
             break;
 
         case 4:
             PCCR = &Tim->CCR4;
+            Tim->CCMR2 &= ~TIM_CCMR2_OC4M;
             Tim->CCMR2 |= (tmp << 12);
             Tim->CCER  |= TIM_CCER_CC4E;
             break;

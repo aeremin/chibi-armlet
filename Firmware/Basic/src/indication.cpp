@@ -110,7 +110,6 @@ void Indication_t::Init() {
 
 void Indication_t::Reset() {
     // Setup beeper to beep or to click
-    Beeper.Disable();
     if(App.Type == dtDetectorMobile) {
         TIM2->CR1 = TIM_CR1_OPM;
         TIM2->ARR = 22;
@@ -121,19 +120,8 @@ void Indication_t::Reset() {
         if(tmp != 0) tmp--;
         TIM2->PSC = (uint16_t)tmp;
         TIM2->CCR2 = 20;
-        PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
     }
-    else {
-        TIM2->CR1 = TIM_CR1_CEN;
-        TIM2->CNT = 0;
-        TIM2->ARR = 22;
-        TIM2->CCMR1 = (0b110 << 12);
-        TIM2->CCER = TIM_CCER_CC2E;
-        TIM2->CCR2 = 0;
-        PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
-    }
-
-//    else Beeper.Init();
+    else Beeper.Init();
 
     // Init depending on type
 //    switch(App.Type) {

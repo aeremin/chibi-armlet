@@ -273,9 +273,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     Indication.Reset();
 
     // Save in EE if not equal
-//    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
+    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
     uint8_t rslt = OK;
-//    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
+    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
     Uart.Printf("Type=%u\r\n", Type);
     return rslt;
 }
