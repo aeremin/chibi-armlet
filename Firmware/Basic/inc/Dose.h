@@ -59,6 +59,15 @@ public:
             else ITimeLeft_ms -= TimeElapsed_ms;
         } // if value < 0
     } // Utilize
+    // Load/Save
+    void Load() {
+        IValue = (int32_t)EE.Read32(EE_DRUG_VALUE_ADDR);
+        ITimeLeft_ms = EE.Read32(EE_DRUG_TIMELEFT_ADDR);
+    }
+    void Save() {
+        if((int32_t)EE.Read32(EE_DRUG_VALUE_ADDR) != IValue) EE.Write32(EE_DRUG_VALUE_ADDR, (uint32_t)IValue);
+        if(EE.Read32(EE_DRUG_TIMELEFT_ADDR) != ITimeLeft_ms) EE.Write32(EE_DRUG_TIMELEFT_ADDR, ITimeLeft_ms);
+    }
 };
 #endif
 
@@ -107,6 +116,7 @@ public:
 #if 1 // ==== Load/Save ====
     // Value: Save if changed
     uint8_t SaveValue() {
+        Drug.Save();
         int32_t OldValue = 0;
         if(EEStore.Get((uint32_t*)&OldValue) == OK) {
             if(OldValue == Value) return OK;
@@ -118,6 +128,7 @@ public:
         int32_t FDose = 0;
         EEStore.Get((uint32_t*)&FDose);     // Try to read
         Set(FDose);
+        Drug.Load();
     }
 
     // ==== Top ====

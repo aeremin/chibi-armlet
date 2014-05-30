@@ -51,7 +51,9 @@ uint8_t App_t::IPillHandlerUmvos() {
             break;
 
         // ==== Diagnostic ====
-        case ptDiagnostic: PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSETOP_ADDR), &Dose.Consts.Top, 4); break;
+        case ptDiagnostic:
+            PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSETOP_ADDR), &Dose.Consts.Top, 4);
+            break;
 
         default:
             Uart.Printf("Unknown Pill\r");

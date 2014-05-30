@@ -264,7 +264,7 @@ uint8_t App_t::ISetType(uint8_t AType) {
         case dtUmvos:
             Dose.LoadTop(); // Read dose constants
 #if DO_DOSE_SAVE
-            Dose.Load();
+            Dose.LoadValue();
 #endif
             break;
         default: break;
