@@ -13,15 +13,13 @@
 uint8_t App_t::IPillHandlerUmvos() {
     uint8_t rslt = OK;
     switch(Pill.Type) {
-
         // ==== Cure ====
         case ptCure:
             if(Pill.ChargeCnt > 0) {    // Check charge count, decrease it and write it back
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
-                if((rslt == OK) and (Dose.State != hsDeath)) {    // Modify dose if not dead
-                    Dose.Modify(Pill.Value);
-                }
+                // Modify dose if not dead
+                if((rslt == OK) and (Dose.State != hsDeath)) Dose.Modify(Pill.Value);
             }
             else rslt = FAILURE;
             break;
@@ -31,18 +29,17 @@ uint8_t App_t::IPillHandlerUmvos() {
             if(Pill.ChargeCnt > 0) {
                 Pill.ChargeCnt--;
                 rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
-                if(rslt == OK) {
-                    if(Dose.State != hsDeath) Dose.Drug.Set(Pill.Value, Pill.Time_s);
-                }
+                // Apply drug if not dead
+                if((rslt == OK) and (Dose.State != hsDeath)) Dose.Drug.Set(Pill.Value, Pill.Time_s);
             }
             else rslt = FAILURE;
             break;
 
         // ==== Panacea ====
-        case ptPanacea:
-            Dose.Reset();
-            Dose.Drug.Set(0, 0); // Reset drug
-            break;
+        case ptPanacea: Dose.Reset(); break;
+
+        // ==== Autodoc ====
+        case ptAutodoc: rslt = OnProlongedPill(); break;
 
         // ==== Set DoseTop ====
         case ptSetDoseTop:
@@ -60,8 +57,7 @@ uint8_t App_t::IPillHandlerUmvos() {
             rslt = FAILURE;
             break;
     } // switch
-    // Save DoseAfter
-    PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
+    SaveDoseToPill();   // Always save DoseAfter
     return rslt;
 }
 
@@ -105,8 +101,57 @@ void App_t::OnPillConnect() {
 }
 #endif
 
-#if 1 // ============================= On Disconnect ===========================
-void App_t::OnPillDisconnect() {
+#if 1 // ==== Prolonged action Pill ====
+void TmrProlongedPillCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, EVTMSK_PROLONGED_PILL);
+    chVTSetI(&App.TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrProlongedPillCallback, nullptr);
+    chSysUnlockFromIsr();
+}
 
+uint8_t App_t::OnProlongedPill() {
+    bool IsArmed;
+    ProlongedState_t NewState = pstNothing; // Change indication state on completion
+    uint8_t rslt = PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
+    if(rslt == OK) {
+        switch(Pill.Type) {
+            case ptAutodoc:
+                if(Pill.ChargeCnt > 0) {
+                    // Check if timer is armed and do nothing if yes (pill reconnected between tics)
+                    chSysLock();
+                    IsArmed = chVTIsArmedI(&TmrProlongedPill);
+                    chSysUnlock();
+                    if(!IsArmed) {
+                        Pill.ChargeCnt--;
+                        rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
+                        // Apply autodoc if not dead
+                        if((rslt == OK) and (Dose.State != hsDeath)) {
+                            Dose.Modify(Pill.Value);
+                            // Check if healing completed
+                            if(Dose.Value == 0) {
+                                NewState = pstNothing;
+                                Indication.AutodocCompleted();
+                            }
+                            else {
+                                NewState = pstAutodoc;
+                                // Start / restart prolonged timer
+                                chVTSet(&TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrProlongedPillCallback, nullptr);
+                            }
+                        } // if rslt and !dead
+                    } // if is armed
+                } // if chargecnt
+                else {
+                    rslt = FAILURE;
+                    // Indicate charge exhausted if previously was operational
+                    if(Indication.ProlongedState == pstAutodoc) Indication.AutodocExhausted();
+                }
+                break;
+
+            default: rslt = FAILURE; break;
+        } // switch
+        SaveDoseToPill();
+    } // if ok
+    Indication.ProlongedState = NewState;
+    return rslt;
 }
 #endif

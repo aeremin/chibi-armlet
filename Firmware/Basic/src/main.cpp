@@ -30,21 +30,21 @@ void TmrUartRxCallback(void *p) {
 void TmrPillCheckCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
-    chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
+    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
     chSysUnlockFromIsr();
 }
 
 void TmrDoseSaveCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
-    chVTSetI(&App.TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
+    chVTSetI(&App.TmrDoseSave, MS2ST(T_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
     chSysUnlockFromIsr();
 }
 
 void TmrMeasurementCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
-    chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
+    chVTSetI(&App.TmrMeasurement, MS2ST(T_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -74,7 +74,7 @@ int main(void) {
     // Common Timers
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
-    chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
+    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
@@ -91,11 +91,9 @@ int main(void) {
                 PillWasConnected = true;
                 App.OnPillConnect();
             }
-            else if(!IsNowConnected and PillWasConnected) { // OnDisconnect
-                PillWasConnected = false;
-                App.OnPillDisconnect();
-            }
+            else if(!IsNowConnected and PillWasConnected) PillWasConnected = false;
         } // if EVTMSK_PILL_CHECK
+        if(EvtMsk & EVTMSK_PROLONGED_PILL) App.OnProlongedPill();
 
         // ==== Dose ====
         if(EvtMsk & EVTMSK_DOSE_STORE) App.SaveDose();

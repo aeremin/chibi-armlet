@@ -163,7 +163,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Value);
 #endif // Dose
 
-    else if(*PCmd->Name == '#') Uart.Ack(CMD_UNKNOWN);  // reply only #-started stuff
+    else if(PCmd->Name[0] == '#') Uart.Ack(CMD_UNKNOWN);  // reply only #-started stuff
 }
 #endif
 
@@ -223,7 +223,7 @@ void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
     Uart.Printf("ID=%u\r\n", ID);
-    Damage = 1; // DEBUG
+    Damage = 1;
 }
 
 uint8_t App_t::ISetID(uint32_t NewID) {
@@ -280,3 +280,4 @@ uint8_t App_t::ISetType(uint8_t AType) {
     return rslt;
 }
 #endif
+

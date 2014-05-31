@@ -13,12 +13,14 @@
 #include "RxTable.h"
 #include "pill.h"
 #include "ee.h"
+#include "pill_mgr.h"
 
 #if 1 // ==== Timings ====
-#define TM_DOSE_INCREASE_MS 999
-#define TM_DOSE_SAVE_MS     2007
-#define TM_PILL_CHECK_MS    360    // Check if pill connected every TM_PILL_CHECK
-#define TM_MEASUREMENT_MS   5004
+#define T_DOSE_INCREASE_MS 999
+#define T_DOSE_SAVE_MS     2007
+#define T_PILL_CHECK_MS    360    // Check if pill connected every TM_PILL_CHECK
+#define T_PROLONGED_PILL_MS 999
+#define T_MEASUREMENT_MS   5004
 #endif
 
 // ========= Device types =========
@@ -50,6 +52,11 @@ private:
     DataToWrite_t Data2Wr;  // for pill flasher
     inline uint8_t IPillHandlerPillFlasher();
     inline uint8_t IPillHandlerUmvos();
+    void SaveDoseToPill() {
+        if(Dose.Value != Pill.DoseAfter)
+            PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
+    }
+
     // Common
     uint8_t ISetID(uint32_t NewID);
     uint8_t ISetType(uint8_t AType);
@@ -60,7 +67,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement;
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrProlongedPill;
     // Radio & damage
     RxTable_t RxTable;
     int32_t Damage;
@@ -68,10 +75,10 @@ public:
     void Init();
     // Events
     void OnPillConnect();
-    void OnPillDisconnect();
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
+    uint8_t OnProlongedPill();
     friend class Indication_t;
 };
 

@@ -110,7 +110,10 @@ public:
         Set(Dz);
         Uart.Printf("Dz=%d; Dmg=%d\r", Value, Amount);
     }
-    void Reset() { Modify(MIN_INT32); }
+    void Reset() {
+        Modify(MIN_INT32);
+        Drug.Set(0, 0); // Reset drug
+    }
 #endif
 
 #if 1 // ==== Load/Save ====

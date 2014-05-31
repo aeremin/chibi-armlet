@@ -16,6 +16,7 @@
 #endif
 
 enum PillState_t {piNone, piGood, piBad};
+enum ProlongedState_t {pstNothing, pstAutodoc};
 
 class Indication_t {
 private:
@@ -24,12 +25,15 @@ private:
 //    void WaitEvent(uint32_t t_ms);
 public:
     Thread *PThd;
+    ProlongedState_t ProlongedState;
     void Init();
     // Commands
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PelengReceived() { }
     void ProcessTypeChange();
+    void AutodocCompleted() {}
+    void AutodocExhausted() {}
     void LustraBadID() {}
     // Inner use
     inline void ITask();
