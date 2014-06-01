@@ -105,10 +105,10 @@ void App_t::OnPillConnect() {
 void TmrProlongedPillCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_PROLONGED_PILL);
-    chVTSetI(&App.TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrProlongedPillCallback, nullptr);
     chSysUnlockFromIsr();
 }
 
+// Called first from pill handler, and then periodically by Timer+Event
 uint8_t App_t::OnProlongedPill() {
     bool IsArmed;
     ProlongedState_t NewState = pstNothing; // Change indication state on completion
@@ -151,7 +151,7 @@ uint8_t App_t::OnProlongedPill() {
         } // switch
         SaveDoseToPill();
     } // if ok
-    Indication.ProlongedState = NewState;
+    Indication.ProlongedState = NewState; // Change indication state
     return rslt;
 }
 #endif

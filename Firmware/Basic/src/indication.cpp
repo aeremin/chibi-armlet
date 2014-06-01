@@ -10,22 +10,6 @@
 
 Indication_t Indication;
 
-#if 1 // =========================== Timers ====================================
-// ==== Detector's click ====
-//void TmrClickCallback(void *p) {
-//    if(App.Damage > 0) {
-//        int32_t r = rand() % (DMG_SND_MAX - 1);
-//        int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (App.Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
-////        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-//        if(r < DmgSnd) TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-//    }
-//    // Restart timer
-//    chSysLockFromIsr();
-//    chVTSetI(&Indication.TmrClick, MS2ST(TM_CLICK_MS), TmrClickCallback, nullptr);
-//    chSysUnlockFromIsr();
-//}
-#endif
-
 #if 1 // ==== Dose indication ====
 int32_t Indication_t::ITaskUmvos() {
     // Check if status changed
@@ -39,6 +23,16 @@ int32_t Indication_t::ITaskUmvos() {
     Led.SetColor(pbb->Color1);
     if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
     chThdSleepMilliseconds(pbb->Time1_ms);
+    // Autodoc
+    if(ProlongedState == pstAutodoc) {
+        Led.SetColor(BB_ADInProgress.Color2);
+        chThdSleepMilliseconds(BB_ADInProgress.Time2_ms);
+        Led.SetColor(BB_ADInProgress.Color1);
+        chThdSleepMilliseconds(BB_ADInProgress.Time1_ms);
+        Led.SetColor(BB_ADInProgress.Color2);
+        chThdSleepMilliseconds(BB_ADInProgress.Time2_ms);
+    }
+    // Proceed with dose demonstration
     Led.SetColor(pbb->Color2);
     return pbb->Time2_ms;
 }
@@ -82,17 +76,14 @@ void Indication_t::ITask() {
     }
 
     // ==== Pill ====
-    if(EvtMsk & EVTMSK_PILL_CHECK) {
-        if(PillState != piNone) {
-            const BlinkBeep_t *p = &BBPill[PillState];
-            PillState = piNone;
-            Led.SetColor(p->Color1);
-            Beeper.Beep(p->PBeep);
-            chThdSleepMilliseconds(p->Time1_ms);
-            Led.SetColor(p->Color2);
-            chThdSleepMilliseconds(p->Time2_ms);
-        }
+    if((EvtMsk & EVTMSK_PILL_CHECK) and (PillState != piNone)) {
+        DoBeepBlink(&BBPill[PillState]);
+        PillState = piNone;
     } // pill
+
+    // ==== Autodoc ====
+    if(EvtMsk & EVTMSK_AUTODOC_COMPLETED) DoBeepBlink(&BB_ADCompleted);
+    if(EvtMsk & EVTMSK_AUTODOC_EXHAUSTED) DoBeepBlink(&BB_ADExhausted);
 
     // ==== Pelengator ====
     if(EvtMsk & EVTMSK_PELENG_FOUND) {
@@ -103,6 +94,14 @@ void Indication_t::ITask() {
 #endif // Event
 }
     // ==== Battery ====
+
+void Indication_t::DoBeepBlink(const BlinkBeep_t *Pbb) {
+    Led.SetColor(Pbb->Color1);
+    Beeper.Beep(Pbb->PBeep);
+    chThdSleepMilliseconds(Pbb->Time1_ms);
+    Led.SetColor(Pbb->Color2);
+    chThdSleepMilliseconds(Pbb->Time2_ms);
+}
 
 void Indication_t::Init() {
     Led.Init();

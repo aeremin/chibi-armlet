@@ -30,15 +30,15 @@ SetTop
 
 
 Cure
-##PillWrite32 0,9,0,1,3600#010#013
+##PillWrite32 0,9,0,1,-100#010#013
 Panacea
-##PillWrite32 0,9,0,999999999,999999999#010#013
+##PillWrite32 0,11,0#010#013
 Empty
 ##PillWrite32 0,9,0,0,0#010#013
 Drug
 ##PillWrite32 0,10,0,1,100,60#010#013
-
-
+AutoD
+##PillWrite32 0,12,0,20,-10#010#013
 
 
 

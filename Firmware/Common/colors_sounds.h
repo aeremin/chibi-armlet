@@ -26,6 +26,44 @@
 
 
 #if 1 // ============================= Beep ====================================
+#if 1 // ==== Notes ====
+#define La_2    880
+
+#define Do_3    1047
+#define Do_D_3  1109
+#define Re_3    1175
+#define Re_D_3  1245
+#define Mi_3    1319
+#define Fa_3    1397
+#define Fa_D_3  1480
+#define Sol_3   1568
+#define Sol_D_3 1661
+#define La_3    1720
+#define Si_B_3  1865
+#define Si_3    1976
+
+#define Do_4    2093
+#define Do_D_4  2217
+#define Re_4    2349
+#define Re_D_4  2489
+#define Mi_4    2637
+#define Fa_4    2794
+#define Fa_D_4  2960
+#define Sol_4   3136
+#define Sol_D_4 3332
+#define La_4    3440
+#define Si_B_4  3729
+#define Si_4    3951
+
+// Length
+#define OneSixteenth    90
+#define OneEighth       (OneSixteenth * 2)
+#define OneFourth       (OneSixteenth * 4)
+#define OneHalfth       (OneSixteenth * 8)
+#define OneWhole        (OneSixteenth * 16)
+
+#endif
+
 /* Every sequence is an array of BeepCmd_t:
  struct BeepChunk_t {
     uint8_t Volume;   // 0 means silence, 10 means top
@@ -37,35 +75,56 @@
 #define BEEP_VOLUME     2   // set to 10 in production, and to 1 when someone sleeps near
 
 const BeepChunk_t BeepBeep[] = {
-        {BEEP_VOLUME, 1975, 54, ckNormal},
+        {BEEP_VOLUME, Si_3, 54, ckNormal},
         {0, 0, 54, ckNormal},
-        {BEEP_VOLUME, 1975, 54, ckStop},
+        {BEEP_VOLUME, Si_3, 54, ckStop},
 };
 
 const BeepChunk_t BeepShort[] = {
-        {BEEP_VOLUME, 1975, 54, ckStop},
+        {BEEP_VOLUME, Si_3, 54, ckStop},
 };
 
 // Pill
 const BeepChunk_t BeepPillOk[] = {
-        {BEEP_VOLUME, 1975, 180, ckNormal},
-        {BEEP_VOLUME, 2489, 180, ckNormal},
-        {BEEP_VOLUME, 2960, 180, ckStop},
+        {BEEP_VOLUME, Si_3,   180, ckNormal},
+        {BEEP_VOLUME, Re_D_4, 180, ckNormal},
+        {BEEP_VOLUME, Fa_D_4, 180, ckStop},
 };
 
 const BeepChunk_t BeepPillBad[] = {
-        {BEEP_VOLUME, 2794, 180, ckNormal},
-        {BEEP_VOLUME, 2349, 180, ckNormal},
-        {BEEP_VOLUME, 1975, 180, ckStop},
+        {BEEP_VOLUME, Fa_4, 180, ckNormal},
+        {BEEP_VOLUME, Re_4, 180, ckNormal},
+        {BEEP_VOLUME, Si_3, 180, ckStop},
 };
+
+// Autodoc
+const BeepChunk_t BeepAutodocCompleted[] = {
+        {BEEP_VOLUME, Fa_3, OneHalfth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Mi_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Fa_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Mi_3, OneFourth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Do_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Do_3, OneFourth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, La_2, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Re_3, OneHalfth, ckStop},
+};
+#define COMPLETED_DURATION_MS (OneHalfth + OneEighth + OneEighth + OneFourth + OneEighth + OneFourth + OneEighth + OneHalfth + 540)
+
+const BeepChunk_t BeepAutodocExhausted[] = {
+        {BEEP_VOLUME, Sol_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Sol_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Sol_3, OneEighth, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Re_D_3, OneWhole, ckStop},
+};
+#define EXHAUSTED_DURATION_MS 2450    // Sum of sound durations + some time
 
 // Health states
 const BeepChunk_t BeepDeath[] = {
-        {BEEP_VOLUME, 1975, 2000, ckNormal},
+        {BEEP_VOLUME, Si_3, 2000, ckNormal},
         {0, 0, 10000, ckRepeat},
 };
 const BeepChunk_t BeepRedFast[] = {
-        {BEEP_VOLUME, 1975, 54, ckNormal},
+        {BEEP_VOLUME, Si_3, 54, ckNormal},
         {0, 0, 54, ckRepeat},
 };
 #endif
@@ -101,14 +160,14 @@ const Color_t DeviceColor[] = {
 
 // Pill
 const BlinkBeep_t BBPill[] = {
-        {clBlack,  0, clBlack, 0,  nullptr},     // No Pill
+        {clBlack,  0, clBlack, 0,  nullptr},      // No Pill
         {clBlue, 702, clBlack, 504, BeepPillOk},  // Pill Good
         {clRed,  702, clBlack, 504, BeepPillBad}, // Pill Bad
 };
 
 // Battery
 
-#if 1 // ==== Health states ====
+// ==== Health states ====
 const BlinkBeep_t BBHealth[] = {
         {clGreen,  36, clBlack, 3006, nullptr},   // hsGreen
         {clYellow, 36, clBlack, 3006, nullptr},   // hsYellow
@@ -116,7 +175,11 @@ const BlinkBeep_t BBHealth[] = {
         {clRed,    36, clBlack, 54,   BeepShort}, // hsRedFast
         {clRed,    36, clRed,   9999, BeepDeath}, // hsDeath
 };
-#endif // health
+
+// Autodoc
+const BlinkBeep_t BB_ADInProgress = {clBlue,   54,   clBlack, 180};
+const BlinkBeep_t BB_ADCompleted  = {clGreen,  2007, clBlack, COMPLETED_DURATION_MS, BeepAutodocCompleted};
+const BlinkBeep_t BB_ADExhausted  = {clYellow, 2007, clBlack, EXHAUSTED_DURATION_MS, BeepAutodocExhausted};
 
 #endif // Colors
 
