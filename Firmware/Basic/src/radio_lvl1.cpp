@@ -320,7 +320,7 @@ void rLevel1_t::IMeshRx() {
 //                    RSSI,
 //                    chTimeNow()
 //                    );
-            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
+            Payload.WriteInfo(Mesh.PktRx.PayloadID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
             Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
