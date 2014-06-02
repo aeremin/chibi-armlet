@@ -66,7 +66,7 @@ public:
     Thread *PThreadToSignal;
     void InitHardware();
     void StartMeasurement();
-    void StopAdc();
+    void Disable() { ADC1->CR2 = 0; }
     uint32_t GetResult(uint8_t AChannel);
 };
 

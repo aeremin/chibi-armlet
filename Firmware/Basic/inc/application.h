@@ -20,7 +20,7 @@
 #define T_DOSE_SAVE_MS     2007
 #define T_PILL_CHECK_MS    360    // Check if pill connected every TM_PILL_CHECK
 #define T_PROLONGED_PILL_MS 999
-#define T_MEASUREMENT_MS   5004
+#define T_MEASUREMENT_MS   5004   // Battery measurement
 #endif
 
 // ========= Device types =========
@@ -67,7 +67,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrProlongedPill;
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasure, TmrProlongedPill;
     // Radio & damage
     RxTable_t RxTable;
     int32_t Damage;

@@ -12,18 +12,27 @@ Indication_t Indication;
 
 #if 1 // ==== Dose indication ====
 int32_t Indication_t::ITaskUmvos() {
-    // Check if status changed
+    // Check if health state changed
     static HealthState_t OldState = hsDeath;
     if(App.Dose.State != OldState) {
         OldState = App.Dose.State;
         Beeper.Beep(BeepBeep);
     }
-    // Demonstrate dose status
+    // ==== Health state ====
     const BlinkBeep_t *pbb = &BBHealth[App.Dose.State];
     Led.SetColor(pbb->Color1);
     if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
     chThdSleepMilliseconds(pbb->Time1_ms);
-    // Autodoc
+
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(BBHealth[App.Dose.State].Color1);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+
+    // ==== Autodoc ====
     if(ProlongedState == pstAutodoc) {
         Led.SetColor(BB_ADInProgress.Color2);
         chThdSleepMilliseconds(BB_ADInProgress.Time2_ms);
@@ -93,7 +102,6 @@ void Indication_t::ITask() {
     }
 #endif // Event
 }
-    // ==== Battery ====
 
 void Indication_t::DoBeepBlink(const BlinkBeep_t *Pbb) {
     Led.SetColor(Pbb->Color1);

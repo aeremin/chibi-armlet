@@ -18,6 +18,7 @@
 
 enum PillState_t {piNone, piGood, piBad};
 enum ProlongedState_t {pstNothing, pstAutodoc};
+enum BatteryState_t {bsGood, bsBad};
 
 class Indication_t {
 private:
@@ -27,6 +28,7 @@ private:
 public:
     Thread *PThd;
     ProlongedState_t ProlongedState;
+    BatteryState_t BatteryState;
     void Init();
     // Commands
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }

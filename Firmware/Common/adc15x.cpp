@@ -15,7 +15,7 @@ Adc_t Adc;
 extern "C" {
 void AdcTxIrq(void *p, uint32_t flags) {
     dmaStreamDisable(ADC_DMA);
-    Adc.StopAdc();
+    Adc.Disable();
     // Resume thread if any
     if(Adc.PThreadToSignal != nullptr) {
         chSysLockFromIsr();
@@ -111,8 +111,6 @@ void Adc_t::StartMeasurement() {
     while(!(ADC1->SR & ADC_SR_ADONS));  // Wait ADC to start
     StartConversion();
 }
-
-void Adc_t::StopAdc() { ADC1->CR2 = 0; }
 
 uint32_t Adc_t::GetResult(uint8_t AChannel) {
     uint32_t Indx = 0;

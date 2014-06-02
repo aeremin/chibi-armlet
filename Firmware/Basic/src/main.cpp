@@ -18,6 +18,7 @@
 #include "radio_lvl1.h"
 #include "eestore.h"
 #include "evt_mask.h"
+#include "adc15x.h"
 
 #if 1 // ============================ Timers ===================================
 void TmrUartRxCallback(void *p) {
@@ -41,10 +42,10 @@ void TmrDoseSaveCallback(void *p) {
     chSysUnlockFromIsr();
 }
 
-void TmrMeasurementCallback(void *p) {
+void TmrMeasureCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
-    chVTSetI(&App.TmrMeasurement, MS2ST(T_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
+    chVTSetI(&App.TmrMeasure, MS2ST(T_MEASUREMENT_MS), TmrMeasureCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -67,14 +68,15 @@ int main(void) {
     Radio.Init();
 
     // Battery measurement
-//    PinSetupAnalog(GPIOA, 0);
-//    Adc.InitHardware();
-//    Adc.PThreadToSignal = PThd;
+    PinSetupAnalog(GPIOA, 0);
+    Adc.InitHardware();
+    Adc.PThreadToSignal = chThdSelf();
 
     // Common Timers
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
-    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
+    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
+    chVTSetI(&App.TmrMeasure,   MS2ST(99),                 TmrMeasureCallback, nullptr); // Start soon
     chSysUnlock();
 
     // Event-generating framework
@@ -99,13 +101,12 @@ int main(void) {
         if(EvtMsk & EVTMSK_DOSE_STORE) App.SaveDose();
 
         // ==== Measure battery ====
-//        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
-//        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
-//            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
+        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
+        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
+            uint32_t AdcRslt = Adc.GetResult(0);
 //            Uart.Printf("Adc=%u\r", AdcRslt);
-//            // Blink Red if discharged
-//            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartBlink(LedDischarged);
-//        }
+            Indication.BatteryState = (AdcRslt >= BATTERY_DISCHARGED_ADC)? bsGood : bsBad;
+        }
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();

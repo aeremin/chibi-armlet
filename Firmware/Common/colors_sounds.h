@@ -165,8 +165,6 @@ const BlinkBeep_t BBPill[] = {
         {clRed,  702, clBlack, 504, BeepPillBad}, // Pill Bad
 };
 
-// Battery
-
 // ==== Health states ====
 const BlinkBeep_t BBHealth[] = {
         {clGreen,  36, clBlack, 3006, nullptr},   // hsGreen
@@ -175,6 +173,9 @@ const BlinkBeep_t BBHealth[] = {
         {clRed,    36, clBlack, 54,   BeepShort}, // hsRedFast
         {clRed,    36, clRed,   9999, BeepDeath}, // hsDeath
 };
+
+// Battery
+#define T_BATTERY_BLINK_MS  36
 
 // Autodoc
 const BlinkBeep_t BB_ADInProgress = {clBlue,   54,   clBlack, 180};

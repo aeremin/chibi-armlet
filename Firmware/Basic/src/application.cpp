@@ -21,7 +21,6 @@ Eeprom_t EE;
 
 // Timers callbacks prototypes
 extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
-extern void TmrMeasurementCallback(void *p) __attribute__((unused));
 
 #if 1 // ======================= Command processing ============================
 void App_t::OnUartCmd(Cmd_t *PCmd) {
@@ -245,9 +244,7 @@ uint8_t App_t::ISetType(uint8_t AType) {
     Type = (DeviceType_t)AType;
     // Reinit timers
     chSysLock();
-    if(chVTIsArmedI(&TmrDoseSave))    chVTResetI(&TmrDoseSave);
-    if(chVTIsArmedI(&TmrMeasurement)) chVTResetI(&TmrMeasurement);
-
+    if(chVTIsArmedI(&TmrDoseSave)) chVTResetI(&TmrDoseSave);
     switch(App.Type) {
         case dtUmvos:
 //            chVTSetI(&TmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
