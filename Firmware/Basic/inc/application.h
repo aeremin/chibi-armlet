@@ -39,9 +39,8 @@ enum DeviceType_t {
     dtPillFlasher = 11
 };
 
-// ==== Indication constants ====
+// ==== Misc ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
-
 #define DO_DOSE_SAVE            FALSE
 
 // ==== Application class ====

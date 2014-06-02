@@ -189,9 +189,9 @@ void App_t::OnRxTableReady() {
                 }
                 else {
                     DmgMinReal = PRow->DmgMin;
-                    DmgMinReal = DmgMinReal * DmgMinReal;
                     DmgMaxReal = PRow->DmgMax;
-                    DmgMaxReal = DmgMaxReal * DmgMaxReal;
+                    DmgMinReal = DmgMinReal * DmgMinReal;   // }
+                    DmgMaxReal = DmgMaxReal * DmgMaxReal;   // } Damage = Pkt.Damage ^2
                 }
                 // Calculate damage depending on RSSI
                 if(rssi >= PRow->LvlMax) EmDmg = DmgMaxReal;

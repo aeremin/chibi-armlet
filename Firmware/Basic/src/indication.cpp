@@ -10,7 +10,7 @@
 
 Indication_t Indication;
 
-#if 1 // ==== Dose indication ====
+#if 1 // ==== Device-dependent indication ====
 int32_t Indication_t::ITaskUmvos() {
     // Check if health state changed
     static HealthState_t OldState = hsDeath;
@@ -28,7 +28,7 @@ int32_t Indication_t::ITaskUmvos() {
     if(BatteryState == bsBad) {
         Led.SetColor(clBlack);
         chThdSleepMilliseconds(54);
-        Led.SetColor(BBHealth[App.Dose.State].Color1);
+        Led.SetColor(pbb->Color1);
         chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
     }
 
@@ -55,6 +55,34 @@ int32_t Indication_t::ITaskDetectorMobile() {
     }
     return 18;
 }
+
+int32_t Indication_t::ITaskDetectorFixed() {
+    static DamageLevel_t DmgLvlOld = dlDirty;
+    // Calculate current damage level
+    DamageLevel_t DmgLvl = dlClear;
+    if(App.Damage == 1) DmgLvl = dlFon;
+    else if(App.Damage > 1) DmgLvl = dlDirty;
+    // Detect if level changed
+    if(DmgLvlOld != DmgLvl) {
+        DmgLvlOld = DmgLvl;
+        Beeper.Beep(BeepBeep);
+    }
+    // ==== Indicate depending on received damage ====
+    const BlinkBeep_t *pbb = &BB_DmgLevel[DmgLvl];
+    Led.SetColor(pbb->Color1);
+    chThdSleepMilliseconds(pbb->Time1_ms);
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(pbb->Color1);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+    // Proceed with dose demonstration
+    Led.SetColor(pbb->Color2);
+    return pbb->Time2_ms;
+}
+
 #endif
 
 #if 1 // ===================== Thread & Task ===================================
@@ -68,8 +96,9 @@ void Indication_t::ITask() {
     // Indication depends on device type. Every function returns required sleep interval until next call.
     int32_t SleepInterval;
     switch(App.Type) {
-        case dtUmvos:          SleepInterval = Indication.ITaskUmvos(); break;
-        case dtDetectorMobile: SleepInterval = Indication.ITaskDetectorMobile(); break;
+        case dtUmvos:          SleepInterval = ITaskUmvos(); break;
+        case dtDetectorMobile: SleepInterval = ITaskDetectorMobile(); break;
+        case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed(); break;
         default: SleepInterval = 999; break;
     } // switch
 

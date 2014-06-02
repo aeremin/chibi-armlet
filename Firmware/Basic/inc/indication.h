@@ -25,6 +25,10 @@ private:
     LedRGB_t Led;
     PillState_t PillState;
     void DoBeepBlink(const BlinkBeep_t *Pbb);
+    // Device-dependent tasks
+    int32_t ITaskUmvos();
+    int32_t ITaskDetectorMobile();
+    int32_t ITaskDetectorFixed();
 public:
     Thread *PThd;
     ProlongedState_t ProlongedState;
@@ -39,9 +43,7 @@ public:
     void AutodocExhausted() { chEvtSignal(PThd, EVTMSK_AUTODOC_EXHAUSTED); }
     void LustraBadID() {}
     // Inner use
-    inline void ITask();
-    inline int32_t ITaskUmvos();
-    inline int32_t ITaskDetectorMobile();
+    void ITask();
 };
 
 extern Indication_t Indication;

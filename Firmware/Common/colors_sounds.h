@@ -165,7 +165,7 @@ const BlinkBeep_t BBPill[] = {
         {clRed,  702, clBlack, 504, BeepPillBad}, // Pill Bad
 };
 
-// ==== Health states ====
+// Health states
 const BlinkBeep_t BBHealth[] = {
         {clGreen,  36, clBlack, 3006, nullptr},   // hsGreen
         {clYellow, 36, clBlack, 3006, nullptr},   // hsYellow
@@ -181,6 +181,13 @@ const BlinkBeep_t BBHealth[] = {
 const BlinkBeep_t BB_ADInProgress = {clBlue,   54,   clBlack, 180};
 const BlinkBeep_t BB_ADCompleted  = {clGreen,  2007, clBlack, COMPLETED_DURATION_MS, BeepAutodocCompleted};
 const BlinkBeep_t BB_ADExhausted  = {clYellow, 2007, clBlack, EXHAUSTED_DURATION_MS, BeepAutodocExhausted};
+
+// Detector Fixed
+const BlinkBeep_t BB_DmgLevel[] = {
+        {clGreen,  270, clBlack, 1440},   // dlClear
+        {clYellow, 270, clBlack, 999},    // dlFon
+        {clRed,    270, clBlack, 999},    // dlDirty
+};
 
 #endif // Colors
 
