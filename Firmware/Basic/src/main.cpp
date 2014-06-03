@@ -48,6 +48,12 @@ void TmrMeasureCallback(void *p) {
     chVTSetI(&App.TmrMeasure, MS2ST(T_MEASUREMENT_MS), TmrMeasureCallback, nullptr);
     chSysUnlockFromIsr();
 }
+
+void TmrEmpCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, (eventmask_t)p);
+    chSysUnlockFromIsr();
+}
 #endif
 
 int main(void) {
@@ -62,6 +68,7 @@ int main(void) {
     Uart.Printf("\rRst\r\n");
     Indication.Init();
     PillMgr.Init();
+    App.Emp.KeyInit();
 
     App.Init();
     App.PThd = chThdSelf();
@@ -107,6 +114,10 @@ int main(void) {
 //            Uart.Printf("Adc=%u\r", AdcRslt);
             Indication.BatteryState = (AdcRslt >= BATTERY_DISCHARGED_ADC)? bsGood : bsBad;
         }
+
+        // ==== EMP ====
+        if(EvtMsk & EVTMSK_KEY_POLL_TIME) App.Emp.OnKeyPoll();
+        if(EvtMsk & EVTMSK_RADIATION_END) App.Emp.OnRadiationEnd();
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();

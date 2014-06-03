@@ -29,6 +29,7 @@ private:
     int32_t ITaskUmvos();
     int32_t ITaskDetectorMobile();
     int32_t ITaskDetectorFixed();
+    int32_t ITaskEmp();
 public:
     Thread *PThd;
     ProlongedState_t ProlongedState;

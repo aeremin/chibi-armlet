@@ -83,6 +83,15 @@ int32_t Indication_t::ITaskDetectorFixed() {
     return pbb->Time2_ms;
 }
 
+int32_t Indication_t::ITaskEmp() {
+    const BlinkBeep_t *pbb = &BBHealth[App.Dose.State];
+    Led.SetColor(pbb->Color1);
+    if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
+    chThdSleepMilliseconds(pbb->Time1_ms);
+    Led.SetColor(pbb->Color2);
+    return pbb->Time2_ms;
+}
+
 #endif
 
 #if 1 // ===================== Thread & Task ===================================
@@ -99,6 +108,10 @@ void Indication_t::ITask() {
         case dtUmvos:          SleepInterval = ITaskUmvos(); break;
         case dtDetectorMobile: SleepInterval = ITaskDetectorMobile(); break;
         case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed(); break;
+        case dtEmpMech:
+        case dtEmpGrenade:
+            SleepInterval = ITaskEmp();
+            break;
         default: SleepInterval = 999; break;
     } // switch
 

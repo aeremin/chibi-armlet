@@ -121,12 +121,29 @@ const BeepChunk_t BeepAutodocExhausted[] = {
 // Health states
 const BeepChunk_t BeepDeath[] = {
         {BEEP_VOLUME, Si_3, 2000, ckNormal},
-        {0, 0, 10000, ckRepeat},
+        {0, 0, 10000, ckStop},
 };
 const BeepChunk_t BeepRedFast[] = {
         {BEEP_VOLUME, Si_3, 54, ckNormal},
-        {0, 0, 54, ckRepeat},
+        {0, 0, 54, ckStop},
 };
+
+// Emp grenade radiating
+const BeepChunk_t BeepGrenade[] = {
+        {BEEP_VOLUME, Do_3,   90, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Mi_3,   90, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Sol_3,  90, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Si_B_3, 90, ckNormal}, {0, 0, 18, ckNormal},
+        {BEEP_VOLUME, Do_4,   90, ckStop},
+};
+
+// Emp grenade discharged
+const BeepChunk_t BeepGrenadeError[] = {
+        {BEEP_VOLUME, Re_3, OneEighth, ckNormal},
+        {BEEP_VOLUME, Fa_3, OneEighth, ckNormal},
+        {BEEP_VOLUME, La_3, OneEighth, ckStop},
+};
+
 #endif
 
 #if 1 // ============================ LED blink ================================
@@ -187,6 +204,16 @@ const BlinkBeep_t BB_DmgLevel[] = {
         {clGreen,  270, clBlack, 1440},   // dlClear
         {clYellow, 270, clBlack, 999},    // dlFon
         {clRed,    270, clBlack, 999},    // dlDirty
+};
+
+// Emp
+const BlinkBeep_t BB_Emp[] = {
+        {clGreen,   180, clBlack, 1044},  // empOperational
+        {clRed,     180, clBlack, 504 },  // empBroken
+        {clYellow,  180, clBlack, 999 },  // empRepair
+        {clBlue,    180, clBlack, 3006},  // empDischarged
+        {clCyan,    180, clBlack, 999 },  // empCharging
+        {clMagenta, 180, clCyan,  504, BeepGrenade},  // empRadiating
 };
 
 #endif // Colors

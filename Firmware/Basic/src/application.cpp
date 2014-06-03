@@ -217,6 +217,26 @@ void App_t::OnRxTableReady() {
 }
 #endif // Dose
 
+// ==== Emp ====
+void Emp_t::OnKeyPoll() {
+    if(KeyIsPressed()) {
+        if(State == empOperational) {
+            State = empRadiating;
+            SetTmrToRadiationEnd();
+            return;
+        }
+        else Beeper.Beep(BeepGrenadeError);
+    }
+    // Restart timer to poll Key
+    chSysLock();
+    SetTmrToPollKeyI();
+    chSysUnlock();
+}
+
+void Emp_t::OnRadiationEnd() {
+    State = empDischarged;
+}
+
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
@@ -245,12 +265,15 @@ uint8_t App_t::ISetType(uint8_t AType) {
     // Reinit timers
     chSysLock();
     if(chVTIsArmedI(&TmrDoseSave)) chVTResetI(&TmrDoseSave);
+    Emp.ResetTmrI();
     switch(App.Type) {
         case dtUmvos:
-//            chVTSetI(&TmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
 #if DO_DOSE_SAVE
-            chVTSetI(&TmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
+            chVTSetI(&TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
 #endif
+            break;
+        case dtEmpGrenade:
+            Emp.SetTmrToPollKeyI();
             break;
         default: break;
     }
@@ -263,6 +286,14 @@ uint8_t App_t::ISetType(uint8_t AType) {
 #if DO_DOSE_SAVE
             Dose.LoadValue();
 #endif
+            break;
+        case dtEmpGrenade:
+            Emp.Load();
+            if(!ANY_OF_3(Emp.State, empOperational, empDischarged, empCharging)) Emp.State = EMP_DEFAULT;
+            break;
+        case dtEmpMech:
+            Emp.Load();
+            if(!ANY_OF_3(Emp.State, empOperational, empRepair, empBroken)) Emp.State = EMP_DEFAULT;
             break;
         default: break;
     } // switch
