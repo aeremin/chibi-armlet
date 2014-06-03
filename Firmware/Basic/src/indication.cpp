@@ -125,7 +125,11 @@ void Indication_t::ITask() {
 
     // ==== Pelengator ====
     if(EvtMsk & EVTMSK_PELENG_FOUND) {
-        Led.SetColor(DeviceColor[App.Type]);
+        Color_t Clr = DeviceColor[App.Type];
+        if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
+            if(BatteryState == bsBad) Clr = clRed;
+        }
+        Led.SetColor(Clr);
         chThdSleepMilliseconds(T_PELENG_BLINK_MS);
         Led.SetColor(clBlack);
     }
