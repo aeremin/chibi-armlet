@@ -97,7 +97,7 @@ void Mesh_t::INewCycle() {
     IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
-//    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
+    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
@@ -114,6 +114,20 @@ void Mesh_t::INewCycle() {
 //        Uart.Printf("Mesh Tx\r");
         IPktPutCycle(AbsCycle);
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
+//        Uart.Printf("mTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}, %u\r",
+//                Mesh.PktTx.MeshData.SelfID,
+//                Mesh.PktTx.MeshData.CycleN,
+//                Mesh.PktTx.MeshData.TimeOwnerID,
+//                Mesh.PktTx.MeshData.TimeAge,
+//                Mesh.PktTx.PayloadID,
+//                Mesh.PktTx.Payload.Hops,
+//                Mesh.PktTx.Payload.Timestamp,
+//                Mesh.PktTx.Payload.TimeDiff,
+//                Mesh.PktTx.Payload.Reason,
+//                Mesh.PktTx.Payload.Location,
+//                Mesh.PktTx.Payload.Emotion,
+//                chTimeNow()
+//                );
         chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
         PreparePktPayload();
     }

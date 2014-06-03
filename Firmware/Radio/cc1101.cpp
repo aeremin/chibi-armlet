@@ -225,8 +225,10 @@ void cc1101_t::RfConfig() {
     WriteRegister(CC_TEST1,    CC_TEST1_VALUE);      // Various test settings.
     WriteRegister(CC_TEST0,    CC_TEST0_VALUE);      // Various test settings.
     WriteRegister(CC_FIFOTHR,  CC_FIFOTHR_VALUE);    // fifo threshold
-    WriteRegister(CC_IOCFG2,   CC_IOCFG2_VALUE);     // GDO2 output pin configuration.
+//    WriteRegister(CC_IOCFG2,   CC_IOCFG2_VALUE);     // GDO2 output pin configuration.
+    WriteRegister(CC_IOCFG2,   0x35);
     WriteRegister(CC_IOCFG0,   CC_IOCFG0_VALUE);     // GDO0 output pin configuration.
+//    WriteRegister(CC_IOCFG0,   0x35);                // GDO0 is 27MHz/192 = 4.5MHz clock XOSC
     WriteRegister(CC_PKTCTRL1, CC_PKTCTRL1_VALUE);   // Packet automation control.
     WriteRegister(CC_PKTCTRL0, CC_PKTCTRL0_VALUE);   // Packet automation control.
 //    WriteRegister(CC_PKTLEN,   7);                   // Packet length, dummy
