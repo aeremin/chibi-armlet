@@ -96,6 +96,7 @@ void Mesh_t::INewCycle() {
 //    Beeper.Beep(BeepShort);
     IIncCurrCycle();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
+    PreparePktPayload();
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
     Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
@@ -114,22 +115,8 @@ void Mesh_t::INewCycle() {
 //        Uart.Printf("Mesh Tx\r");
         IPktPutCycle(AbsCycle);
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
-//        Uart.Printf("mTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}, %u\r",
-//                Mesh.PktTx.MeshData.SelfID,
-//                Mesh.PktTx.MeshData.CycleN,
-//                Mesh.PktTx.MeshData.TimeOwnerID,
-//                Mesh.PktTx.MeshData.TimeAge,
-//                Mesh.PktTx.PayloadID,
-//                Mesh.PktTx.Payload.Hops,
-//                Mesh.PktTx.Payload.Timestamp,
-//                Mesh.PktTx.Payload.TimeDiff,
-//                Mesh.PktTx.Payload.Reason,
-//                Mesh.PktTx.Payload.Location,
-//                Mesh.PktTx.Payload.Emotion,
-//                chTimeNow()
-//                );
         chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
-        PreparePktPayload();
+        IWaitTxEnd();
     }
     ITimeAgeCounter();
 }
@@ -163,6 +150,7 @@ void Mesh_t::IPktHandler(){
             CycleTmr.Disable();
             *PNewCycleN = pMP->CycleN + 1;
             PriorityID = pMP->TimeOwnerID;
+            Mesh.PktTx.MeshData.TimeOwnerID = PriorityID;
             *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
     } while(PktBucket.GetFilledSlots() != 0);
@@ -203,6 +191,18 @@ void Mesh_t::PreparePktPayload() {
 //            PktTx.Payload.Location,
 //            PktTx.Payload.Emotion
 //            );
+}
+
+void Mesh_t::IWaitTxEnd() {
+    chSysLock();
+    chSchGoSleepS(THD_STATE_SUSPENDED);
+    chSysUnlock();
+}
+
+void Mesh_t::ITxEnd() {
+    chSysLock();
+    if(IPThread->p_state == THD_STATE_SUSPENDED) chSchReadyI(IPThread);
+    chSysUnlock();
 }
 
 void Mesh_t::IIrqHandler() {

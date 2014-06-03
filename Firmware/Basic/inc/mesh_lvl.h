@@ -97,8 +97,10 @@ private:
     void IPktPutTimeOwner(uint16_t NewTimeOwner)    { PktTx.MeshData.TimeOwnerID = NewTimeOwner; }
     uint16_t IGetTimeOwner()                        { return PktTx.MeshData.TimeOwnerID; }
     void ITimeAgeCounter() {
-        if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) PktTx.MeshData.TimeAge++;
-        else IResetTimeAge(App.ID, 0);
+        if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) {
+            PktTx.MeshData.TimeAge++;
+            if(PktTx.MeshData.TimeAge > TIME_AGE_THRESHOLD) IResetTimeAge(App.ID, 0);
+        }
     }
     void IResetTimeAge(uint16_t NewID, uint8_t TA)  { PktTx.MeshData.TimeAge = TA; PktTx.MeshData.TimeOwnerID = NewID; }
     uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
@@ -150,6 +152,8 @@ public:
 
 
     void ITask();
+    void IWaitTxEnd();
+    void ITxEnd();
     void IIrqHandler();
     void IPktHandler();
     void SendEvent(eventmask_t mask)  { chEvtSignal(IPThread,mask); }
