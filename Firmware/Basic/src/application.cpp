@@ -243,6 +243,11 @@ void Grenade_t::Load() {
     else State = gsDischarged;
 }
 
+void Grenade_t::SetCharge(uint32_t ACharge) {
+    Charge = ACharge;
+
+}
+
 void Grenade_t::OnKeyPoll() {
     static bool KeyWasPressed = false;
     if(KeyIsPressed()) {

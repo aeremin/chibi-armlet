@@ -130,18 +130,16 @@ const BeepChunk_t BeepRedFast[] = {
 
 // Emp grenade radiating
 const BeepChunk_t BeepGrenade[] = {
-        {BEEP_VOLUME, Do_3,   90, ckNormal}, {0, 0, 18, ckNormal},
-        {BEEP_VOLUME, Mi_3,   90, ckNormal}, {0, 0, 18, ckNormal},
-        {BEEP_VOLUME, Sol_3,  90, ckNormal}, {0, 0, 18, ckNormal},
-        {BEEP_VOLUME, Si_B_3, 90, ckNormal}, {0, 0, 18, ckNormal},
-        {BEEP_VOLUME, Do_4,   90, ckStop},
+        {BEEP_VOLUME, Fa_3,   OneEighth, ckNormal},
+        {BEEP_VOLUME, Si_3,   OneFourth, ckStop},
 };
 
 // Emp grenade discharged
 const BeepChunk_t BeepGrenadeError[] = {
-        {BEEP_VOLUME, Re_3, OneEighth, ckNormal},
-        {BEEP_VOLUME, Fa_3, OneEighth, ckNormal},
-        {BEEP_VOLUME, La_3, OneEighth, ckStop},
+        {BEEP_VOLUME, Sol_D_3, OneSixteenth, ckNormal},
+        {BEEP_VOLUME, Sol_3,   OneSixteenth, ckNormal},
+        {BEEP_VOLUME, Fa_D_3,  OneSixteenth, ckNormal},
+        {BEEP_VOLUME, Fa_3,    OneEighth,    ckStop},
 };
 
 #endif
@@ -211,7 +209,7 @@ const BlinkBeep_t BB_Grenade[] = {
         {clGreen,   180, clBlack, 1044},  // gsReady
         {clBlue,    180, clBlack, 3006},  // gsDischarged
         {clCyan,    180, clBlack, 999 },  // gsCharging
-        {clMagenta, 180, clCyan,  504, BeepGrenade},  // gsRadiating
+        {clRed,     495, clGreen, 495, BeepGrenade},  // gsRadiating
 };
 
 #endif // Colors

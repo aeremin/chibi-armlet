@@ -22,7 +22,7 @@
 #define T_PROLONGED_PILL_MS     999
 #define T_MEASUREMENT_MS        5004 // Battery measurement
 // EMP
-#define T_KEY_POLL_MS           306
+#define T_KEY_POLL_MS           108
 #define T_RADIATION_DURATION_MS 5004
 #endif
 
@@ -51,15 +51,16 @@ enum GrenadeState_t {gsReady=0, gsDischarged=1, gsCharging=2, gsRadiating=3};
 
 class Grenade_t {
 private:
-    uint32_t Charge;
     VirtualTimer TmrKey, TmrRadiationEnd;
     bool KeyIsPressed() { return !PinIsSet(KEY_GPIO, KEY_PIN); }
     void Save() { if(EE.Read32(EE_EMP_ADDR) != Charge) EE.Write32(EE_EMP_ADDR, Charge); }
     void Load();
 public:
+    uint32_t Charge;
     GrenadeState_t State;
     void Init();
     void DeinitI();
+    void SetCharge(uint32_t ACharge);
     // Events
     void OnKeyPoll();
     void OnRadiationEnd();
@@ -77,6 +78,7 @@ private:
     DataToWrite_t Data2Wr;  // for pill flasher
     inline uint8_t IPillHandlerPillFlasher();
     inline uint8_t IPillHandlerUmvos();
+    inline uint8_t IPillHandlerGrenade();
     void SaveDoseToPill() {
         if(Dose.Value != Pill.DoseAfter)
             PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);

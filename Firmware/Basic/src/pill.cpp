@@ -61,6 +61,21 @@ uint8_t App_t::IPillHandlerUmvos() {
     return rslt;
 }
 
+uint8_t App_t::IPillHandlerGrenade() {
+    uint8_t rslt = OK;
+    switch(Pill.Type) {
+        case ptPanacea:
+            Grenade.Charge = EMP_CHARGE_TOP;
+            Grenade.State = gsReady;
+            break;
+        default:
+            Uart.Printf("Unknown Pill\r");
+            rslt = FAILURE;
+            break;
+    } // switch
+    return rslt;
+}
+
 uint8_t App_t::IPillHandlerPillFlasher() {
     uint8_t rslt = FAILURE;
     // Write pill if data exists
@@ -90,6 +105,7 @@ void App_t::OnPillConnect() {
         else {
             switch(Type) {
                 case dtUmvos:       rslt = IPillHandlerUmvos();       break;
+                case dtEmpGrenade:  rslt = IPillHandlerGrenade();     break;
                 case dtPillFlasher: rslt = IPillHandlerPillFlasher(); break;
                 default: break;
             }
