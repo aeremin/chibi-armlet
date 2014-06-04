@@ -84,7 +84,7 @@ int32_t Indication_t::ITaskDetectorFixed() {
 }
 
 int32_t Indication_t::ITaskEmp() {
-    const BlinkBeep_t *pbb = &BBHealth[App.Dose.State];
+    const BlinkBeep_t *pbb = &BB_Grenade[App.Grenade.State];
     Led.SetColor(pbb->Color1);
     if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
     chThdSleepMilliseconds(pbb->Time1_ms);

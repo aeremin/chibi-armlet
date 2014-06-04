@@ -16,14 +16,14 @@
 #include "pill_mgr.h"
 
 #if 1 // ==== Timings ====
-#define T_DOSE_INCREASE_MS  999
-#define T_DOSE_SAVE_MS      2007
-#define T_PILL_CHECK_MS     360  // Check if pill connected every TM_PILL_CHECK
-#define T_PROLONGED_PILL_MS 999
-#define T_MEASUREMENT_MS    5004 // Battery measurement
+#define T_DOSE_INCREASE_MS      999
+#define T_DOSE_SAVE_MS          2007
+#define T_PILL_CHECK_MS         360  // Check if pill connected every TM_PILL_CHECK
+#define T_PROLONGED_PILL_MS     999
+#define T_MEASUREMENT_MS        5004 // Battery measurement
 // EMP
-#define T_KEY_POLL_MS       306
-#define T_EMP_DURATION_MS   5004 // Duration of radiation
+#define T_KEY_POLL_MS           306
+#define T_RADIATION_DURATION_MS 5004
 #endif
 
 // ========= Device types =========
@@ -43,33 +43,23 @@ enum DeviceType_t {
 };
 
 // ==== Emp ====
-enum EmpState_t {empOperational=0, empBroken=1, empRepair=2, empDischarged=3, empCharging=4, empRadiating=5};
-#define EMP_DEFAULT  empOperational
-// ==== Key ====
+enum GrenadeState_t {gsReady=0, gsDischarged=1, gsCharging=2, gsRadiating=3};
+#define EMP_CHARGE_TOP      60  // Charge_top == time in
+// Key
 #define KEY_GPIO    GPIOC
 #define KEY_PIN     13
 
-extern void TmrEmpCallback(void *p) __attribute__((unused));
-
-class Emp_t {
+class Grenade_t {
 private:
-    VirtualTimer Tmr;
-public:
-    EmpState_t State;
-    void KeyInit() { PinSetupIn(KEY_GPIO, KEY_PIN, pudPullUp); }
+    uint32_t Charge;
+    VirtualTimer TmrKey, TmrRadiationEnd;
     bool KeyIsPressed() { return !PinIsSet(KEY_GPIO, KEY_PIN); }
-    void SetTmrToPollKeyI() { chVTSetI(&Tmr, MS2ST(T_KEY_POLL_MS), TmrEmpCallback, (void*)EVTMSK_KEY_POLL_TIME); }
-    void SetTmrToRadiationEnd() { chVTSet(&Tmr, MS2ST(T_EMP_DURATION_MS), TmrEmpCallback, (void*)EVTMSK_RADIATION_END); }
-    void ResetTmrI() { if(chVTIsArmedI(&Tmr)) chVTResetI(&Tmr); }
-    void Save() {
-        if(EE.Read32(EE_EMP_STATE_ADDR) != (uint32_t)State)
-            EE.Write32(EE_EMP_STATE_ADDR, (uint32_t)State);
-    }
-    void Load() {
-        uint32_t tmp = EE.Read32(EE_EMP_STATE_ADDR);
-        if(tmp > empCharging) State = EMP_DEFAULT;
-        else State = (EmpState_t)tmp;
-    }
+    void Save() { if(EE.Read32(EE_EMP_ADDR) != Charge) EE.Write32(EE_EMP_ADDR, Charge); }
+    void Load();
+public:
+    GrenadeState_t State;
+    void Init();
+    void DeinitI();
     // Events
     void OnKeyPoll();
     void OnRadiationEnd();
@@ -100,7 +90,7 @@ public:
     uint32_t ID;
     DeviceType_t Type;
     Thread *PThd;
-    Emp_t Emp;
+    Grenade_t Grenade;
     // Timers
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasure, TmrProlongedPill;
     // Radio & damage

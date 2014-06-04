@@ -207,13 +207,11 @@ const BlinkBeep_t BB_DmgLevel[] = {
 };
 
 // Emp
-const BlinkBeep_t BB_Emp[] = {
-        {clGreen,   180, clBlack, 1044},  // empOperational
-        {clRed,     180, clBlack, 504 },  // empBroken
-        {clYellow,  180, clBlack, 999 },  // empRepair
-        {clBlue,    180, clBlack, 3006},  // empDischarged
-        {clCyan,    180, clBlack, 999 },  // empCharging
-        {clMagenta, 180, clCyan,  504, BeepGrenade},  // empRadiating
+const BlinkBeep_t BB_Grenade[] = {
+        {clGreen,   180, clBlack, 1044},  // gsReady
+        {clBlue,    180, clBlack, 3006},  // gsDischarged
+        {clCyan,    180, clBlack, 999 },  // gsCharging
+        {clMagenta, 180, clCyan,  504, BeepGrenade},  // gsRadiating
 };
 
 #endif // Colors

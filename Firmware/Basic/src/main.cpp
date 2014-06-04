@@ -48,12 +48,6 @@ void TmrMeasureCallback(void *p) {
     chVTSetI(&App.TmrMeasure, MS2ST(T_MEASUREMENT_MS), TmrMeasureCallback, nullptr);
     chSysUnlockFromIsr();
 }
-
-void TmrEmpCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, (eventmask_t)p);
-    chSysUnlockFromIsr();
-}
 #endif
 
 int main(void) {
@@ -68,7 +62,6 @@ int main(void) {
     Uart.Printf("\rRst\r\n");
     Indication.Init();
     PillMgr.Init();
-    App.Emp.KeyInit();
 
     App.Init();
     App.PThd = chThdSelf();
@@ -116,8 +109,8 @@ int main(void) {
         }
 
         // ==== EMP ====
-        if(EvtMsk & EVTMSK_KEY_POLL_TIME) App.Emp.OnKeyPoll();
-        if(EvtMsk & EVTMSK_RADIATION_END) App.Emp.OnRadiationEnd();
+        if(EvtMsk & EVTMSK_KEY_POLL)      App.Grenade.OnKeyPoll();
+        if(EvtMsk & EVTMSK_RADIATION_END) App.Grenade.OnRadiationEnd();
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();

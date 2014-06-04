@@ -217,25 +217,54 @@ void App_t::OnRxTableReady() {
 }
 #endif // Dose
 
-// ==== Emp ====
-void Emp_t::OnKeyPoll() {
-    if(KeyIsPressed()) {
-        if(State == empOperational) {
-            State = empRadiating;
-            SetTmrToRadiationEnd();
-            return;
-        }
-        else Beeper.Beep(BeepGrenadeError);
-    }
-    // Restart timer to poll Key
-    chSysLock();
-    SetTmrToPollKeyI();
-    chSysUnlock();
+#if 1 // ============================= Grenade_t ===============================
+void TmrEmpCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, (eventmask_t)p);
+    chSysUnlockFromIsr();
 }
 
-void Emp_t::OnRadiationEnd() {
-    State = empDischarged;
+void Grenade_t::Init() {
+    Load(); // Load charge
+    // Key
+    PinSetupIn(KEY_GPIO, KEY_PIN, pudPullUp);
+    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrEmpCallback, (void*)EVTMSK_KEY_POLL);
 }
+void Grenade_t::DeinitI() {
+    if(chVTIsArmedI(&TmrKey)) chVTResetI(&TmrKey);
+    if(chVTIsArmedI(&TmrRadiationEnd)) chVTResetI(&TmrRadiationEnd);
+}
+
+void Grenade_t::Load() {
+    Charge = EE.Read32(EE_EMP_ADDR);
+    if(Charge > EMP_CHARGE_TOP) Charge = 0; // Some errorneous value in EEPROM
+    // Set State
+    if(Charge == EMP_CHARGE_TOP) State = gsReady;
+    else State = gsDischarged;
+}
+
+void Grenade_t::OnKeyPoll() {
+    static bool KeyWasPressed = false;
+    if(KeyIsPressed()) {
+        if(!KeyWasPressed) {
+            KeyWasPressed = true;
+            if(State == gsReady) {
+                Charge = 0;
+                State = gsRadiating;
+                // Setup tmr to radiation end
+                chVTSet(&TmrRadiationEnd, MS2ST(T_RADIATION_DURATION_MS), TmrEmpCallback, (void*)EVTMSK_RADIATION_END);
+            }
+            else Beeper.Beep(BeepGrenadeError); // Not ready
+        }
+    }
+    else KeyWasPressed = false;
+    // Restart timer to poll Key
+    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrEmpCallback, (void*)EVTMSK_KEY_POLL);
+}
+
+void Grenade_t::OnRadiationEnd() { State = gsDischarged; }
+
+#endif
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
@@ -265,15 +294,12 @@ uint8_t App_t::ISetType(uint8_t AType) {
     // Reinit timers
     chSysLock();
     if(chVTIsArmedI(&TmrDoseSave)) chVTResetI(&TmrDoseSave);
-    Emp.ResetTmrI();
+    Grenade.DeinitI();
     switch(App.Type) {
         case dtUmvos:
 #if DO_DOSE_SAVE
             chVTSetI(&TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
 #endif
-            break;
-        case dtEmpGrenade:
-            Emp.SetTmrToPollKeyI();
             break;
         default: break;
     }
@@ -287,13 +313,10 @@ uint8_t App_t::ISetType(uint8_t AType) {
             Dose.LoadValue();
 #endif
             break;
-        case dtEmpGrenade:
-            Emp.Load();
-            if(!ANY_OF_3(Emp.State, empOperational, empDischarged, empCharging)) Emp.State = EMP_DEFAULT;
-            break;
+        case dtEmpGrenade: Grenade.Init(); break;
         case dtEmpMech:
-            Emp.Load();
-            if(!ANY_OF_3(Emp.State, empOperational, empRepair, empBroken)) Emp.State = EMP_DEFAULT;
+//            Emp.Load();
+//            if(!ANY_OF_3(Emp.State, empOperational, empRepair, empBroken)) Emp.State = EMP_DEFAULT;
             break;
         default: break;
     } // switch
