@@ -98,7 +98,7 @@ void Mesh_t::INewCycle() {
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
     PreparePktPayload();
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
-    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
+//    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
     if(CurrCycle == RxCycleN) {
         chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
@@ -160,10 +160,15 @@ void Mesh_t::IUpdateTimer() {
     PreliminaryRSSI = STATIONARY_MIN_LEVEL;
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
-        if(*PTimeToWakeUp < timeNow) {
+        do {
             *PTimeToWakeUp += CYCLE_TIME;
             *PNewCycleN += 1;
-        }
+        } while (*PTimeToWakeUp < timeNow);
+
+//        if(*PTimeToWakeUp < timeNow) {
+//            *PTimeToWakeUp += CYCLE_TIME;
+//            *PNewCycleN += 1;
+//        }
         SetCurrCycleN(*PNewCycleN);
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);

@@ -13,7 +13,7 @@
 #include "application.h"
 #include "mesh_params.h"
 
-#define SEND_IN_COUNT   1
+#define SEND_IN_COUNT   5
 
 class Console_t {
 private:

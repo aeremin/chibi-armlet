@@ -29,7 +29,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_
         TmpPayload.Timestamp = CurrSelfCycle;
         TmpPayload.TimeDiff = TimeDiff;
         InfoBuf[ID] = TmpPayload;
-//        Console.Send_Info(ID, &InfoBuf[ID]);
+        Console.Send_Info(ID, &InfoBuf[ID]);
     }
     return Rslt;
 }
@@ -54,7 +54,7 @@ void Payload_t::WritePayload(uint16_t IDv, uint8_t Hops, uint32_t TimeStampValue
 
 void Payload_t::UpdateSelf() {
     InfoBuf[App.ID].Timestamp = Mesh.GetCycleN();
-//    Console.Send_Info(App.ID, &InfoBuf[App.ID]);
+    Console.Send_Info(App.ID, &InfoBuf[App.ID]);
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValueMS) {
     uint32_t CorrValueCycle = CorrValueMS/CYCLE_TIME;
