@@ -33,7 +33,7 @@ int32_t Indication_t::ITaskUmvos() {
     }
 
     // ==== Autodoc ====
-    if(ProlongedState == pstAutodoc) {
+    if(App.AutodocActive) {
         Led.SetColor(BB_ADInProgress.Color2);
         chThdSleepMilliseconds(BB_ADInProgress.Time2_ms);
         Led.SetColor(BB_ADInProgress.Color1);
@@ -83,7 +83,7 @@ int32_t Indication_t::ITaskDetectorFixed() {
     return pbb->Time2_ms;
 }
 
-int32_t Indication_t::ITaskEmp() {
+int32_t Indication_t::ITaskGrenade() {
     const BlinkBeep_t *pbb = &BB_Grenade[App.Grenade.State];
     Led.SetColor(pbb->Color1);
     if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
@@ -105,13 +105,11 @@ void Indication_t::ITask() {
     // Indication depends on device type. Every function returns required sleep interval until next call.
     int32_t SleepInterval;
     switch(App.Type) {
-        case dtUmvos:          SleepInterval = ITaskUmvos(); break;
+        case dtUmvos:          SleepInterval = ITaskUmvos();          break;
         case dtDetectorMobile: SleepInterval = ITaskDetectorMobile(); break;
-        case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed(); break;
-        case dtEmpMech:
-        case dtEmpGrenade:
-            SleepInterval = ITaskEmp();
-            break;
+        case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed();  break;
+        case dtEmpGrenade:     SleepInterval = ITaskGrenade();        break;
+        //case dtEmpMech:
         default: SleepInterval = 999; break;
     } // switch
 

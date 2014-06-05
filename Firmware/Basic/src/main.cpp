@@ -48,6 +48,13 @@ void TmrMeasureCallback(void *p) {
     chVTSetI(&App.TmrMeasure, MS2ST(T_MEASUREMENT_MS), TmrMeasureCallback, nullptr);
     chSysUnlockFromIsr();
 }
+
+// Universal callback
+void TmrGeneralCallback(void *p) {
+    chSysLockFromIsr();
+    chEvtSignalI(App.PThd, (eventmask_t)p);
+    chSysUnlockFromIsr();
+}
 #endif
 
 int main(void) {

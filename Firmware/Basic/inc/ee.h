@@ -15,8 +15,11 @@
 #define EE_DOSETOP_ADDR         8  // ID is uint32_t
 #define EE_DRUG_TIMELEFT_ADDR   12
 #define EE_DRUG_VALUE_ADDR      16
-#define EE_EMP_ADDR             20
-#define EE_REPDATA_ADDR         24 // Data storage for pill flasher
+// Grenade
+#define EE_CHARGE_ADDR          20
+#define EE_CAPACITY_ADDR        24
+// Data storage for pill flasher
+#define EE_REPDATA_ADDR         28
 
 #endif
 

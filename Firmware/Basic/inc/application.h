@@ -22,8 +22,8 @@
 #define T_PROLONGED_PILL_MS     999
 #define T_MEASUREMENT_MS        5004 // Battery measurement
 // EMP
-#define T_KEY_POLL_MS           108
-#define T_RADIATION_DURATION_MS 5004
+#define T_KEY_POLL_MS           180
+#define T_RADIATION_DURATION_MS 7002
 #endif
 
 // ========= Device types =========
@@ -44,7 +44,7 @@ enum DeviceType_t {
 
 // ==== Emp ====
 enum GrenadeState_t {gsReady=0, gsDischarged=1, gsCharging=2, gsRadiating=3};
-#define EMP_CHARGE_TOP      60  // Charge_top == time in
+#define CAPACITY_DEFAULT      60
 // Key
 #define KEY_GPIO    GPIOC
 #define KEY_PIN     13
@@ -53,17 +53,17 @@ class Grenade_t {
 private:
     VirtualTimer TmrKey, TmrRadiationEnd;
     bool KeyIsPressed() { return !PinIsSet(KEY_GPIO, KEY_PIN); }
-    void Save() { if(EE.Read32(EE_EMP_ADDR) != Charge) EE.Write32(EE_EMP_ADDR, Charge); }
-    void Load();
 public:
-    uint32_t Charge;
+    uint32_t Charge, Capacity;
     GrenadeState_t State;
+    void SaveCharge();
+    void SaveCapacity() { if(EE.Read32(EE_CAPACITY_ADDR) != Capacity) EE.Write32(EE_CAPACITY_ADDR, Capacity); }
+    void IncreaseCharge();
     void Init();
     void DeinitI();
-    void SetCharge(uint32_t ACharge);
     // Events
     void OnKeyPoll();
-    void OnRadiationEnd();
+    void OnRadiationEnd() { State = gsDischarged; }
 };
 
 // ==== Misc ====
@@ -79,6 +79,9 @@ private:
     inline uint8_t IPillHandlerPillFlasher();
     inline uint8_t IPillHandlerUmvos();
     inline uint8_t IPillHandlerGrenade();
+    inline uint8_t IProlongedPillUmvos(uint8_t PillState);
+    inline void IProlongedPillGrenade(uint8_t PillState);
+    void StartProlongedPillTmr() { chVTSet(&TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrGeneralCallback, (void*)EVTMSK_PROLONGED_PILL); }
     void SaveDoseToPill() {
         if(Dose.Value != Pill.DoseAfter)
             PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_DOSEAFTER_ADDR), &Dose.Value, 4);
@@ -93,6 +96,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     Grenade_t Grenade;
+    bool AutodocActive;
     // Timers
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasure, TmrProlongedPill;
     // Radio & damage
@@ -105,7 +109,7 @@ public:
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
-    uint8_t OnProlongedPill();
+    void OnProlongedPill();
     friend class Indication_t;
 };
 

@@ -39,7 +39,7 @@ uint8_t App_t::IPillHandlerUmvos() {
         case ptPanacea: Dose.Reset(); break;
 
         // ==== Autodoc ====
-        case ptAutodoc: rslt = OnProlongedPill(); break;
+        case ptAutodoc: rslt = IProlongedPillUmvos(OK); break;
 
         // ==== Set DoseTop ====
         case ptSetDoseTop:
@@ -65,9 +65,15 @@ uint8_t App_t::IPillHandlerGrenade() {
     uint8_t rslt = OK;
     switch(Pill.Type) {
         case ptPanacea:
-            Grenade.Charge = EMP_CHARGE_TOP;
+            Grenade.Charge = Grenade.Capacity;
             Grenade.State = gsReady;
             break;
+        case ptElectrostation:
+            Grenade.Capacity = Pill.Capacity;
+            Grenade.SaveCapacity();
+            IProlongedPillGrenade(OK);
+            break;
+
         default:
             Uart.Printf("Unknown Pill\r");
             rslt = FAILURE;
@@ -118,56 +124,74 @@ void App_t::OnPillConnect() {
 #endif
 
 #if 1 // ==== Prolonged action Pill ====
-void TmrProlongedPillCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_PROLONGED_PILL);
-    chSysUnlockFromIsr();
+// Called first from pill handler, and then periodically by Timer+Event
+void App_t::OnProlongedPill() {
+    uint8_t rslt = PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
+    switch(Type) {
+        case dtUmvos: IProlongedPillUmvos(rslt); break;
+        case dtEmpGrenade: IProlongedPillGrenade(rslt); break;
+        default: break;
+    }
 }
 
-// Called first from pill handler, and then periodically by Timer+Event
-uint8_t App_t::OnProlongedPill() {
-    bool IsArmed;
-    ProlongedState_t NewState = pstNothing; // Change indication state on completion
-    uint8_t rslt = PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
-    if(rslt == OK) {
-        switch(Pill.Type) {
-            case ptAutodoc:
-                if(Pill.ChargeCnt > 0) {
-                    // Check if timer is armed and do nothing if yes (pill reconnected between tics)
-                    chSysLock();
-                    IsArmed = chVTIsArmedI(&TmrProlongedPill);
-                    chSysUnlock();
-                    if(!IsArmed) {
-                        Pill.ChargeCnt--;
-                        rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
-                        // Apply autodoc if not dead
-                        if((rslt == OK) and (Dose.State != hsDeath)) {
-                            Dose.Modify(Pill.Value);
-                            // Check if healing completed
-                            if(Dose.Value == 0) {
-                                NewState = pstNothing;
-                                Indication.AutodocCompleted();
-                            }
-                            else {
-                                NewState = pstAutodoc;
-                                // Start / restart prolonged timer
-                                chVTSet(&TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrProlongedPillCallback, nullptr);
-                            }
-                        } // if rslt and !dead
-                    } // if is armed
-                } // if chargecnt
-                else {
-                    rslt = FAILURE;
-                    // Indicate charge exhausted if previously was operational
-                    if(Indication.ProlongedState == pstAutodoc) Indication.AutodocExhausted();
+uint8_t App_t::IProlongedPillUmvos(uint8_t PillState) {
+    if((PillState != OK) or (Pill.Type != ptAutodoc)) {
+        AutodocActive = false;
+        return FAILURE;
+    }
+    uint8_t rslt = OK;
+    if(Pill.ChargeCnt > 0) {
+        // Check if timer is armed and do nothing if yes (pill reconnected between tics)
+        chSysLock();
+        bool IsArmed = chVTIsArmedI(&TmrProlongedPill);
+        chSysUnlock();
+        if(!IsArmed) {
+            Pill.ChargeCnt--;
+            rslt = PillMgr.Write(PILL_I2C_ADDR, (PILL_START_ADDR + PILL_CHARGECNT_ADDR), &Pill.ChargeCnt, sizeof(Pill.ChargeCnt));
+            // Apply autodoc if not dead
+            if((rslt == OK) and (Dose.State != hsDeath)) {
+                Dose.Modify(Pill.Value);
+                // Check if healing completed
+                if(Dose.Value == 0) {
+                    AutodocActive = false;
+                    Indication.AutodocCompleted();
                 }
-                break;
-
-            default: rslt = FAILURE; break;
-        } // switch
-        SaveDoseToPill();
-    } // if ok
-    Indication.ProlongedState = NewState; // Change indication state
+                else {
+                    AutodocActive = true;
+                    StartProlongedPillTmr();
+                }
+            } // if rslt and !dead
+        } // if is armed
+    } // if chargecnt
+    else {
+        rslt = FAILURE;
+        // Indicate charge exhausted if previously was operational
+        if(AutodocActive) Indication.AutodocExhausted();
+        AutodocActive = false;
+    }
+    SaveDoseToPill();
     return rslt;
 }
+
+void App_t::IProlongedPillGrenade(uint8_t PillState) {
+    if((PillState != OK) or (Pill.Type != ptElectrostation)) {
+        Grenade.State = (Grenade.Charge == Grenade.Capacity)? gsReady : gsDischarged;
+        return;
+    }
+    // Check if timer is armed and do nothing if yes (pill reconnected between tics)
+    chSysLock();
+    bool IsArmed = chVTIsArmedI(&TmrProlongedPill);
+    chSysUnlock();
+    if(!IsArmed) {
+        Grenade.IncreaseCharge();
+        // Check if charging completed
+        if(Grenade.Charge == Grenade.Capacity) Grenade.State = gsReady;
+        else {
+            Grenade.State = gsCharging;
+            StartProlongedPillTmr();
+        }
+    }
+    Uart.Printf("Cap=%u; Chrg=%u\r", Grenade.Capacity, Grenade.Charge);
+}
+
 #endif

@@ -40,6 +40,8 @@ struct Pill_t {
         int32_t DoseTop;        // offset 8
         int32_t DeviceType;     // offset 8
         int32_t DeviceCapacity; // offset 8
+        // Grenade's capacity
+        uint32_t Capacity;
     }; // union
     int32_t Time_s;             // offset 16
 } __attribute__ ((__packed__));

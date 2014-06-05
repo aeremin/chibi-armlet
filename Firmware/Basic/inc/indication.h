@@ -17,7 +17,6 @@
 #endif
 
 enum PillState_t {piNone, piGood, piBad};
-enum ProlongedState_t {pstNothing, pstAutodoc};
 enum BatteryState_t {bsGood, bsBad};
 
 class Indication_t {
@@ -29,10 +28,9 @@ private:
     int32_t ITaskUmvos();
     int32_t ITaskDetectorMobile();
     int32_t ITaskDetectorFixed();
-    int32_t ITaskEmp();
+    int32_t ITaskGrenade();
 public:
     Thread *PThd;
-    ProlongedState_t ProlongedState;
     BatteryState_t BatteryState;
     void Init();
     // Commands
@@ -43,6 +41,7 @@ public:
     void AutodocCompleted() { chEvtSignal(PThd, EVTMSK_AUTODOC_COMPLETED); }
     void AutodocExhausted() { chEvtSignal(PThd, EVTMSK_AUTODOC_EXHAUSTED); }
     void LustraBadID() {}
+    void JustWakeup() { chEvtSignal(PThd, EVTMSK_JUST_WAKEUP); }
     // Inner use
     void ITask();
 };

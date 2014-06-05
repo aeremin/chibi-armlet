@@ -218,34 +218,37 @@ void App_t::OnRxTableReady() {
 #endif // Dose
 
 #if 1 // ============================= Grenade_t ===============================
-void TmrEmpCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, (eventmask_t)p);
-    chSysUnlockFromIsr();
-}
-
 void Grenade_t::Init() {
-    Load(); // Load charge
+    // Load all
+    Charge = EE.Read32(EE_CHARGE_ADDR);
+    Capacity = EE.Read32(EE_CAPACITY_ADDR);
+    Uart.Printf("Charge=%u; Capacity=%u\r", Charge, Capacity);
+    if(Capacity == 0) { // Empty EEPROM
+        Charge = 0;
+        Capacity = CAPACITY_DEFAULT;
+    }
+    // Set State
+    if(Charge == Capacity) State = gsReady;
+    else State = gsDischarged;
     // Key
     PinSetupIn(KEY_GPIO, KEY_PIN, pudPullUp);
-    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrEmpCallback, (void*)EVTMSK_KEY_POLL);
+    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrGeneralCallback, (void*)EVTMSK_KEY_POLL);
 }
 void Grenade_t::DeinitI() {
     if(chVTIsArmedI(&TmrKey)) chVTResetI(&TmrKey);
     if(chVTIsArmedI(&TmrRadiationEnd)) chVTResetI(&TmrRadiationEnd);
 }
 
-void Grenade_t::Load() {
-    Charge = EE.Read32(EE_EMP_ADDR);
-    if(Charge > EMP_CHARGE_TOP) Charge = 0; // Some errorneous value in EEPROM
-    // Set State
-    if(Charge == EMP_CHARGE_TOP) State = gsReady;
-    else State = gsDischarged;
+void Grenade_t::SaveCharge() {
+    if(EE.Read32(EE_CHARGE_ADDR) != Charge)
+        // To save EEPROM, write only every 10th charge, or top value
+        if(((Charge % 10) == 0) or (Charge == Capacity))
+            EE.Write32(EE_CHARGE_ADDR, Charge);
 }
 
-void Grenade_t::SetCharge(uint32_t ACharge) {
-    Charge = ACharge;
-
+void Grenade_t::IncreaseCharge() {
+    if(Charge < Capacity) Charge++;
+    SaveCharge();
 }
 
 void Grenade_t::OnKeyPoll() {
@@ -255,19 +258,19 @@ void Grenade_t::OnKeyPoll() {
             KeyWasPressed = true;
             if(State == gsReady) {
                 Charge = 0;
+                SaveCharge();
                 State = gsRadiating;
+                Indication.JustWakeup();
                 // Setup tmr to radiation end
-                chVTSet(&TmrRadiationEnd, MS2ST(T_RADIATION_DURATION_MS), TmrEmpCallback, (void*)EVTMSK_RADIATION_END);
+                chVTSet(&TmrRadiationEnd, MS2ST(T_RADIATION_DURATION_MS), TmrGeneralCallback, (void*)EVTMSK_RADIATION_END);
             }
-            else Beeper.Beep(BeepGrenadeError); // Not ready
+            else if(State != gsRadiating) Beeper.Beep(BeepGrenadeError); // Not ready
         }
     }
     else KeyWasPressed = false;
     // Restart timer to poll Key
-    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrEmpCallback, (void*)EVTMSK_KEY_POLL);
+    chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrGeneralCallback, (void*)EVTMSK_KEY_POLL);
 }
-
-void Grenade_t::OnRadiationEnd() { State = gsDischarged; }
 
 #endif
 
