@@ -18,8 +18,10 @@
 // Grenade
 #define EE_CHARGE_ADDR          20
 #define EE_CAPACITY_ADDR        24
+// EmpMech
+#define EE_STATE_ADDR           28
 // Data storage for pill flasher
-#define EE_REPDATA_ADDR         28
+#define EE_REPDATA_ADDR         32
 
 #endif
 

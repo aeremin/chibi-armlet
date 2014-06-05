@@ -88,6 +88,38 @@ int32_t Indication_t::ITaskGrenade() {
     Led.SetColor(pbb->Color1);
     if(pbb->PBeep != nullptr) Beeper.Beep(pbb->PBeep);
     chThdSleepMilliseconds(pbb->Time1_ms);
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(pbb->Color1);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+    // Proceed
+    Led.SetColor(pbb->Color2);
+    return pbb->Time2_ms;
+}
+
+int32_t Indication_t::ITaskEmpMech() {
+    // Check if changed
+    static MechState_t StateOld = msOperational;
+    if(StateOld != App.Mech.State) {
+        StateOld = App.Mech.State;
+        if(StateOld == msBroken) Beeper.Beep(&BeepMechBroken);
+        else if(StateOld == msOperational) Beeper.Beep(&BeepMechRepaired);
+    }
+
+    const BlinkBeep_t *pbb = &BB_EmpMech[App.Mech.State];
+    Led.SetColor(pbb->Color1);
+    chThdSleepMilliseconds(pbb->Time1_ms);
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(pbb->Color1);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+    // Proceed
     Led.SetColor(pbb->Color2);
     return pbb->Time2_ms;
 }
@@ -109,7 +141,7 @@ void Indication_t::ITask() {
         case dtDetectorMobile: SleepInterval = ITaskDetectorMobile(); break;
         case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed();  break;
         case dtEmpGrenade:     SleepInterval = ITaskGrenade();        break;
-        //case dtEmpMech:
+        case dtEmpMech:        SleepInterval = ITaskEmpMech();        break;
         default: SleepInterval = 999; break;
     } // switch
 

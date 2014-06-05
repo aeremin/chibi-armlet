@@ -271,7 +271,16 @@ void Grenade_t::OnKeyPoll() {
     // Restart timer to poll Key
     chVTSet(&TmrKey, MS2ST(T_KEY_POLL_MS), TmrGeneralCallback, (void*)EVTMSK_KEY_POLL);
 }
+#endif
 
+#if 1 // =========================== Emp Mech ==================================
+void EmpMech_t::Init() {
+    // Load previous state
+    uint32_t tmp = EE.Read32(EE_STATE_ADDR);
+    if(tmp > msBroken) tmp = 0;
+    State = (MechState_t)tmp;
+    //Todo: Output
+}
 #endif
 
 #if 1 // ========================= Application =================================
@@ -322,10 +331,7 @@ uint8_t App_t::ISetType(uint8_t AType) {
 #endif
             break;
         case dtEmpGrenade: Grenade.Init(); break;
-        case dtEmpMech:
-//            Emp.Load();
-//            if(!ANY_OF_3(Emp.State, empOperational, empRepair, empBroken)) Emp.State = EMP_DEFAULT;
-            break;
+        case dtEmpMech: Mech.Init(); break;
         default: break;
     } // switch
 

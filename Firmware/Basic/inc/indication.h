@@ -29,6 +29,7 @@ private:
     int32_t ITaskDetectorMobile();
     int32_t ITaskDetectorFixed();
     int32_t ITaskGrenade();
+    int32_t ITaskEmpMech();
 public:
     Thread *PThd;
     BatteryState_t BatteryState;

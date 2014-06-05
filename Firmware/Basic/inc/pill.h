@@ -20,6 +20,7 @@ enum PillType_t {
     ptEmpRepair = 32,
     ptElectrostation = 33,
     ptSetType = 99,
+    ptUnknown = 108
 };
 
 struct Pill_t {
@@ -41,7 +42,9 @@ struct Pill_t {
         int32_t DeviceType;     // offset 8
         int32_t DeviceCapacity; // offset 8
         // Grenade's capacity
-        uint32_t Capacity;
+        uint32_t Capacity;      // offset 8
+        // EmpMech's time to repair
+        uint32_t TimeToRepair;  // offset 8
     }; // union
     int32_t Time_s;             // offset 16
 } __attribute__ ((__packed__));

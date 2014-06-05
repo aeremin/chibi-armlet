@@ -39,7 +39,7 @@ enum DeviceType_t {
     dtEmpMech = 8,
     dtEmpGrenade = 9,
     dtPelengator = 10,
-    dtPillFlasher = 11
+    dtPillFlasher = 11,
 };
 
 // ==== Emp ====
@@ -66,6 +66,19 @@ public:
     void OnRadiationEnd() { State = gsDischarged; }
 };
 
+// ==== Emp Mech ====
+enum MechState_t {msOperational=0, msRepair=1, msBroken=2};
+class EmpMech_t {
+private:
+
+public:
+    MechState_t State;
+    uint32_t Health, TimeToRepair;
+    void SaveState() { if(EE.Read32(EE_STATE_ADDR) != (uint32_t)State) EE.Write32(EE_STATE_ADDR, State); }
+    void Init();
+//    void Deinit
+};
+
 // ==== Misc ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
 #define DO_DOSE_SAVE            FALSE
@@ -79,8 +92,10 @@ private:
     inline uint8_t IPillHandlerPillFlasher();
     inline uint8_t IPillHandlerUmvos();
     inline uint8_t IPillHandlerGrenade();
+    inline uint8_t IPillHandlerEmpMech();
     inline uint8_t IProlongedPillUmvos(uint8_t PillState);
     inline void IProlongedPillGrenade(uint8_t PillState);
+    inline void IProlongedPillEmpMech(uint8_t PillState);
     void StartProlongedPillTmr() { chVTSet(&TmrProlongedPill, MS2ST(T_PROLONGED_PILL_MS), TmrGeneralCallback, (void*)EVTMSK_PROLONGED_PILL); }
     void SaveDoseToPill() {
         if(Dose.Value != Pill.DoseAfter)
@@ -96,6 +111,7 @@ public:
     DeviceType_t Type;
     Thread *PThd;
     Grenade_t Grenade;
+    EmpMech_t Mech;
     bool AutodocActive;
     // Timers
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasure, TmrProlongedPill;

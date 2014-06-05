@@ -142,6 +142,10 @@ const BeepChunk_t BeepGrenadeError[] = {
         {BEEP_VOLUME, Fa_3,    OneEighth,    ckStop},
 };
 
+// EmpMech
+const BeepChunk_t BeepMechBroken   = {BEEP_VOLUME, Sol_D_3, 2007, ckStop};
+const BeepChunk_t BeepMechRepaired = {BEEP_VOLUME, Si_3,    2007, ckStop};
+
 #endif
 
 #if 1 // ============================ LED blink ================================
@@ -210,6 +214,12 @@ const BlinkBeep_t BB_Grenade[] = {
         {clBlue,    180, clBlack, 3006},  // gsDischarged
         {clCyan,    180, clBlack, 999 },  // gsCharging
         {clRed,     495, clGreen, 495, BeepGrenade},  // gsRadiating
+};
+
+const BlinkBeep_t BB_EmpMech[] = {
+        {clGreen,   180, clBlack, 1044},  // msOperational
+        {clYellow,  180, clBlack, 1044},  // msRepair
+        {clRed,     180, clBlack, 1044},  // msBroken
 };
 
 #endif // Colors

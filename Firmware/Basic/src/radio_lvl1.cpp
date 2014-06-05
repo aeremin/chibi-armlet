@@ -118,8 +118,12 @@ void rLevel1_t::ITask() {
             CC.SetChannel(RCHNL_EMP);
             RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
             if(RxRslt == OK) {
-                int32_t RssiPercent = dBm2Percent(Rssi);
-                Uart.Printf("Grenade %d\r", RssiPercent);
+                if((PktRx.DmgMax == PktDummy.DmgMax) and (PktRx.DmgMin == PktDummy.DmgMin) and (PktRx.LvlMax == PktDummy.LvlMax) and (PktRx.LvlMin == PktDummy.LvlMin)) {
+                    int32_t RssiPercent = dBm2Percent(Rssi);
+                    Uart.Printf("Grenade %d\r", RssiPercent);
+                    App.Mech.State = msBroken;
+                    App.Mech.Health = 0;
+                }
             }
             break;
 
