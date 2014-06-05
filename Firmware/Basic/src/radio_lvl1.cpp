@@ -123,6 +123,7 @@ void rLevel1_t::ITask() {
                     Uart.Printf("Grenade %d\r", RssiPercent);
                     App.Mech.State = msBroken;
                     App.Mech.Health = 0;
+                    App.Mech.SaveState();
                 }
             }
             break;
