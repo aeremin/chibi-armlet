@@ -19,16 +19,16 @@ RedDse
 ##SetDose 200#010#013
 
 
-
-
-
-
 GetTop
 ##GetDoseTop#010#013
 SetTop
 ##SetDoseTop 300#010#013
 
 
+Breaker
+##PillWrite32 0,31,0#010#013
+Repair
+##PillWrite32 0,32,0,10#010#013
 Cure
 ##PillWrite32 0,9,0,1,-100#010#013
 Panacea
@@ -39,10 +39,10 @@ Drug
 ##PillWrite32 0,10,0,1,100,60#010#013
 AutoD
 ##PillWrite32 0,12,0,20,-10#010#013
+Electrost
+##PillWrite32 0,33,0,20#010#013
 
 
-GetType
-##GetType#010#013
 SetID
 ##SetID 
 GetID
