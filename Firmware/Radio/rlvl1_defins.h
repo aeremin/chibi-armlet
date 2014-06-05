@@ -67,8 +67,8 @@ const rPkt_t PktLustra[4] = {
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 42},       // Strong: 42^2 = 1800
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0xFF, 0xFF},  // Lethal: DoseTop
 };
-// Pelengator
-const rPkt_t PktPelengator = {0, 0, 0, 0};
+// Pelengator, Grenade
+const rPkt_t PktDummy = {1, 2, 3, 4};
 #endif
 
 #if 1 // ======================= Channels & cycles =============================

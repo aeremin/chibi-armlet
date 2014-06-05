@@ -55,7 +55,15 @@ void rLevel1_t::ITask() {
 
         case dtPelengator:
             CC.SetChannel(RCHNL_PELENG);
-            for(uint8_t i=0; i<PELENG_TX_CNT; i++) CC.TransmitSync((void*)&PktPelengator);
+            for(uint8_t i=0; i<PELENG_TX_CNT; i++) CC.TransmitSync((void*)&PktDummy);
+            break;
+
+        case dtEmpGrenade:
+            if(App.Grenade.State == gsRadiating) {
+                CC.SetChannel(RCHNL_EMP);
+                CC.TransmitSync((void*)&PktDummy);
+            }
+            else chThdSleepMilliseconds(450);
             break;
 
         default: break;
@@ -66,21 +74,21 @@ void rLevel1_t::ITask() {
     int8_t Rssi;
     uint8_t RxRslt = FAILURE;
     uint32_t TimeElapsed;
-    // Everyone listen to pelengator
-    CC.SetChannel(RCHNL_PELENG);
-    RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
-    if(RxRslt == OK) {
-        int32_t RssiPercent = dBm2Percent(Rssi);
-//        Uart.Printf("Peleng %d\r", RssiPercent);
-        if(RssiPercent > RLVL_PELENGATOR) {
-            Indication.PelengReceived();
-            return; // Get out if pelengator found
-        }
-    } // if OK
+    // Everyone save grenade listen to pelengator
+    if(App.Type != dtEmpGrenade) {
+        CC.SetChannel(RCHNL_PELENG);
+        RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
+        if(RxRslt == OK) {
+            int32_t RssiPercent = dBm2Percent(Rssi);
+    //        Uart.Printf("Peleng %d\r", RssiPercent);
+            if(RssiPercent > RLVL_PELENGATOR) {
+                Indication.PelengReceived();
+                return; // Get out if pelengator found
+            }
+        } // if OK
+    }
     // If pelengator not found, listen other channels
     switch(App.Type) {
-        case dtNothing: chThdSleepMilliseconds(999); break;
-
         case dtUmvos:
         case dtDetectorMobile:
         case dtDetectorFixed:
@@ -106,7 +114,27 @@ void rLevel1_t::ITask() {
             chSysUnlock();
             break;
 
-        default: break;
+        case dtEmpMech:
+            CC.SetChannel(RCHNL_EMP);
+            RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
+            if(RxRslt == OK) {
+                int32_t RssiPercent = dBm2Percent(Rssi);
+                Uart.Printf("Grenade %d\r", RssiPercent);
+            }
+            break;
+
+        case dtNothing:
+        case dtPillFlasher:
+            chThdSleepMilliseconds(450);
+            break;
+
+        case dtLustraClean:
+        case dtLustraWeak:
+        case dtLustraStrong:
+        case dtLustraLethal:
+        case dtEmpGrenade:
+        case dtPelengator:
+            break;   // do not waste time on receiving
     } // switch
 #endif // RX
 
