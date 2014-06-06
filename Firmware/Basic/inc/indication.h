@@ -11,6 +11,7 @@
 #include "peripheral.h"
 #include "evt_mask.h"
 #include "colors_sounds.h"
+#include "application.h"
 
 #if 1 // ==== Timings ====
 #define TM_CLICK_MS          18      // for Detector
@@ -23,6 +24,8 @@ class Indication_t {
 private:
     LedRGB_t Led;
     PillState_t PillState;
+    bool IPelengReceived;
+    DeviceType_t MaxSignalLvlDevType;
     void DoBeepBlink(const BlinkBeep_t *Pbb);
     // Device-dependent tasks
     int32_t ITaskUmvos();
@@ -37,11 +40,13 @@ public:
     // Commands
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
-    void PelengReceived() { chEvtSignal(PThd, EVTMSK_PELENG_FOUND); }
+    void PelengReceived() { IPelengReceived = true; }
+    void PelengLost()     { IPelengReceived = false; }
     void ProcessTypeChange();
     void AutodocCompleted() { chEvtSignal(PThd, EVTMSK_AUTODOC_COMPLETED); }
     void AutodocExhausted() { chEvtSignal(PThd, EVTMSK_AUTODOC_EXHAUSTED); }
     void LustraBadID() {}
+    void PelengatorDevTypeReceived(DeviceType_t DevType) { MaxSignalLvlDevType = DevType; }
     void JustWakeup() { chEvtSignal(PThd, EVTMSK_JUST_WAKEUP); }
     // Inner use
     void ITask();

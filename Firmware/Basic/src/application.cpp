@@ -170,50 +170,69 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 void App_t::OnRxTableReady() {
     // Radio damage
     Table_t *PTbl = RxTable.PTable;
-    int32_t NaturalDmg = 1, RadioDmg = 0;
     RxTable.dBm2PercentAll();
-//    Uart.Printf("Age=%u\r", PTbl->Age());
-//    RxTable.Print();
-    // Iterate received levels
-    for(uint32_t i=0; i<PTbl->Size; i++) {
-        Row_t *PRow = &PTbl->Row[i];
-        int32_t rssi = PRow->Rssi;
-        if(rssi >= PRow->LvlMin) {    // Only if signal level is enough
-            if((PRow->DmgMax == 0x00) and (PRow->DmgMin == 0x00)) NaturalDmg = 0; // "Clean zone"
-            else { // ==== Ordinal lustra ====
-                int32_t EmDmg=0, DmgMinReal, DmgMaxReal;
-                // Calculate real damage out of pkt values
-                if((PRow->DmgMax == 0xFF) and (PRow->DmgMin == 0xFF)) { // Lethal Lustra
-                    DmgMinReal = 1;
-                    DmgMaxReal = Dose.Consts.Top;
-                }
-                else {
-                    DmgMinReal = PRow->DmgMin;
-                    DmgMaxReal = PRow->DmgMax;
-                    DmgMinReal = DmgMinReal * DmgMinReal;   // }
-                    DmgMaxReal = DmgMaxReal * DmgMaxReal;   // } Damage = Pkt.Damage ^2
-                }
-                // Calculate damage depending on RSSI
-                if(rssi >= PRow->LvlMax) EmDmg = DmgMaxReal;
-                else {
-                    int32_t DifDmg = DmgMaxReal - DmgMinReal;
-                    int32_t DifLvl = PRow->LvlMax - PRow->LvlMin;
-                    EmDmg = (rssi * DifDmg + DmgMaxReal * DifLvl - PRow->LvlMax * DifDmg) / DifLvl;
-                    if(EmDmg < 0) EmDmg = 0;
-//                    Uart.Printf("Ch %u; Dmg=%d\r", PRow->Channel, EmDmg);
-                }
-                RadioDmg += EmDmg;
-            } // ordinal
-        } // if lvl > min
-    } // for
-    Damage = NaturalDmg + RadioDmg;
-    // TODO: Damage *= CountOfSecondsElapsedSinceLastTime
-//    Uart.Printf("Dmg=%d\r", Damage);
-    // React depending on device type and damage level
-    if(Type == dtUmvos) {
-        if(Dose.Drug.IsActive()) Dose.Drug.ModifyDamage(Damage, PTbl->Age());
-        Dose.Modify(Damage);
-    }
+    if(ANY_OF_3(Type, dtUmvos, dtDetectorMobile, dtDetectorFixed)) {
+        int32_t NaturalDmg = 1, RadioDmg = 0;
+    //    Uart.Printf("Age=%u\r", PTbl->Age());
+    //    RxTable.Print();
+        // Iterate received levels
+        for(uint32_t i=0; i<PTbl->Size; i++) {
+            Row_t *PRow = &PTbl->Row[i];
+            int32_t rssi = PRow->Rssi;
+            if(rssi >= PRow->LvlMin) {    // Only if signal level is enough
+                if((PRow->DmgMax == 0x00) and (PRow->DmgMin == 0x00)) NaturalDmg = 0; // "Clean zone"
+                else { // ==== Ordinal lustra ====
+                    int32_t EmDmg=0, DmgMinReal, DmgMaxReal;
+                    // Calculate real damage out of pkt values
+                    if(PRow->DmgMax == 0xFF) { // Lethal Lustra
+                        DmgMinReal = PRow->DmgMin;
+                        DmgMaxReal = Dose.Consts.Top;
+                    }
+                    else {
+                        DmgMinReal = PRow->DmgMin;
+                        DmgMaxReal = PRow->DmgMax;
+                        DmgMinReal = DmgMinReal * DmgMinReal;   // }
+                        DmgMaxReal = DmgMaxReal * DmgMaxReal;   // } Damage = Pkt.Damage ^2
+                    }
+                    // Calculate damage depending on RSSI
+                    if(rssi >= PRow->LvlMax) EmDmg = DmgMaxReal;
+                    else {
+                        int32_t DifDmg = DmgMaxReal - DmgMinReal;
+                        int32_t DifLvl = PRow->LvlMax - PRow->LvlMin;
+                        EmDmg = (rssi * DifDmg + DmgMaxReal * DifLvl - PRow->LvlMax * DifDmg) / DifLvl;
+                        if(EmDmg < 0) EmDmg = 0;
+    //                    Uart.Printf("Ch %u; Dmg=%d\r", PRow->Channel, EmDmg);
+                    }
+                    RadioDmg += EmDmg;
+                } // ordinal
+            } // if lvl > min
+        } // for
+        Damage = NaturalDmg + RadioDmg;
+        // TODO: Damage *= CountOfSecondsElapsedSinceLastTime
+    //    Uart.Printf("Dmg=%d\r", Damage);
+        // React depending on device type and damage level
+        if(Type == dtUmvos) {
+            if(Dose.Drug.IsActive()) Dose.Drug.ModifyDamage(Damage, PTbl->Age());
+            Dose.Modify(Damage);
+        }
+    } // if umvos / detector
+
+    else if(Type == dtPelengator) {
+        int32_t RssiMax = 0;
+        DeviceType_t DevType = dtNothing;
+        for(uint32_t i=0; i<PTbl->Size; i++) {
+            Row_t *PRow = &PTbl->Row[i];
+            if(PRow->Rssi > RssiMax) {
+                RssiMax = PRow->Rssi;
+                // Discover device type
+                if((PRow->DmgMax == 0x00) and (PRow->DmgMin == 0x00)) DevType = dtLustraClean;
+                else if(PRow->DmgMax == 0xFF)  DevType = dtLustraLethal;
+                else if(PRow->DmgMax == PktLustra[(dtLustraWeak - dtLustraClean)].DmgMax) DevType = dtLustraWeak;
+                else DevType = dtLustraStrong;
+            }
+        } // for
+        Indication.PelengatorDevTypeReceived(DevType);
+    } // if pelengator
 }
 #endif // Dose
 

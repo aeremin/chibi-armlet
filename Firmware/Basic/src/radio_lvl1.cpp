@@ -70,36 +70,37 @@ void rLevel1_t::ITask() {
     } // switch
 #endif
 
-#if 1 // ======== RX cycle ========
+#if 1 // ============ RX cycle ============
     int8_t Rssi;
     uint8_t RxRslt = FAILURE;
     uint32_t TimeElapsed;
-    // Everyone save grenade listen to pelengator
-    if(App.Type != dtEmpGrenade) {
+    // ==== Everyone listen to pelengator ====
+    if((App.Type == dtEmpGrenade) and (App.Grenade.State == gsRadiating)) Indication.PelengLost();
+    else {
         CC.SetChannel(RCHNL_PELENG);
         RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
         if(RxRslt == OK) {
             int32_t RssiPercent = dBm2Percent(Rssi);
     //        Uart.Printf("Peleng %d\r", RssiPercent);
-            if(RssiPercent > RLVL_PELENGATOR) {
-                Indication.PelengReceived();
-                return; // Get out if pelengator found
-            }
+            if(RssiPercent > RLVL_PELENGATOR) Indication.PelengReceived();
+            else Indication.PelengLost();
         } // if OK
+        else Indication.PelengLost();
     }
-    // If pelengator not found, listen other channels
+    // ==== Listen other channels ====
     switch(App.Type) {
         case dtUmvos:
         case dtDetectorMobile:
         case dtDetectorFixed:
+        case dtPelengator:
             // Supercycle
             for(uint32_t j=0; j<CYCLE_CNT; j++) {
                 // Iterate channels
-                for(uint8_t i=RCHNL_MIN; i<RCHNL_MAX; i++) {
+                for(uint8_t i=RCHNL_MIN; i<=RCHNL_MAX; i++) {
                     CC.SetChannel(i);
                     RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
                     if(RxRslt == OK) {
-//                            Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
+//                       Uart.Printf("Ch=%u; Lvl=%d\r", i, Rssi);
                         App.RxTable.PutPkt(i, &PktRx, Rssi);
                     }
                 } // for i
@@ -137,8 +138,7 @@ void rLevel1_t::ITask() {
         case dtLustraWeak:
         case dtLustraStrong:
         case dtLustraLethal:
-        case dtEmpGrenade:
-        case dtPelengator:
+        case dtEmpGrenade:  // Listen to pelengator time after time, if not radiating. Delay at TX cycle.
             break;   // do not waste time on receiving
     } // switch
 #endif // RX

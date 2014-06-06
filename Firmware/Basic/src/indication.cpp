@@ -145,6 +145,15 @@ void Indication_t::ITask() {
         default: SleepInterval = 999; break;
     } // switch
 
+    // ==== Pelengator ====
+    if(IPelengReceived) {
+        Color_t Clr = DeviceColor[App.Type];
+        if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
+            if(BatteryState == bsBad) Clr = clRed;
+        }
+        Led.SetColor(Clr);
+    }
+
 #if 1 // ==== Wait Event ====
     uint32_t EvtMsk = chEvtWaitAnyTimeout(ALL_EVENTS, SleepInterval);
     // ==== Type changed ====
@@ -165,18 +174,9 @@ void Indication_t::ITask() {
     // ==== Autodoc ====
     if(EvtMsk & EVTMSK_AUTODOC_COMPLETED) DoBeepBlink(&BB_ADCompleted);
     if(EvtMsk & EVTMSK_AUTODOC_EXHAUSTED) DoBeepBlink(&BB_ADExhausted);
-
-    // ==== Pelengator ====
-    if(EvtMsk & EVTMSK_PELENG_FOUND) {
-        Color_t Clr = DeviceColor[App.Type];
-        if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
-            if(BatteryState == bsBad) Clr = clRed;
-        }
-        Led.SetColor(Clr);
-        chThdSleepMilliseconds(T_PELENG_BLINK_MS);
-        Led.SetColor(clBlack);
-    }
 #endif // Event
+    // Finally, fade LED
+    Led.SetColor(clBlack);
 }
 
 void Indication_t::DoBeepBlink(const BlinkBeep_t *Pbb) {
