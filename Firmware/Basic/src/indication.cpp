@@ -103,13 +103,13 @@ int32_t Indication_t::ITaskGrenade() {
 int32_t Indication_t::ITaskEmpMech() {
     // Check if changed
     static MechState_t StateOld = msOperational;
-    if(StateOld != App.Mech.State) {
-        StateOld = App.Mech.State;
+    if(StateOld != App.Mech.GetState()) {
+        StateOld = App.Mech.GetState();
         if(StateOld == msBroken) Beeper.Beep(&BeepMechBroken);
         else if(StateOld == msOperational) Beeper.Beep(&BeepMechRepaired);
     }
 
-    const BlinkBeep_t *pbb = &BB_EmpMech[App.Mech.State];
+    const BlinkBeep_t *pbb = &BB_EmpMech[App.Mech.GetState()];
     Led.SetColor(pbb->Color1);
     chThdSleepMilliseconds(pbb->Time1_ms);
     // ==== Battery ====

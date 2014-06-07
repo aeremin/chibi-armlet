@@ -87,12 +87,12 @@ uint8_t App_t::IPillHandlerEmpMech() {
     uint8_t rslt = OK;
     switch(Pill.Type) {
         case ptPanacea:
-            Mech.State = msOperational;
+            Mech.SetState(msOperational);
             Mech.Health = Mech.TimeToRepair;
             Mech.SaveState();
             break;
         case ptEmpBreaker:
-            Mech.State = msBroken;
+            Mech.SetState(msBroken);
             Mech.Health = 0;
             Mech.SaveState();
             break;
@@ -225,10 +225,11 @@ void App_t::IProlongedPillGrenade(uint8_t PillState) {
 }
 
 void App_t::IProlongedPillEmpMech(uint8_t PillState) {
-    if(Mech.State == msOperational) return;
+    if(Mech.GetState() == msOperational) return;
     if((PillState != OK) or (Pill.Type != ptEmpRepair)) {
-        if(Mech.Health > Mech.TimeToRepair) Mech.Health = Mech.TimeToRepair;
-        Mech.State = (Mech.Health == Mech.TimeToRepair)? msOperational : msBroken;
+        if(Mech.Health > Mech.TimeToRepair) Mech.Health = Mech.TimeToRepair; // if pill with different settings connected
+        if(Mech.Health == Mech.TimeToRepair) Mech.SetState(msOperational);
+        else Mech.SetState(msBroken);
         Mech.SaveState();
         return;
     }
@@ -241,11 +242,11 @@ void App_t::IProlongedPillEmpMech(uint8_t PillState) {
         // Check if charging completed
         if(Mech.Health >= Mech.TimeToRepair) {
             Mech.Health = Mech.TimeToRepair;
-            Mech.State = msOperational;
+            Mech.SetState(msOperational);
             Mech.SaveState();
         }
         else {
-            Mech.State = msRepair;
+            Mech.SetState(msRepair);
             StartProlongedPillTmr();
         }
     }

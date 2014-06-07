@@ -48,6 +48,9 @@ enum GrenadeState_t {gsReady=0, gsDischarged=1, gsCharging=2, gsRadiating=3};
 // Key
 #define KEY_GPIO    GPIOC
 #define KEY_PIN     13
+// Output
+#define OUTPUT_GPIO GPIOC
+#define OUTPUT_PIN  13
 
 class Grenade_t {
 private:
@@ -70,13 +73,17 @@ public:
 enum MechState_t {msOperational=0, msRepair=1, msBroken=2};
 class EmpMech_t {
 private:
-
-public:
     MechState_t State;
+public:
+    void SetState(MechState_t NewState) {
+        State = NewState;
+        if(State == msOperational) PinSet(OUTPUT_GPIO, OUTPUT_PIN);
+        else PinClear(OUTPUT_GPIO, OUTPUT_PIN);
+    }
+    inline MechState_t GetState() { return State; }
     uint32_t Health, TimeToRepair;
     void SaveState() { if(EE.Read32(EE_STATE_ADDR) != (uint32_t)State) EE.Write32(EE_STATE_ADDR, State); }
     void Init();
-//    void Deinit
 };
 
 // ==== Misc ====

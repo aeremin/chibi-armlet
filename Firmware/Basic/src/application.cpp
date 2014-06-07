@@ -295,11 +295,12 @@ void Grenade_t::OnKeyPoll() {
 
 #if 1 // =========================== Emp Mech ==================================
 void EmpMech_t::Init() {
+    // Output
+    PinSetupOut(OUTPUT_GPIO, OUTPUT_PIN, omPushPull, pudNone);
     // Load previous state
     uint32_t tmp = EE.Read32(EE_STATE_ADDR);
     if(tmp > msBroken) tmp = 0;
-    State = (MechState_t)tmp;
-    //Todo: Output
+    SetState((MechState_t)tmp);
 }
 #endif
 

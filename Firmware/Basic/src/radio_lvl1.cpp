@@ -63,7 +63,10 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                     CC.SetChannel(RCHNL_EMP);
                     CC.TransmitSync((void*)&PktDummy);
                 }
-                else chThdSleepMilliseconds(450);
+                else {
+                    CC.Sleep();
+                    chThdSleepMilliseconds(450);
+                }
                 break;
 
             default: break;
@@ -73,26 +76,21 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
 #if 1 // ============ RX cycle ============
         int8_t Rssi;
         uint8_t RxRslt;
-        // ==== Everyone listen to pelengator ====
-//        if((App.Type == dtEmpGrenade) and (App.Grenade.State == gsRadiating)) Indication.PelengLost();
-//        else
-        if(App.Type != dtPelengator) {
+        // ==== Everyone listen to pelengator ==== except pelengator and radiating grenade
+        if((App.Type != dtPelengator) and !((App.Type == dtEmpGrenade) and (App.Grenade.State == gsRadiating))) {
             CC.SetChannel(RCHNL_PELENG);
             RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
             if(RxRslt == OK) {
                 int32_t RssiPercent = dBm2Percent(Rssi);
-        //        Uart.Printf("Peleng %d\r", RssiPercent);
+//                Uart.Printf("Peleng %d\r", RssiPercent);
                 if(RssiPercent > RLVL_PELENGATOR) Indication.PelengReceived();
-//                else Indication.PelengLost();
             } // if OK
-//            else Indication.PelengLost();
         }
         // ==== Listen other channels ====
         switch(App.Type) {
             case dtUmvos:
             case dtDetectorMobile:
             case dtDetectorFixed:
-//            case dtPelengator:
                 // Supercycle
                 for(uint32_t j=0; j<CYCLE_CNT; j++) {
                     // Iterate channels
@@ -105,10 +103,13 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                         }
                     } // for i
                 } // for j
-                // Supercycle completed, switch table
+                // Supercycle completed, switch table once a second
                 {
                     uint32_t TimeElapsed = App.RxTable.PWriteTbl->Age();
-                    if(TimeElapsed < 1000) chThdSleepMilliseconds(1000 - TimeElapsed);
+                    if(TimeElapsed < 1000) {
+                        CC.Sleep();
+                        chThdSleepMilliseconds(1000 - TimeElapsed);
+                    }
                 }
                 // ...and inform application
                 chSysLock();
@@ -138,15 +139,18 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                     if((PktRx.DmgMax == PktDummy.DmgMax) and (PktRx.DmgMin == PktDummy.DmgMin) and (PktRx.LvlMax == PktDummy.LvlMax) and (PktRx.LvlMin == PktDummy.LvlMin)) {
                         int32_t RssiPercent = dBm2Percent(Rssi);
                         Uart.Printf("Grenade %d\r", RssiPercent);
-                        App.Mech.State = msBroken;
+                        App.Mech.SetState(msBroken);
                         App.Mech.Health = 0;
                         App.Mech.SaveState();
                     }
                 }
+                CC.Sleep();
+                chThdSleepMilliseconds(450);
                 break;
 
             case dtNothing:
             case dtPillFlasher:
+                CC.Sleep();
                 chThdSleepMilliseconds(450);
                 break;
 

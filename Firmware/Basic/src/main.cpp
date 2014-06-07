@@ -79,6 +79,9 @@ int main(void) {
     Adc.InitHardware();
     Adc.PThreadToSignal = chThdSelf();
 
+    PinSetupOut(GPIOC, 13, omPushPull, pudNone);
+//    PinSet(GPIOC, 13);
+
     // Common Timers
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
