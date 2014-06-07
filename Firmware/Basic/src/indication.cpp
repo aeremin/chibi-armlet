@@ -180,6 +180,7 @@ void Indication_t::ITask() {
 #endif // Event
     // Finally, fade LED
     Led.SetColor(clBlack);
+    chThdSleepMilliseconds(T_SHORT_BLINK_MS);
 }
 
 void Indication_t::DoBeepBlink(const BlinkBeep_t *Pbb) {

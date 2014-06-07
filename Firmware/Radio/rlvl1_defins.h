@@ -89,7 +89,7 @@ const rPkt_t PktDummy = {1, 2, 3, 4};
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define PELENG_RX_T_MS  4   // }
+#define PELENG_RX_T_MS  5   // }
 #define LUSTRA_RX_T_MS  5   // } Experimentally checked
 
 #endif

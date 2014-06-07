@@ -157,6 +157,7 @@ struct BlinkBeep_t {
     const BeepChunk_t *PBeep;
 };
 // Timings
+#define T_SHORT_BLINK_MS    45
 #define T_SETTYPE_BLINK_MS  999 // Time to shine with device' color when type set
 #define T_PELENG_BLINK_MS   3600
 
