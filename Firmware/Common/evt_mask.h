@@ -22,6 +22,7 @@
 #define EVTMSK_AUTODOC_EXHAUSTED    EVENT_MASK(10)
 #define EVTMSK_RADIATION_END        EVENT_MASK(11)
 #define EVTMSK_KEY_POLL             EVENT_MASK(12)
+#define EVTMSK_LUSTRA_BAD_ID        EVENT_MASK(13)
 #define EVTMSK_JUST_WAKEUP          EVENT_MASK(14)
 
 void TmrGeneralCallback(void *p);

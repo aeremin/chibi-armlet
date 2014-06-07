@@ -196,6 +196,9 @@ const BlinkBeep_t BBHealth[] = {
 // Battery
 #define T_BATTERY_BLINK_MS  36
 
+// Bad ID
+const BlinkBeep_t BB_BadID  = {clRed, 450, clBlack, 504, BeepShort};
+
 // Autodoc
 const BlinkBeep_t BB_ADInProgress = {clBlue,   54,   clBlack, 180};
 const BlinkBeep_t BB_ADCompleted  = {clGreen,  2007, clBlack, COMPLETED_DURATION_MS, BeepAutodocCompleted};

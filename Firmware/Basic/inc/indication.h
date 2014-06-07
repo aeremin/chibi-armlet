@@ -45,7 +45,7 @@ public:
     void ProcessTypeChange();
     void AutodocCompleted() { chEvtSignal(PThd, EVTMSK_AUTODOC_COMPLETED); }
     void AutodocExhausted() { chEvtSignal(PThd, EVTMSK_AUTODOC_EXHAUSTED); }
-    void LustraBadID() {}
+    void LustraBadID()      { chEvtSignal(PThd, EVTMSK_LUSTRA_BAD_ID); }
     void PelengatorDevTypeReceived(DeviceType_t DevType) { MaxSignalLvlDevType = DevType; }
     void JustWakeup() { chEvtSignal(PThd, EVTMSK_JUST_WAKEUP); }
     // Inner use

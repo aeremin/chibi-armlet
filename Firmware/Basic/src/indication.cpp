@@ -171,6 +171,9 @@ void Indication_t::ITask() {
         PillState = piNone;
     } // pill
 
+    // ==== Lustra's Bad ID ====
+    if(EvtMsk & EVTMSK_LUSTRA_BAD_ID) DoBeepBlink(&BB_BadID);
+
     // ==== Autodoc ====
     if(EvtMsk & EVTMSK_AUTODOC_COMPLETED) DoBeepBlink(&BB_ADCompleted);
     if(EvtMsk & EVTMSK_AUTODOC_EXHAUSTED) DoBeepBlink(&BB_ADExhausted);
@@ -181,7 +184,7 @@ void Indication_t::ITask() {
 
 void Indication_t::DoBeepBlink(const BlinkBeep_t *Pbb) {
     Led.SetColor(Pbb->Color1);
-    Beeper.Beep(Pbb->PBeep);
+    if(Pbb->PBeep != nullptr) Beeper.Beep(Pbb->PBeep);
     chThdSleepMilliseconds(Pbb->Time1_ms);
     Led.SetColor(Pbb->Color2);
     chThdSleepMilliseconds(Pbb->Time2_ms);
