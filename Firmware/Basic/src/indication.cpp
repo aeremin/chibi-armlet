@@ -142,11 +142,24 @@ void Indication_t::ITask() {
         case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed();  break;
         case dtEmpGrenade:     SleepInterval = ITaskGrenade();        break;
         case dtEmpMech:        SleepInterval = ITaskEmpMech();        break;
+        case dtPelengator:
+            Led.SetColor(DeviceColor[MaxSignalLvlDevType]);
+            SleepInterval = 999;
+            break;
+
+        case dtLustraClean:
+        case dtLustraWeak:
+        case dtLustraStrong:
+        case dtLustraLethal:
+            SleepInterval = 4005;
+            break;
+
         default: SleepInterval = 999; break;
     } // switch
 
-    // ==== Pelengator ====
+    // ==== Peleng received by some device ====
     if(IPelengReceived) {
+        IPelengReceived = false;
         Color_t Clr = DeviceColor[App.Type];
         if(ANY_OF_4(App.Type, dtLustraClean, dtLustraWeak, dtLustraStrong, dtLustraLethal)) {
             if(BatteryState == bsBad) Clr = clRed;

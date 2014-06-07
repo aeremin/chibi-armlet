@@ -74,23 +74,25 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
         int8_t Rssi;
         uint8_t RxRslt;
         // ==== Everyone listen to pelengator ====
-        if((App.Type == dtEmpGrenade) and (App.Grenade.State == gsRadiating)) Indication.PelengLost();
-        else {
+//        if((App.Type == dtEmpGrenade) and (App.Grenade.State == gsRadiating)) Indication.PelengLost();
+//        else
+        if(App.Type != dtPelengator) {
             CC.SetChannel(RCHNL_PELENG);
             RxRslt = CC.ReceiveSync(PELENG_RX_T_MS, &PktRx, &Rssi);
             if(RxRslt == OK) {
                 int32_t RssiPercent = dBm2Percent(Rssi);
         //        Uart.Printf("Peleng %d\r", RssiPercent);
                 if(RssiPercent > RLVL_PELENGATOR) Indication.PelengReceived();
-                else Indication.PelengLost();
+//                else Indication.PelengLost();
             } // if OK
-            else Indication.PelengLost();
+//            else Indication.PelengLost();
         }
         // ==== Listen other channels ====
         switch(App.Type) {
             case dtUmvos:
             case dtDetectorMobile:
             case dtDetectorFixed:
+//            case dtPelengator:
                 // Supercycle
                 for(uint32_t j=0; j<CYCLE_CNT; j++) {
                     // Iterate channels
@@ -117,7 +119,7 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
 
             case dtPelengator:
                 CC.SetChannel(ChnlN);
-                RxRslt = CC.ReceiveSync(LUSTRA_RX_T_MS, &PktRx, &Rssi);
+                RxRslt = CC.ReceiveSync(7, &PktRx, &Rssi);
                 if(RxRslt == OK) App.RxTable.PutPkt(ChnlN, &PktRx, Rssi);
                 ChnlN++;
                 if(ChnlN > RCHNL_MAX) {
@@ -148,6 +150,7 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                 chThdSleepMilliseconds(450);
                 break;
 
+//            case dtPelengator:
             case dtLustraClean:
             case dtLustraWeak:
             case dtLustraStrong:

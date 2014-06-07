@@ -41,7 +41,7 @@ public:
     void PillGood() { PillState = piGood; chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PillBad()  { PillState = piBad;  chEvtSignal(PThd, EVTMSK_PILL_CHECK); }
     void PelengReceived() { IPelengReceived = true; }
-    void PelengLost()     { IPelengReceived = false; }
+//    void PelengLost()     { IPelengReceived = false; }
     void ProcessTypeChange();
     void AutodocCompleted() { chEvtSignal(PThd, EVTMSK_AUTODOC_COMPLETED); }
     void AutodocExhausted() { chEvtSignal(PThd, EVTMSK_AUTODOC_EXHAUSTED); }

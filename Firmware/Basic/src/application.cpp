@@ -220,6 +220,7 @@ void App_t::OnRxTableReady() {
     else if(Type == dtPelengator) {
         int32_t RssiMax = 0;
         DeviceType_t DevType = dtNothing;
+        Uart.Printf("Sz=%u\r", PTbl->Size);
         for(uint32_t i=0; i<PTbl->Size; i++) {
             Row_t *PRow = &PTbl->Row[i];
             if(PRow->Rssi > RssiMax) {

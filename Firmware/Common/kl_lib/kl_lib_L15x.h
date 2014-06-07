@@ -17,6 +17,7 @@
 
 #if 1 // ============================ General ==================================
 #define PACKED __attribute__ ((__packed__))
+#define ALWAYS_INLINE __attribute__((always_inline))
 #ifndef countof
 #define countof(A)  (sizeof(A)/sizeof(A[0]))
 #endif
