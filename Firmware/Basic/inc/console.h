@@ -13,7 +13,17 @@
 #include "application.h"
 #include "mesh_params.h"
 
-#define SEND_IN_COUNT   5
+/*
+ * SEND_IN_COUNT
+ * 1 - Every cycle
+ * 2 - Every second cycle
+ * .
+ * .
+ * .
+ * n - Every n cycle
+ *
+ */
+#define SEND_IN_COUNT   1
 
 class Console_t {
 private:

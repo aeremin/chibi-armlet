@@ -29,6 +29,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_
         TmpPayload.Timestamp = CurrSelfCycle;
         TmpPayload.TimeDiff = TimeDiff;
         InfoBuf[ID] = TmpPayload;
+        Uart.Printf("From Payload -> ");
         Console.Send_Info(ID, &InfoBuf[ID]);
     }
     return Rslt;
@@ -42,13 +43,16 @@ uint16_t Payload_t::GetNextInfoID() {
     return (uint16_t)((PNext - InfoBuf));
 }
 
-void Payload_t::WritePayload(uint16_t IDv, uint8_t Hops, uint32_t TimeStampValue, uint8_t NewLocation, uint8_t NewReason, uint8_t NewEmotion) {
-    PayloadString_t *p = &InfoBuf[IDv];
-    p->Hops = Hops;
-    p->Timestamp = TimeStampValue;
-    p->Location = NewLocation;
-    p->Reason = NewReason;
-    p->Emotion = NewEmotion;
+void Payload_t::WriteMesh(uint32_t CurrSelfCycle, MeshPayload_t *Ptr) {
+    PayloadString_t *p = &InfoBuf[Ptr->SelfID];
+    p->Hops = 1;
+    p->Timestamp = CurrSelfCycle;
+    p->TimeDiff = (int32_t)(Ptr->CycleN - CurrSelfCycle);
+    p->Location = Ptr->SelfLocation;
+    p->Reason = Ptr->SelfReason;
+    p->Emotion = Ptr->SelfEmotion;
+    Uart.Printf("From mesh -> ");
+    Console.Send_Info(Ptr->SelfID, &InfoBuf[Ptr->SelfID]);
 }
 
 

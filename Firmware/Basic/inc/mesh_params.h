@@ -52,6 +52,9 @@ struct MeshPayload_t {
     uint32_t CycleN;
     uint16_t TimeOwnerID;
     uint8_t TimeAge;
+    uint8_t SelfLocation;
+    uint8_t SelfReason;
+    uint8_t SelfEmotion;
 } __attribute__ ((__packed__));
 
 struct PayloadString_t {

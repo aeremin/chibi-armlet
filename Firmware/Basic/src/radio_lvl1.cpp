@@ -306,23 +306,7 @@ void rLevel1_t::IMeshRx() {
         Valets.CurrentTime = chTimeNow();
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
-//            Uart.Printf("ID=%u:%u, %ddBm\r", Mesh.PktRx.MeshData.SelfID, Mesh.PktRx.MeshData.CycleN, RSSI);
-//            Uart.Printf("rRxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}\r",
-//                    Mesh.PktRx.MeshData.SelfID,
-//                    Mesh.PktRx.MeshData.CycleN,
-//                    Mesh.PktRx.MeshData.TimeOwnerID,
-//                    Mesh.PktRx.MeshData.TimeAge,
-//                    Mesh.PktRx.PayloadID,
-//                    Mesh.PktRx.Payload.Hops,
-//                    Mesh.PktRx.Payload.Timestamp,
-//                    Mesh.PktRx.Payload.TimeDiff,
-//                    Mesh.PktRx.Payload.Reason,
-//                    Mesh.PktRx.Payload.Location,
-//                    Mesh.PktRx.Payload.Emotion
-//                    );
-            Payload.WriteInfo(Mesh.PktRx.PayloadID, Mesh.GetCycleN(), &Mesh.PktRx.Payload);
-//            Payload.WriteInfo(Mesh.PktRx.MeshData.SelfID, Mesh.GetCycleN(), );
-            Mesh.MsgBox.Post({chTimeNow(), RSSI, Mesh.PktRx.MeshData}); /* SendMsg to MeshThd with PktRx structure */
+            Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
 

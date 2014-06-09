@@ -125,8 +125,9 @@ void Mesh_t::IPktHandler(){
     PriorityID = IGetTimeOwner();
     do {
         PktBucket.ReadPkt(&MeshMsg); /* Read Pkt from Buffer */
-        MeshPayload_t *pMP = &MeshMsg.MeshPayload;
-
+        /* Dispatch Mesh field of pkt */
+        Payload.WriteMesh(AbsCycle, &MeshMsg.pRadioPkt->MeshData); // Put information from mesh part of Çëå to Payload buff
+        MeshPayload_t *pMP = &MeshMsg.pRadioPkt->MeshData;
         if(PriorityID > pMP->TimeOwnerID) {
             IResetTimeAge(PriorityID, 0);
             GetPrimaryPkt = true;
@@ -153,6 +154,8 @@ void Mesh_t::IPktHandler(){
             Mesh.PktTx.MeshData.TimeOwnerID = PriorityID;
             *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
         }
+        /* Dispatch Payload field of pkt */
+        Payload.WriteInfo(MeshMsg.pRadioPkt->PayloadID, AbsCycle, &MeshMsg.pRadioPkt->Payload);
     } while(PktBucket.GetFilledSlots() != 0);
 }
 
