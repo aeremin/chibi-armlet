@@ -140,7 +140,6 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                         int32_t RssiPercent = dBm2Percent(Rssi);
                         Uart.Printf("Grenade %d\r", RssiPercent);
                         App.Mech.SetState(msBroken);
-                        App.Mech.Health = 0;
                         App.Mech.SaveState();
                     }
                 }

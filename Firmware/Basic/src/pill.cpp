@@ -88,16 +88,14 @@ uint8_t App_t::IPillHandlerEmpMech() {
     switch(Pill.Type) {
         case ptPanacea:
             Mech.SetState(msOperational);
-            Mech.Health = Mech.TimeToRepair;
             Mech.SaveState();
             break;
         case ptEmpBreaker:
             Mech.SetState(msBroken);
-            Mech.Health = 0;
             Mech.SaveState();
             break;
         case ptEmpRepair:
-            Mech.TimeToRepair = Pill.TimeToRepair;
+            Mech.Health = 0;
             IProlongedPillEmpMech(OK);
             break;
 
@@ -118,7 +116,7 @@ uint8_t App_t::IPillHandlerPillFlasher() {
         Uart.Printf("#PillWrite32 0");
         for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
         Uart.Printf("\r\n");
-        rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
+        rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, PILL_SZ);
         Uart.Ack(rslt);
     }
     return rslt;
@@ -205,7 +203,12 @@ uint8_t App_t::IProlongedPillUmvos(uint8_t PillState) {
 
 void App_t::IProlongedPillGrenade(uint8_t PillState) {
     if((PillState != OK) or (Pill.Type != ptElectrostation)) {
-        Grenade.State = (Grenade.Charge == Grenade.Capacity)? gsReady : gsDischarged;
+        if(Grenade.Charge >= Grenade.Capacity) {
+            Grenade.State = gsReady;
+            Grenade.Charge = Grenade.Capacity;
+            Grenade.SaveCharge(); // if charge > Capacity => save charge
+        }
+        else Grenade.State = gsDischarged;
         return;
     }
     // Check if timer is armed and do nothing if yes (pill reconnected between tics)
@@ -227,9 +230,7 @@ void App_t::IProlongedPillGrenade(uint8_t PillState) {
 void App_t::IProlongedPillEmpMech(uint8_t PillState) {
     if(Mech.GetState() == msOperational) return;
     if((PillState != OK) or (Pill.Type != ptEmpRepair)) {
-        if(Mech.Health > Mech.TimeToRepair) Mech.Health = Mech.TimeToRepair; // if pill with different settings connected
-        if(Mech.Health == Mech.TimeToRepair) Mech.SetState(msOperational);
-        else Mech.SetState(msBroken);
+        Mech.SetState(msBroken);
         Mech.SaveState();
         return;
     }
@@ -238,10 +239,9 @@ void App_t::IProlongedPillEmpMech(uint8_t PillState) {
     bool IsArmed = chVTIsArmedI(&TmrProlongedPill);
     chSysUnlock();
     if(!IsArmed) {
-        if(Mech.Health < Mech.TimeToRepair) Mech.Health++;
-        // Check if charging completed
-        if(Mech.Health >= Mech.TimeToRepair) {
-            Mech.Health = Mech.TimeToRepair;
+        if(Mech.Health < Pill.TimeToRepair) Mech.Health++;
+        // Check if repair completed
+        if(Mech.Health >= Pill.TimeToRepair) {
             Mech.SetState(msOperational);
             Mech.SaveState();
         }
@@ -250,7 +250,7 @@ void App_t::IProlongedPillEmpMech(uint8_t PillState) {
             StartProlongedPillTmr();
         }
     }
-    Uart.Printf("T2Rep=%u; Hlth=%u\r", Mech.TimeToRepair, Mech.Health);
+    Uart.Printf("T2Rep=%u; Hlth=%u\r", Pill.TimeToRepair, Mech.Health);
 }
 
 #endif

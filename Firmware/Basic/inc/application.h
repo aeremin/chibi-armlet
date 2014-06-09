@@ -81,7 +81,7 @@ public:
         else PinClear(OUTPUT_GPIO, OUTPUT_PIN);
     }
     inline MechState_t GetState() { return State; }
-    uint32_t Health, TimeToRepair;
+    uint32_t Health;
     void SaveState() { if(EE.Read32(EE_STATE_ADDR) != (uint32_t)State) EE.Write32(EE_STATE_ADDR, State); }
     void Init();
 };

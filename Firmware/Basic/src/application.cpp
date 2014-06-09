@@ -186,6 +186,7 @@ void App_t::OnRxTableReady() {
                     // Calculate real damage out of pkt values
                     if(PRow->DmgMax == 0xFF) { // Lethal Lustra
                         DmgMinReal = PRow->DmgMin;
+                        DmgMinReal = DmgMinReal * DmgMinReal;   // Damage = Pkt.Damage ^2
                         DmgMaxReal = Dose.Consts.Top;
                     }
                     else {
@@ -243,10 +244,8 @@ void Grenade_t::Init() {
     Charge = EE.Read32(EE_CHARGE_ADDR);
     Capacity = EE.Read32(EE_CAPACITY_ADDR);
     Uart.Printf("Charge=%u; Capacity=%u\r", Charge, Capacity);
-    if(Capacity == 0) { // Empty EEPROM
-        Charge = 0;
-        Capacity = CAPACITY_DEFAULT;
-    }
+    if(Capacity == 0) Capacity = CAPACITY_DEFAULT;
+    if(Charge > Capacity) Charge = Capacity;
     // Set State
     if(Charge == Capacity) State = gsReady;
     else State = gsDischarged;
@@ -260,10 +259,11 @@ void Grenade_t::DeinitI() {
 }
 
 void Grenade_t::SaveCharge() {
-    if(EE.Read32(EE_CHARGE_ADDR) != Charge)
-        // To save EEPROM, write only every 10th charge, or top value
-        if(((Charge % 10) == 0) or (Charge == Capacity))
-            EE.Write32(EE_CHARGE_ADDR, Charge);
+    // To save EEPROM, write only large changes, or top value
+    uint32_t OldCharge = EE.Read32(EE_CHARGE_ADDR);
+    int32_t Dif = OldCharge - Charge;
+    if((Dif>60) or (Dif<-60) or (Charge == Capacity) or (Charge == 0))
+        EE.Write32(EE_CHARGE_ADDR, Charge);
 }
 
 void Grenade_t::IncreaseCharge() {

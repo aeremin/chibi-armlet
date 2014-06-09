@@ -103,10 +103,11 @@ int32_t Indication_t::ITaskGrenade() {
 int32_t Indication_t::ITaskEmpMech() {
     // Check if changed
     static MechState_t StateOld = msOperational;
-    if(StateOld != App.Mech.GetState()) {
-        StateOld = App.Mech.GetState();
-        if(StateOld == msBroken) Beeper.Beep(&BeepMechBroken);
-        else if(StateOld == msOperational) Beeper.Beep(&BeepMechRepaired);
+    MechState_t StateNow = App.Mech.GetState();
+    if(StateOld != StateNow) {
+        StateOld = StateNow;
+        if(StateNow == msBroken) Beeper.Beep(&BeepMechBroken);
+        else if(StateNow == msOperational) Beeper.Beep(&BeepMechRepaired);
     }
 
     const BlinkBeep_t *pbb = &BB_EmpMech[App.Mech.GetState()];
