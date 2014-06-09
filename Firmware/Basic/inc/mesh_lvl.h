@@ -19,13 +19,19 @@
 #include "application.h"
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
-#define CIRC_PKT_BUF_SZ     21 // MAX_ABONENTS FIXME: 5 size set to debug only
+#define CIRC_PKT_BUF_SZ     5 // MAX_ABONENTS FIXME: 5 size set to debug only
+
+struct CircBufString_t {
+    uint32_t Timestamp;
+    int8_t RSSI;
+    MeshPkt_t RadioPkt;
+};
 
 class CircBufPkt_t {
 private:
-    mshMsg_t PktBuf[CIRC_PKT_BUF_SZ];
-    mshMsg_t *PRPkt;
-    mshMsg_t *PWPkt;
+    CircBufString_t PktBuf[CIRC_PKT_BUF_SZ];
+    CircBufString_t *PRPkt;
+    CircBufString_t *PWPkt;
     uint8_t FilledCount;
 public:
     CircBufPkt_t() :
@@ -34,8 +40,21 @@ public:
 
     uint8_t GetFilledSlots()        { return (uint8_t)FilledCount; }
     uint8_t GetFreeSlots()          { return (uint8_t)(CIRC_PKT_BUF_SZ-FilledCount); }
-    void WritePkt(mshMsg_t Ptr)     { *PWPkt++ = Ptr; FilledCount++; if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf; }
-    void ReadPkt(mshMsg_t *Ptr)     { *Ptr = *PRPkt++; if(PRPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PRPkt = PktBuf; FilledCount--;}
+    void WritePkt(mshMsg_t Ptr)     {
+        PWPkt->Timestamp =          Ptr.Timestamp;
+        PWPkt->RSSI =               Ptr.RSSI;
+        PWPkt->RadioPkt.MeshData =  Ptr.pRadioPkt->MeshData;
+        PWPkt->RadioPkt.PayloadID = Ptr.pRadioPkt->PayloadID;
+        PWPkt->RadioPkt.Payload =   Ptr.pRadioPkt->Payload;
+        PWPkt++;
+        FilledCount++;
+        if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf;
+    }
+    void ReadPkt(CircBufString_t *Ptr)     {
+        *Ptr = *PRPkt++;
+        if(PRPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PRPkt = PktBuf;
+        FilledCount--;
+    }
 };
 #endif
 
@@ -66,8 +85,7 @@ private:
     uint32_t TimeToWakeUp, *PTimeToWakeUp;
 
     Timer_t CycleTmr;
-    CircBufPkt_t PktBucket;
-    mshMsg_t MeshMsg;
+    CircBufString_t MeshMsg;
 
     void INewRxCycle()       {
         PRndTable++;
@@ -105,9 +123,6 @@ private:
     void IResetTimeAge(uint16_t NewID, uint8_t TA)  { PktTx.MeshData.TimeAge = TA; PktTx.MeshData.TimeOwnerID = NewID; }
     uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
 
-    void IPktHandlerStart() {
-        chEvtSignal(IPBktHanlder, EVTMSK_BKT_NOT_EMPTY);
-    }
 public:
     Mesh_t() :
                 PRndTable(RndTableBuf),
@@ -126,10 +141,10 @@ public:
                 PTimeToWakeUp(&TimeToWakeUp),
 //                NeedToSendTable(0),
                 IPThread(NULL),
-                IPBktHanlder(NULL),
+                IPPktHanlderThread(NULL),
                 IsInit(false)  {}
 
-    Thread *IPThread, *IPBktHanlder;
+    Thread *IPThread, *IPPktHanlderThread;
     bool IsInit;
 
 //    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
@@ -149,7 +164,7 @@ public:
 
     MeshPkt_t PktRx, PktTx;
     MsgBox_t<mshMsg_t, MESH_PKT_SZ> MsgBox;
-
+    CircBufPkt_t PktBucket;
 
     void ITask();
     void IWaitTxEnd();

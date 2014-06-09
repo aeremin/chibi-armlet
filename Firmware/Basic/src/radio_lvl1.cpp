@@ -48,20 +48,22 @@ void rLevel1_t::ITask() {
                 if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
-//                    Uart.Printf("rTxPkt: %u %u %u %u  {%u %u %u %d %u %u %u}, %u\r",
-//                            Mesh.PktTx.MeshData.SelfID,
-//                            Mesh.PktTx.MeshData.CycleN,
-//                            Mesh.PktTx.MeshData.TimeOwnerID,
-//                            Mesh.PktTx.MeshData.TimeAge,
-//                            Mesh.PktTx.PayloadID,
-//                            Mesh.PktTx.Payload.Hops,
-//                            Mesh.PktTx.Payload.Timestamp,
-//                            Mesh.PktTx.Payload.TimeDiff,
-//                            Mesh.PktTx.Payload.Reason,
-//                            Mesh.PktTx.Payload.Location,
-//                            Mesh.PktTx.Payload.Emotion,
-//                            chTimeNow()
-//                            );
+                    Uart.Printf("rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+                            Mesh.PktTx.MeshData.SelfID,
+                            Mesh.PktTx.MeshData.CycleN,
+                            Mesh.PktTx.MeshData.TimeOwnerID,
+                            Mesh.PktTx.MeshData.TimeAge,
+                            Mesh.PktTx.MeshData.SelfReason,
+                            Mesh.PktTx.MeshData.SelfLocation,
+                            Mesh.PktTx.MeshData.SelfEmotion,
+                            Mesh.PktTx.PayloadID,
+                            Mesh.PktTx.Payload.Hops,
+                            Mesh.PktTx.Payload.Timestamp,
+                            Mesh.PktTx.Payload.TimeDiff,
+                            Mesh.PktTx.Payload.Reason,
+                            Mesh.PktTx.Payload.Location,
+                            Mesh.PktTx.Payload.Emotion
+                            );
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                     Mesh.ITxEnd();
 //                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
@@ -301,12 +303,29 @@ void rLevel1_t::IMeshRx() {
     int8_t RSSI = 0;
     Valets.RxTmt = SLOT_TIME;
     Valets.InRx = true;
+    chEvtSignal(Mesh.IPPktHanlderThread, EVTMSK_MESH_PKT_RDY);
     chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME-SLOT_TIME), RxEnd, nullptr); /* Set VT */
     do {
         Valets.CurrentTime = chTimeNow();
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
+            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+                    Mesh.PktRx.MeshData.SelfID,
+                    Mesh.PktRx.MeshData.CycleN,
+                    Mesh.PktRx.MeshData.TimeOwnerID,
+                    Mesh.PktRx.MeshData.TimeAge,
+                    Mesh.PktRx.MeshData.SelfReason,
+                    Mesh.PktRx.MeshData.SelfLocation,
+                    Mesh.PktRx.MeshData.SelfEmotion,
+                    Mesh.PktRx.PayloadID,
+                    Mesh.PktRx.Payload.Hops,
+                    Mesh.PktRx.Payload.Timestamp,
+                    Mesh.PktRx.Payload.TimeDiff,
+                    Mesh.PktRx.Payload.Reason,
+                    Mesh.PktRx.Payload.Location,
+                    Mesh.PktRx.Payload.Emotion
+                    );
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
 

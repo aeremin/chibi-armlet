@@ -38,12 +38,18 @@ static void MeshLvlThread(void *arg) {
     while(1) Mesh.ITask();
 }
 
-static WORKING_AREA(waMeshPktBucket, 128);
-static void MeshPktBucket(void *arg) {
-    chRegSetThreadName("MeshBkt");
+static WORKING_AREA(waMeshPktHandlerThd, 128);
+static void MeshPktHandlerThd(void *arg) {
+    chRegSetThreadName("MeshPktThd");
     while(1) {
-        chEvtWaitAny(EVTMSK_BKT_NOT_EMPTY);
-        Mesh.IPktHandler();
+        mshMsg_t MeshPkt;
+        chEvtWaitAny(EVTMSK_MESH_PKT_RDY);
+        do {
+            if(Mesh.MsgBox.TryFetchMsg(&MeshPkt) == OK) {
+                Mesh.PktBucket.WritePkt(MeshPkt);
+                Mesh.SendEvent(EVTMSK_MESH_PKR_HDL);
+            }
+        } while(Radio.Valets.InRx);
     }
 }
 #endif
@@ -54,7 +60,7 @@ void Mesh_t::Init() {
         return;
     }
     /* Create thread Bucket Handler */
-    IPBktHanlder = chThdCreateStatic(waMeshPktBucket, sizeof(waMeshPktBucket), NORMALPRIO, (tfunc_t)MeshPktBucket, NULL);
+    IPPktHanlderThread = chThdCreateStatic(waMeshPktHandlerThd, sizeof(waMeshPktHandlerThd), NORMALPRIO, (tfunc_t)MeshPktHandlerThd, NULL);
 
     UpdateSleepTime();          /* count sleep time due to App.ID */
     MsgBox.Init();
@@ -88,6 +94,8 @@ void Mesh_t::ITask() {
     if(EvtMsk & EVTMSK_MESH_NEW_CYC) INewCycle();
 
     if(EvtMsk & EVTMSK_MESH_UPD_CYC) IUpdateTimer();
+
+    if(EvtMsk & EVTMSK_MESH_PKR_HDL) IPktHandler();
 }
 
 #if 1 // ==== Inner functions ====
@@ -100,16 +108,7 @@ void Mesh_t::INewCycle() {
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
 //    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
-    if(CurrCycle == RxCycleN) {
-        chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
-        mshMsg_t MeshPkt;
-        do {
-            if(MsgBox.TryFetchMsg(&MeshPkt) == OK) {
-                IPktHandlerStart();
-                PktBucket.WritePkt(MeshPkt);
-            }
-        } while(Radio.Valets.InRx);
-    }
+    if(CurrCycle == RxCycleN) chEvtSignal(Radio.rThd, EVTMSK_MESH_RX);
     // ==== TX ====
     else {
 //        Uart.Printf("Mesh Tx\r");
@@ -123,40 +122,59 @@ void Mesh_t::INewCycle() {
 
 void Mesh_t::IPktHandler(){
     PriorityID = IGetTimeOwner();
-    do {
+    if(PktBucket.GetFilledSlots() == 0) return;
+    while(PktBucket.GetFilledSlots() != 0) {
         PktBucket.ReadPkt(&MeshMsg); /* Read Pkt from Buffer */
+//        Uart.Printf("Extruct Msg -> %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+//                MeshMsg.RadioPkt.MeshData.SelfID,
+//                MeshMsg.RadioPkt.MeshData.CycleN,
+//                MeshMsg.RadioPkt.MeshData.TimeOwnerID,
+//                MeshMsg.RadioPkt.MeshData.TimeAge,
+//                MeshMsg.RadioPkt.MeshData.SelfReason,
+//                MeshMsg.RadioPkt.MeshData.SelfLocation,
+//                MeshMsg.RadioPkt.MeshData.SelfEmotion,
+//                MeshMsg.RadioPkt.PayloadID,
+//                MeshMsg.RadioPkt.Payload.Hops,
+//                MeshMsg.RadioPkt.Payload.Timestamp,
+//                MeshMsg.RadioPkt.Payload.TimeDiff,
+//                MeshMsg.RadioPkt.Payload.Reason,
+//                MeshMsg.RadioPkt.Payload.Location,
+//                MeshMsg.RadioPkt.Payload.Emotion
+//        );
         /* Dispatch Mesh field of pkt */
-        Payload.WriteMesh(AbsCycle, &MeshMsg.pRadioPkt->MeshData); // Put information from mesh part of Çëå to Payload buff
-        MeshPayload_t *pMP = &MeshMsg.pRadioPkt->MeshData;
-        if(PriorityID > pMP->TimeOwnerID) {
-            IResetTimeAge(PriorityID, 0);
-            GetPrimaryPkt = true;
-        }
+       Payload.WriteMesh(AbsCycle, &MeshMsg.RadioPkt.MeshData); // Put information from mesh part of Çëå to Payload buff
+       Payload.WriteInfo(MeshMsg.RadioPkt.PayloadID, AbsCycle, &MeshMsg.RadioPkt.Payload);
+       MeshPayload_t *pMP = &MeshMsg.RadioPkt.MeshData;
+       if(PriorityID > pMP->TimeOwnerID) {
+           IResetTimeAge(PriorityID, 0);
+           GetPrimaryPkt = true;
+       }
 
-        else if(PriorityID == pMP->TimeOwnerID) {  /* compare TimeAge */
-            if(IGetTimeAge() > pMP->TimeAge) {
-                IResetTimeAge(PriorityID, pMP->TimeAge);
-                GetPrimaryPkt = true;  /* need to update */
-            }
-        }
+       else if(PriorityID == pMP->TimeOwnerID) {  /* compare TimeAge */
+           if(IGetTimeAge() > pMP->TimeAge) {
+               IResetTimeAge(PriorityID, pMP->TimeAge);
+               GetPrimaryPkt = true;  /* need to update */
+           }
+       }
 
-        if(pMP->SelfID < STATIONARY_ID) {
-            if(MeshMsg.RSSI > PreliminaryRSSI) {
-                PreliminaryRSSI = MeshMsg.RSSI;
-                Payload.NewLocation(pMP->SelfID);
-            }
-        };
+       if(pMP->SelfID < STATIONARY_ID) {
+           if(MeshMsg.RSSI > PreliminaryRSSI) {
+               PreliminaryRSSI = MeshMsg.RSSI;
+               Payload.NewLocation(pMP->SelfID);
+           }
+       };
 
-        if(GetPrimaryPkt) {
-            CycleTmr.Disable();
-            *PNewCycleN = pMP->CycleN + 1;
-            PriorityID = pMP->TimeOwnerID;
-            Mesh.PktTx.MeshData.TimeOwnerID = PriorityID;
-            *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
-        }
-        /* Dispatch Payload field of pkt */
-        Payload.WriteInfo(MeshMsg.pRadioPkt->PayloadID, AbsCycle, &MeshMsg.pRadioPkt->Payload);
-    } while(PktBucket.GetFilledSlots() != 0);
+       if(GetPrimaryPkt) {
+           CycleTmr.Disable();
+           *PNewCycleN = pMP->CycleN + 1;
+           PriorityID = pMP->TimeOwnerID;
+           Mesh.PktTx.MeshData.TimeOwnerID = PriorityID;
+           *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
+       }
+               /* Dispatch Payload field of pkt */
+    }
+
+//    } while(PktBucket.GetFilledSlots() != 0);
 }
 
 void Mesh_t::IUpdateTimer() {
@@ -168,10 +186,6 @@ void Mesh_t::IUpdateTimer() {
             *PNewCycleN += 1;
         } while (*PTimeToWakeUp < timeNow);
 
-//        if(*PTimeToWakeUp < timeNow) {
-//            *PTimeToWakeUp += CYCLE_TIME;
-//            *PNewCycleN += 1;
-//        }
         SetCurrCycleN(*PNewCycleN);
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
