@@ -181,6 +181,7 @@ void Mesh_t::IUpdateTimer() {
     PreliminaryRSSI = STATIONARY_MIN_LEVEL;
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
+        Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
         do {
             *PTimeToWakeUp += CYCLE_TIME;
             *PNewCycleN += 1;
