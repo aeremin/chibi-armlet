@@ -40,7 +40,7 @@ uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_
 uint16_t Payload_t::GetNextInfoID() {
     do{
         PNext++;
-        if(PNext > (InfoBuf + INFO_BUF_SIZE - 1)) PNext = InfoBuf;
+        if(PNext >= (InfoBuf + INFO_BUF_SIZE)) PNext = InfoBuf; // Remove "-1"
     } while(PNext->Timestamp == 0);
     return (uint16_t)((PNext - InfoBuf));
 }
@@ -64,9 +64,10 @@ void Payload_t::UpdateSelf() {
 }
 void Payload_t::CorrectionTimeStamp(uint32_t CorrValueMS) {
     uint32_t CorrValueCycle = CorrValueMS/CYCLE_TIME;
+    if(CorrValueCycle == 0) return;
 //    Uart.Printf("Correct to %u\r", CorrValueCycle);
-    for(uint16_t i=0; i<INFO_BUF_SIZE; i++) {
-        if(InfoBuf[i].Hops != 0) {
+    for(uint16_t i=0; i<INFO_BUF_SIZE; i++) { // TODO: compare new time in new cycle
+        if(InfoBuf[i].Timestamp != 0) {
             InfoBuf[i].Timestamp -= CorrValueCycle;
             InfoBuf[i].TimeDiff -= CorrValueCycle;
         }

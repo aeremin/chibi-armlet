@@ -81,7 +81,7 @@ int main(void) {
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
     if(App.Type != dtDetectorMobile) {
-        Beeper.Init();
+//        Beeper.Init();
         Beeper.Beep(BeepBeep);
     }
 

@@ -18,22 +18,23 @@
 #define STATIONARY_ID           6
 #define STATIONARY_MIN_LEVEL    -120
 
-
+// ==== MESH PARAMS ====
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
-
 #define MESH_CHANNEL        1     /* mesh RF channel */
+#define MESH_PKT_TIME       3
+#define MESH_GUARD_TIME     7
 
 /* SLOT_TIME is equivalent to doubled time of transmit rf packet */
-#define SLOT_TIME           10    /* 3 ms normal time for transmit packet, take it as 10 ms */
+#define SLOT_TIME           (uint32_t)(MESH_PKT_TIME + MESH_GUARD_TIME)    /* 3 ms normal time for transmit packet, take it as 10 ms */
 
-#define COUNT_OF_CYCLES     5     /* count of cycles in supercycle */
+#define MESH_COUNT_OF_CYCLES     5     /* count of cycles in supercycle */
 
 #define CYCLE_TIME          (uint32_t)((SLOT_TIME * MAX_ABONENTS))
 #define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
 
 
 //#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
-#define GET_RND_VALUE(Top)    ( ((rand() % Top) + 1) )
+#define GET_RND_VALUE(Top)    (rand() % (Top))
 
 
 #define TIME_AGE_THRESHOLD  20 /* Cycles */
@@ -42,8 +43,8 @@
 
 struct meshradio_t {
     VirtualTimer RxVT;
-    uint16_t RxTmt;
     bool InRx;
+    uint32_t RxEndTime;
     uint32_t CurrentTime;
 };
 

@@ -94,8 +94,9 @@ private:
     }
 
     void IIncCurrCycle()     {
-        AbsCycle++; CurrCycle++;
-        if(CurrCycle >= COUNT_OF_CYCLES) {
+        AbsCycle++;
+        CurrCycle++;
+        if(CurrCycle >= MESH_COUNT_OF_CYCLES) {
             CurrCycle = 0;
             INewRxCycle();
         }
@@ -104,9 +105,10 @@ private:
         srand(App.ID);
         RndTableBuf[0] = 1;
         for(uint8_t i=1; i<RND_TBL_BUFFER_SZ; i++) {
-            RndTableBuf[i] = GET_RND_VALUE(COUNT_OF_CYCLES-1);
+            RndTableBuf[i] = GET_RND_VALUE(MESH_COUNT_OF_CYCLES);
         }
         RxCycleN = *PRndTable;
+        // TODO: check random table value
     }
 
     void INewCycle();
@@ -148,14 +150,14 @@ public:
     bool IsInit;
 
 //    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
-    void UpdateSleepTime()              { SleepTime = ((App.ID)*SLOT_TIME); }
+    void UpdateSleepTime()              { SleepTime = ((App.ID-1)*SLOT_TIME); }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
 //    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
-    int32_t SetCurrCycleN(uint32_t ANew)   {
+    int32_t SetNewAbsCycleN(uint32_t ANew)   {
         int32_t Diff = AbsCycle;
         AbsCycle = ANew;
-        CurrCycle = 0;
+        CurrCycle = AbsCycle % MESH_COUNT_OF_CYCLES;
         INewRxCycle();
         Diff = AbsCycle - Diff;
         return Diff;

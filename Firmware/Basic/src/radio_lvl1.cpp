@@ -41,10 +41,10 @@ void rLevel1_t::ITask() {
         if(App.Type == dtUmvos) {
             if(Mesh.IsInit) {
                 CC.Recalibrate();
+                CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
+                CC.SetPktSize(MESH_PKT_SZ);
                 uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
 
-//                CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
-//                CC.SetPktSize(MESH_PKT_SZ);
                 if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
@@ -294,20 +294,22 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh Rx Cycle ====
 
 static void RxEnd(void *p) {
-//    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
+    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
     Radio.Valets.InRx = false;
 }
 
 void rLevel1_t::IMeshRx() {
-//    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
+    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
-    Valets.RxTmt = SLOT_TIME;
+    Valets.RxEndTime = (chTimeNow()) + CYCLE_TIME - SLOT_TIME;
     Valets.InRx = true;
     chEvtSignal(Mesh.IPPktHanlderThread, EVTMSK_MESH_PKT_RDY);
     chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME-SLOT_TIME), RxEnd, nullptr); /* Set VT */
+
+    // TODO: while(1) -> currtime -> break
     do {
         Valets.CurrentTime = chTimeNow();
-        uint8_t RxRslt = CC.ReceiveSync(Valets.RxTmt, &Mesh.PktRx, &RSSI);
+        uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI); // TODO: Rx Time
         if(RxRslt == OK) { // Pkt received correctly
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
@@ -328,11 +330,11 @@ void rLevel1_t::IMeshRx() {
 //                    );
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
-
-        if(chTimeNow() < Valets.CurrentTime + SLOT_TIME) chThdSleepUntil(Valets.CurrentTime + SLOT_TIME);
+//        if(chTimeNow() < (Valets.RxStartTime + CYCLE_TIME - SLOT_TIME))
+//        if(chTimeNow() < Valets.CurrentTime + SLOT_TIME) chThdSleepUntil(Valets.CurrentTime + SLOT_TIME);
 //        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);
-    Mesh.SendEvent(EVTMSK_MESH_UPD_CYC);
+    Mesh.SendEvent(EVTMSK_MESH_RX_END);
 }
 #endif
 

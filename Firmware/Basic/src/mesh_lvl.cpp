@@ -82,7 +82,7 @@ void Mesh_t::Init() {
     CycleTmr.EnableIrqOnUpdate();
     IsInit = true;
 
-    chThdSleepMilliseconds(121); /* Do radio thd sleep 41 */
+    chThdSleepMilliseconds(121); /* Do radio thd sleep 41 */  //TODO: define sleep time
 
     CycleTmr.Enable();           /* Enable Cycle Timer */
     Uart.Printf("Msh Init ID=%u\r", App.ID);
@@ -93,9 +93,9 @@ void Mesh_t::ITask() {
 
     if(EvtMsk & EVTMSK_MESH_NEW_CYC) INewCycle();
 
-    if(EvtMsk & EVTMSK_MESH_UPD_CYC) IUpdateTimer();
+    else if(EvtMsk & EVTMSK_MESH_RX_END) IUpdateTimer();
 
-    if(EvtMsk & EVTMSK_MESH_PKR_HDL) IPktHandler();
+    else if(EvtMsk & EVTMSK_MESH_PKR_HDL) IPktHandler();
 }
 
 #if 1 // ==== Inner functions ====
@@ -103,8 +103,8 @@ void Mesh_t::ITask() {
 void Mesh_t::INewCycle() {
 //    Beeper.Beep(BeepShort);
     IIncCurrCycle();
+    ITimeAgeCounter();
     Payload.UpdateSelf();  /* Timestamp = AbsCycle; Send info to console */
-    PreparePktPayload();
 //    Uart.Printf("Abs=%u, Curr=%u, RxCyc=%u\r", AbsCycle, CurrCycle, RxCycleN);
 //    Uart.Printf("\rNewCyc, t=%u\r", chTimeNow());
     // ==== RX ====
@@ -112,15 +112,15 @@ void Mesh_t::INewCycle() {
     // ==== TX ====
     else {
 //        Uart.Printf("Mesh Tx\r");
-        IPktPutCycle(AbsCycle);
+        PreparePktPayload();
         if(SleepTime > 0) chThdSleepMilliseconds(SleepTime);
         chEvtSignal(Radio.rThd, EVTMSK_MESH_TX);
         IWaitTxEnd();
     }
-    ITimeAgeCounter();
 }
 
 void Mesh_t::IPktHandler(){
+    // TODO: what shall i need to do if RxEnd and Time was updated yet?
     PriorityID = IGetTimeOwner();
     if(PktBucket.GetFilledSlots() == 0) return;
     while(PktBucket.GetFilledSlots() != 0) {
@@ -145,36 +145,25 @@ void Mesh_t::IPktHandler(){
        Payload.WriteMesh(AbsCycle, &MeshMsg.RadioPkt.MeshData); // Put information from mesh part of Çëå to Payload buff
        Payload.WriteInfo(MeshMsg.RadioPkt.PayloadID, AbsCycle, &MeshMsg.RadioPkt.Payload);
        MeshPayload_t *pMP = &MeshMsg.RadioPkt.MeshData;
-       if(PriorityID > pMP->TimeOwnerID) {
-           IResetTimeAge(PriorityID, 0);
-           GetPrimaryPkt = true;
+       if( (pMP->TimeOwnerID < PriorityID) ||
+               ((pMP->TimeOwnerID == PriorityID) &&
+                   (pMP->TimeAge < IGetTimeAge())) ) {  /* compare TimeAge */
+           CycleTmr.Disable();
+           GetPrimaryPkt = true;                        // received privilege pkt
+           PriorityID = pMP->TimeOwnerID;
+           IResetTimeAge(PriorityID, pMP->TimeAge);
+           *PNewCycleN = pMP->CycleN;   // TODO: cycle number increment: nedeed of not?
+           *PTimeToWakeUp = MeshMsg.Timestamp - MESH_PKT_TIME - (SLOT_TIME*(PriorityID-1)) + CYCLE_TIME;
+//           *PTimeToWakeUp = (CYCLE_TIME - (SLOT_TIME * PriorityID)) + MeshMsg.Timestamp;
        }
 
-       else if(PriorityID == pMP->TimeOwnerID) {  /* compare TimeAge */
-           if(IGetTimeAge() > pMP->TimeAge) {
-               IResetTimeAge(PriorityID, pMP->TimeAge);
-               GetPrimaryPkt = true;  /* need to update */
-           }
-       }
-
-       if(pMP->SelfID < STATIONARY_ID) {
+       if(pMP->SelfID <= STATIONARY_ID) { /* if pkt received from lustra */
            if(MeshMsg.RSSI > PreliminaryRSSI) {
                PreliminaryRSSI = MeshMsg.RSSI;
                Payload.NewLocation(pMP->SelfID);
            }
        };
-
-       if(GetPrimaryPkt) {
-           CycleTmr.Disable();
-           *PNewCycleN = pMP->CycleN + 1;
-           PriorityID = pMP->TimeOwnerID;
-           Mesh.PktTx.MeshData.TimeOwnerID = PriorityID;
-           *PTimeToWakeUp = MeshMsg.Timestamp + (uint32_t)CYCLE_TIME - (SLOT_TIME * PriorityID);
-       }
-               /* Dispatch Payload field of pkt */
     }
-
-//    } while(PktBucket.GetFilledSlots() != 0);
 }
 
 void Mesh_t::IUpdateTimer() {
@@ -182,23 +171,25 @@ void Mesh_t::IUpdateTimer() {
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
         Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
-        do {
+        while(*PTimeToWakeUp < timeNow) {
             *PTimeToWakeUp += CYCLE_TIME;
             *PNewCycleN += 1;
-        } while (*PTimeToWakeUp < timeNow);
+        }
 
-        SetCurrCycleN(*PNewCycleN);
+        SetNewAbsCycleN(*PNewCycleN);
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
         GetPrimaryPkt = false;
         Uart.Printf("Sleep from %u to %u\r", chTimeNow(), *PTimeToWakeUp);
         if(*PTimeToWakeUp > chTimeNow()) chThdSleepUntil(*PTimeToWakeUp); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
+        else Uart.Printf("WrongTime!\r");
         CycleTmr.Enable();
     }
 }
 
 void Mesh_t::PreparePktPayload() {
-    PktTx.MeshData.SelfID = App.ID;
+    PktTx.MeshData.SelfID = App.ID;         /* TODO: need if App.ID changed by the Uart command */
+    IPktPutCycle(AbsCycle);
     PayloadString_t *PlStr;
     uint16_t NextID = 0;
     NextID = Payload.GetNextInfoID();
