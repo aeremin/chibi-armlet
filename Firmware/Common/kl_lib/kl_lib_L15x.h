@@ -603,7 +603,7 @@ protected:
 class Eeprom_t : private Flash_t {
 public:
     uint32_t Read32(uint32_t Addr) { return *((uint32_t*)(Addr + EEPROM_BASE_ADDR)); }
-    uint8_t Write32(uint32_t Addr, uint32_t W);
+    uint8_t Write32(uint32_t Addr, uint32_t W); // Writes if not the same
     void ReadBuf(void *PDst, uint32_t Sz, uint32_t Addr);
     uint8_t WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr);
 };

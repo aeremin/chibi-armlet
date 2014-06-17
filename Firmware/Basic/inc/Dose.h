@@ -66,8 +66,8 @@ public:
         ITimeLeft_ms = EE.Read32(EE_DRUG_TIMELEFT_ADDR);
     }
     void Save() {
-        if((int32_t)EE.Read32(EE_DRUG_VALUE_ADDR) != IValue) EE.Write32(EE_DRUG_VALUE_ADDR, (uint32_t)IValue);
-        if(EE.Read32(EE_DRUG_TIMELEFT_ADDR) != ITimeLeft_ms) EE.Write32(EE_DRUG_TIMELEFT_ADDR, ITimeLeft_ms);
+        EE.Write32(EE_DRUG_VALUE_ADDR, (uint32_t)IValue);
+        EE.Write32(EE_DRUG_TIMELEFT_ADDR, ITimeLeft_ms);
     }
 };
 #endif

@@ -60,7 +60,7 @@ public:
     uint32_t Charge, Capacity;
     GrenadeState_t State;
     void SaveCharge();
-    void SaveCapacity() { if(EE.Read32(EE_CAPACITY_ADDR) != Capacity) EE.Write32(EE_CAPACITY_ADDR, Capacity); }
+    void SaveCapacity() { EE.Write32(EE_CAPACITY_ADDR, Capacity); }
     void IncreaseCharge();
     void Init();
     void DeinitI();
@@ -82,7 +82,7 @@ public:
     }
     inline MechState_t GetState() { return State; }
     uint32_t Health;
-    void SaveState() { if(EE.Read32(EE_STATE_ADDR) != (uint32_t)State) EE.Write32(EE_STATE_ADDR, State); }
+    void SaveState() { EE.Write32(EE_STATE_ADDR, State); }
     void Init();
 };
 

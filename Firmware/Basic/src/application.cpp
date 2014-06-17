@@ -333,14 +333,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     chSysLock();
     if(chVTIsArmedI(&TmrDoseSave)) chVTResetI(&TmrDoseSave);
     Grenade.DeinitI();
-    switch(App.Type) {
-        case dtUmvos:
 #if DO_DOSE_SAVE
-            chVTSetI(&TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
+    if(App.Type == dtUmvos) chVTSetI(&TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
 #endif
-            break;
-        default: break;
-    }
     chSysUnlock();
 
     // Reinit constants
@@ -357,13 +352,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     } // switch
 
     Indication.ProcessTypeChange();
-
-    // Save in EE if not equal
-    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
-    uint8_t rslt = OK;
-    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
     Uart.Printf("Type=%u\r\n", Type);
-    return rslt;
+    // Save new type in EE
+    return EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
 }
 #endif
 
