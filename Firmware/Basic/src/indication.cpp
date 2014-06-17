@@ -125,6 +125,29 @@ int32_t Indication_t::ITaskEmpMech() {
     return pbb->Time2_ms;
 }
 
+int32_t Indication_t::ITaskPelengator() {
+    Led.SetColor(DeviceColor[MaxSignalLvlDevType]);
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(DeviceColor[MaxSignalLvlDevType]);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+    return 702;
+}
+
+int32_t Indication_t::ITaskPillFlasher() {
+    Led.SetColor(DeviceColor[dtPillFlasher]);
+    // ==== Battery ====
+    if(BatteryState == bsBad) {
+        Led.SetColor(clBlack);
+        chThdSleepMilliseconds(54);
+        Led.SetColor(DeviceColor[dtPillFlasher]);
+        chThdSleepMilliseconds(T_BATTERY_BLINK_MS);
+    }
+    return 2007;
+}
 #endif
 
 #if 1 // ===================== Thread & Task ===================================
@@ -136,17 +159,15 @@ static void IndicationThread(void *arg) {
 
 void Indication_t::ITask() {
     // Indication depends on device type. Every function returns required sleep interval until next call.
-    int32_t SleepInterval;
+    int32_t SleepInterval = 999;
     switch(App.Type) {
         case dtUmvos:          SleepInterval = ITaskUmvos();          break;
         case dtDetectorMobile: SleepInterval = ITaskDetectorMobile(); break;
         case dtDetectorFixed:  SleepInterval = ITaskDetectorFixed();  break;
         case dtEmpGrenade:     SleepInterval = ITaskGrenade();        break;
         case dtEmpMech:        SleepInterval = ITaskEmpMech();        break;
-        case dtPelengator:
-            Led.SetColor(DeviceColor[MaxSignalLvlDevType]);
-            SleepInterval = 999;
-            break;
+        case dtPelengator:     SleepInterval = ITaskPelengator();     break;
+        case dtPillFlasher:    SleepInterval = ITaskPillFlasher();    break;
 
         case dtLustraClean:
         case dtLustraWeak:
@@ -155,7 +176,7 @@ void Indication_t::ITask() {
             SleepInterval = 4005;
             break;
 
-        default: SleepInterval = 999; break;
+        case dtNothing: break;
     } // switch
 
     // ==== Peleng received by some device ====

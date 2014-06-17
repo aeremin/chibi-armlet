@@ -173,7 +173,6 @@ void App_t::OnRxTableReady() {
     RxTable.dBm2PercentAll();
     if(ANY_OF_3(Type, dtUmvos, dtDetectorMobile, dtDetectorFixed)) {
         int32_t NaturalDmg = 1, RadioDmg = 0;
-    //    Uart.Printf("Age=%u\r", PTbl->Age());
     //    RxTable.Print();
         // Iterate received levels
         for(uint32_t i=0; i<PTbl->Size; i++) {
@@ -209,9 +208,26 @@ void App_t::OnRxTableReady() {
             } // if lvl > min
         } // for
         Damage = NaturalDmg + RadioDmg;
-        // TODO: Damage *= CountOfSecondsElapsedSinceLastTime
+        // ==== Damage *= CountOfSecondsElapsedSinceLastTime ====
+        uint32_t Age = PTbl->Age();
+//        Uart.Printf("Age=%u\r", Age);
+        if(Age > 1024) { // More than a second has passed since last time
+            uint64_t Dmg64 = Damage;
+            uint32_t Dmg32;
+            Dmg64 *= Age;
+            if(Dmg64 > MAX_UINT32) {
+                Dmg64 /= 1024;
+                if(Dmg64 > MAX_INT32) Damage = MAX_INT32;
+                else Damage = (int32_t)Dmg64;
+            }
+            else {
+                Dmg32 = (uint32_t)Dmg64;
+                Dmg32 /= 1000;
+                Damage = (int32_t)Dmg32;
+            }
+        } // if(Age > 1024)
 //        Uart.Printf("Dmg=%d\r", Damage);
-        // React depending on device type and damage level
+        // === React depending on device type and damage level ===
         if(Type == dtUmvos) {
             if(Dose.Drug.IsActive()) Dose.Drug.ModifyDamage(Damage, PTbl->Age());
             Dose.Modify(Damage);
