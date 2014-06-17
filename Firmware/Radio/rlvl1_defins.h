@@ -63,7 +63,7 @@ struct rPkt_t {
 // Lustra constants
 const rPkt_t PktLustra[4] = {
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0, 0},        // Clean
-        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 3}, // ToDO: remove DEBUG 11},       // Weak: 11^2 = 121
+        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 3}, // ForTest 11},       // Weak: 11^2 = 121
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 42},       // Strong: 42^2 = 1800
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 0xFF},  // Lethal: DoseTop
 };

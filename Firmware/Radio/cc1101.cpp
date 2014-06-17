@@ -28,7 +28,6 @@ void cc1101_t::Init() {
     FlushRxFIFO();
     RfConfig();
     PWaitingThread = nullptr;
-    State = ccIdle;
     // ==== IRQ ====
     IGdo0.Setup(CC_GPIO, CC_GDO0, ttFalling);
     IGdo0.EnableIrq(IRQ_PRIO_HIGH);
@@ -62,15 +61,6 @@ void cc1101_t::TransmitSync(void *Ptr) {
     chSysUnlock();  // Will be here when IRQ fires
 }
 
-void cc1101_t::TransmitAsync(void *Ptr) {
-    // WaitUntilChannelIsBusy();   // If this is not done, time after time FIFO is destroyed
-    PWaitingThread = NULL;
-    State = ccTransmitting;
-    while(IState != CC_STB_IDLE) EnterIdle();
-    WriteTX((uint8_t*)Ptr, IPktSz);
-    EnterTX();
-}
-
 // Enter RX mode and wait reception for Timeout_ms.
 uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi) {
     FlushRxFIFO();
@@ -86,42 +76,6 @@ uint8_t cc1101_t::ReceiveSync(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi) {
     }
     else return ReadFIFO(Ptr, PRssi);
 }
-
-void cc1101_t::ReceiveAsync() {
-    PWaitingThread = NULL;
-    State = ccReceiving;
-    FlushRxFIFO();
-    EnterRX();
-}
-
-//    {  // IRQ occured: something received, or CRC error
-//        uint8_t b, *p = (uint8_t*)pPkt;
-//        // Check if received successfully
-//        b = ReadRegister(CC_PKTSTATUS);
-//        //    Uart.Printf("St: %X  ", b);
-//        if(b & 0x80) {  // CRC OK
-//            // Read FIFO
-//            CsLo();                                            // Start transmission
-//            BusyWait();                                        // Wait for chip to become ready
-//            ISpi.ReadWriteByte(CC_FIFO|CC_READ_FLAG|CC_BURST_FLAG); // Address with read & burst flags
-//            for(uint8_t i=0; i<RPKT_LEN; i++) {                // Read bytes
-//                b = ISpi.ReadWriteByte(0);
-//                *p++ = b;
-//          //      Uart.Printf(" %X", b);
-//            }
-//            // Receive two additional info bytes
-//            b = ISpi.ReadWriteByte(0);   // RSSI
-//            ISpi.ReadWriteByte(0);       // LQI
-//            CsHi();                 // End transmission
-//            pPkt->RSSI = RSSI_dBm(b);
-//            return OK;
-//        }
-//        else {  // CRC Error
-//
-//            return FAILURE;
-//        }
-//    } // IRQ or Timeout
-//}
 
 // Return RSSI in dBm
 int8_t cc1101_t::RSSI_dBm(uint8_t ARawRSSI) {
@@ -238,17 +192,6 @@ void cc1101_t::RfConfig() {
 }
 
 // ============================= Interrupts ====================================
-void cc1101_t::IHandleAsync() {
-    if(State == ccTransmitting) {
-        State = ccIdle;
-//        chEvtBroadcastI(&IEvtSrcTx);  // FIXME: cc1101 IHandleAsync
-    }
-    else if(State == ccReceiving) {
-        State = ccIdle;
-//        chEvtBroadcastI(&IEvtSrcRx);  // FIXME cc1101 IHandleAsync
-    }
-}
-
 void cc1101_t::IGdo0IrqHandler() {
     IGdo0.CleanIrqFlag();
     // Resume thread if any
@@ -260,7 +203,6 @@ void cc1101_t::IGdo0IrqHandler() {
         }
         PWaitingThread = NULL;
     }
-    else IHandleAsync(); // Async task completed
     chSysUnlockFromIsr();
 }
 
