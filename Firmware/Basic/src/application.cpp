@@ -142,7 +142,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         if(PCmd->TryConvertTokenToNumber(&NewTop) == OK) {  // Next token is number
             Dose.Consts.Setup(NewTop);
             Dose.SaveTop();
-            Uart.Printf("Top=%d; Red=%d; Yellow=%d\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
             Uart.Ack(OK);
         }
         else Uart.Ack(CMD_ERROR);
@@ -344,13 +343,14 @@ uint8_t App_t::ISetID(uint32_t NewID) {
 
 uint8_t App_t::ISetType(uint8_t AType) {
     if(AType > dtPillFlasher) return FAILURE;
-    Type = (DeviceType_t)AType;
+    if(AType == dtNothing) Type = dtUmvos;
+    else Type = (DeviceType_t)AType;
     // Reinit timers
     chSysLock();
     if(chVTIsArmedI(&TmrDoseSave)) chVTResetI(&TmrDoseSave);
     Grenade.DeinitI();
 #if DO_DOSE_SAVE
-    if(App.Type == dtUmvos) chVTSetI(&TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
+    if(App.Type == dtUmvos) chVTSetI(&TmrDoseSave, MS2ST(T_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
 #endif
     chSysUnlock();
 

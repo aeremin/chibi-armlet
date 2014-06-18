@@ -88,7 +88,7 @@ public:
 
 // ==== Misc ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
-#define DO_DOSE_SAVE            FALSE
+#define DO_DOSE_SAVE            TRUE    // ForTest
 
 // ==== Application class ====
 class App_t {

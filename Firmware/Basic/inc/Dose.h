@@ -30,7 +30,7 @@ struct DoseConsts_t {
 };
 
 // Default Dose constants
-#define DOSE_DEFAULT_TOP    10800
+#define DOSE_DEFAULT_TOP    216000
 
 enum HealthState_t {hsGreen=0, hsYellow=1, hsRedSlow=2, hsRedFast=3, hsDeath=4};
 enum DamageLevel_t {dlClear=0, dlFon=1, dlDirty=2};

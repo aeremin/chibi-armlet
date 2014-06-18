@@ -137,7 +137,7 @@ void PwmPin_t::SetFreqHz(uint32_t FreqHz) {
 }
 #endif
 
-#if CH_DBG_ENABLED // ========================= DEBUG ==========================
+#if CH_DBG_ENABLED // =================== Print Dbg messages ===================
 void chDbgPanic(const char *msg1) {
     Uart.PrintNow(msg1);
 }
