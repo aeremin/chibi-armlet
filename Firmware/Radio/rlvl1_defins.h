@@ -74,7 +74,7 @@ const rPkt_t PktDummy = {1, 2, 3, 4};
 #if 1 // ======================= Channels & cycles =============================
 #define LUSTRA_CNT      50
 #define LUSTRA_MIN_ID   100
-#define LUSTRA_MAX_ID   140
+#define LUSTRA_MAX_ID   (LUSTRA_MIN_ID + LUSTRA_CNT - 1)
 
 #define RCHNL_EMP       7
 #define RCHNL_PELENG    9
