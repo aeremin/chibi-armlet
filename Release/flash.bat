@@ -3,6 +3,6 @@
 
 @REM pause
 
-@ping 10.25.11.254 -n 1 -w 3000 > nul
+@ping 10.25.11.254 -n 1 -w 2000 > nul
 
 goto start
