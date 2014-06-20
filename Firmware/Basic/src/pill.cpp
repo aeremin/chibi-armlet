@@ -133,7 +133,7 @@ void App_t::OnPillConnect() {
         for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
         Uart.Printf("\r\n");
         // Everyone
-        if(Pill.Type == ptSetType) ISetType(Pill.DeviceType);
+        if((Pill.Type == ptSetType) and (Type != dtPillFlasher)) ISetType(Pill.DeviceType);
         else {
             switch(Type) {
                 case dtUmvos:       rslt = IPillHandlerUmvos();       break;

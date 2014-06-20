@@ -53,6 +53,14 @@ int32_t Indication_t::ITaskDetectorMobile() {
 //        Uart.Printf("%d; %d\r", Damage, DmgSnd);
         if(r < DmgSnd) Beeper.IPin.Enable();
     }
+    // Blink every 99 times
+    static uint8_t N=0;
+    if(N++ >= 99) {
+        Led.SetColor(clCyan);
+        N = 0;
+    }
+    // Blink twice if battery disharged
+    if((N == 90) and (BatteryState == bsBad)) Led.SetColor(clCyan);
     return 18;
 }
 

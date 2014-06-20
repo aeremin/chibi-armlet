@@ -1,12 +1,12 @@
 # Terminal macro file v2
 Ping
 ##Ping#010#013
-PillSt
-##PillState 0#010#013
+RepWr
+##PillRepeatWrite32 0#010#013
 Read
 ##PillRead32 0 3#010#013
 
-
+##GetType#010#013
 
 
 GetDse
@@ -22,15 +22,15 @@ RedDse
 GetTop
 ##GetDoseTop#010#013
 SetTop
-##SetDoseTop 300#010#013
+##SetDoseTop 216000#010#013
 
 
 Breaker
 ##PillWrite32 0,31,0#010#013
 Repair
-##PillWrite32 0,32,0,10#010#013
+##PillWrite32 0,32,0,1800#010#013
 Cure
-##PillWrite32 0,9,0,1,-100#010#013
+##PillWrite32 0,9,0,1,-21600#010#013
 Panacea
 ##PillWrite32 0,11,0#010#013
 Empty
@@ -44,6 +44,6 @@ Electrost
 
 
 SetID
-##SetID 
+##SetID 137#010#013
 GetID
 ##GetID#010#013
