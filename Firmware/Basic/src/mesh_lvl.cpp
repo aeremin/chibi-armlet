@@ -85,7 +85,7 @@ void Mesh_t::Init() {
     chThdSleepMilliseconds(121); /* Do radio thd sleep 41 */  //TODO: define sleep time
 
     CycleTmr.Enable();           /* Enable Cycle Timer */
-    Uart.Printf("Msh Init ID=%u\r", App.ID);
+    Uart.Printf("Msh Init ID=%u\r\n", App.ID);
 }
 
 void Mesh_t::ITask() {
@@ -143,7 +143,8 @@ void Mesh_t::IPktHandler(){
 //        );
         /* Dispatch Mesh field of pkt */
        Payload.WriteMesh(AbsCycle, &MeshMsg.RadioPkt.MeshData); // Put information from mesh part of Çëå to Payload buff
-       Payload.WriteInfo(MeshMsg.RadioPkt.PayloadID, AbsCycle, &MeshMsg.RadioPkt.Payload);
+       uint32_t CycleDiff = (AbsCycle < MeshMsg.RadioPkt.MeshData.CycleN)? MeshMsg.RadioPkt.MeshData.CycleN - AbsCycle : AbsCycle - MeshMsg.RadioPkt.MeshData.CycleN;
+       Payload.WriteInfo(MeshMsg.RadioPkt.PayloadID, CycleDiff, &MeshMsg.RadioPkt.Payload);
        MeshPayload_t *pMP = &MeshMsg.RadioPkt.MeshData;
        if( (pMP->TimeOwnerID < PriorityID) ||
                ((pMP->TimeOwnerID == PriorityID) &&
@@ -161,6 +162,7 @@ void Mesh_t::IPktHandler(){
            if(MeshMsg.RSSI > PreliminaryRSSI) {
                PreliminaryRSSI = MeshMsg.RSSI;
                Payload.NewLocation(pMP->SelfID);
+               PktTx.MeshData.SelfLocation = (pMP->SelfID);
            }
        };
     }
@@ -170,7 +172,7 @@ void Mesh_t::IUpdateTimer() {
     PreliminaryRSSI = STATIONARY_MIN_LEVEL;
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
-        Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
+//        Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
         while(*PTimeToWakeUp < timeNow) {
             *PTimeToWakeUp += CYCLE_TIME;
             *PNewCycleN += 1;
@@ -180,9 +182,9 @@ void Mesh_t::IUpdateTimer() {
         Payload.CorrectionTimeStamp(*PTimeToWakeUp - timeNow);
         CycleTmr.SetCounter(0);
         GetPrimaryPkt = false;
-        Uart.Printf("Sleep from %u to %u\r", chTimeNow(), *PTimeToWakeUp);
+//        Uart.Printf("Sleep from %u to %u\r", chTimeNow(), *PTimeToWakeUp);
         if(*PTimeToWakeUp > chTimeNow()) chThdSleepUntil(*PTimeToWakeUp); /* TODO: Thinking carefully about asynch switch on Timer with Virtual timer */
-        else Uart.Printf("WrongTime!\r");
+        else Uart.Printf("WrongTime!\r\n");
         CycleTmr.Enable();
     }
 }

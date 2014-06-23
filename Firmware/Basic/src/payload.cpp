@@ -13,26 +13,24 @@
 Payload_t Payload;
 
 
-uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t CurrSelfCycle, PayloadString_t *Ptr) {
+uint8_t Payload_t::WriteInfo(uint16_t ID, uint32_t TimeStampDiff, PayloadString_t *Ptr) {
     uint8_t Rslt = FAILURE;
     if(ID == App.ID) {
-        Uart.Printf("Payload with my ID!\r");
+        Uart.Printf("Payload with my ID!\r\n");
         Rslt = OK;
     }
 //    else if(Ptr->Hops > InfoBuf[ID].Hops) Rslt = OK;
     else if(Ptr->Timestamp < InfoBuf[ID].Timestamp) Rslt = OK;
     else {
-        int32_t TimeDiff = Ptr->Timestamp;
         uint8_t Hops = Ptr->Hops;
         Hops += 1;
-        TimeDiff -= CurrSelfCycle;
 
         Ptr->Hops = Hops;
-        Ptr->Timestamp = CurrSelfCycle;
-        Ptr->TimeDiff = TimeDiff;
+        Ptr->Timestamp -= TimeStampDiff;
+        Ptr->TimeDiff -= TimeStampDiff;
         InfoBuf[ID] = *Ptr;
 //        Uart.Printf("From Payload -> ");
-        Console.Send_Info(ID, &InfoBuf[ID]);
+//        Console.Send_Info(ID, &InfoBuf[ID]);
     }
     return Rslt;
 }
@@ -54,7 +52,7 @@ void Payload_t::WriteMesh(uint32_t CurrSelfCycle, MeshPayload_t *Ptr) {
     p->Reason = Ptr->SelfReason;
     p->Emotion = Ptr->SelfEmotion;
 //    Uart.Printf("From mesh -> ");
-    Console.Send_Info(Ptr->SelfID, &InfoBuf[Ptr->SelfID]);
+//    Console.Send_Info(Ptr->SelfID, &InfoBuf[Ptr->SelfID]);
 }
 
 

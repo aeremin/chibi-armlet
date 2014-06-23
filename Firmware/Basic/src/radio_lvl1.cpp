@@ -294,12 +294,12 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh Rx Cycle ====
 
 static void RxEnd(void *p) {
-    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
+//    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
     Radio.Valets.InRx = false;
 }
 
 void rLevel1_t::IMeshRx() {
-    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
+//    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
     Valets.RxEndTime = (chTimeNow()) + CYCLE_TIME - SLOT_TIME;
     Valets.InRx = true;
@@ -312,22 +312,22 @@ void rLevel1_t::IMeshRx() {
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI); // TODO: Rx Time
         if(RxRslt == OK) { // Pkt received correctly
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
-//            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
-//                    Mesh.PktRx.MeshData.SelfID,
-//                    Mesh.PktRx.MeshData.CycleN,
-//                    Mesh.PktRx.MeshData.TimeOwnerID,
-//                    Mesh.PktRx.MeshData.TimeAge,
-//                    Mesh.PktRx.MeshData.SelfReason,
-//                    Mesh.PktRx.MeshData.SelfLocation,
-//                    Mesh.PktRx.MeshData.SelfEmotion,
-//                    Mesh.PktRx.PayloadID,
-//                    Mesh.PktRx.Payload.Hops,
-//                    Mesh.PktRx.Payload.Timestamp,
-//                    Mesh.PktRx.Payload.TimeDiff,
-//                    Mesh.PktRx.Payload.Reason,
-//                    Mesh.PktRx.Payload.Location,
-//                    Mesh.PktRx.Payload.Emotion
-//                    );
+            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+                    Mesh.PktRx.MeshData.SelfID,
+                    Mesh.PktRx.MeshData.CycleN,
+                    Mesh.PktRx.MeshData.TimeOwnerID,
+                    Mesh.PktRx.MeshData.TimeAge,
+                    Mesh.PktRx.MeshData.SelfReason,
+                    Mesh.PktRx.MeshData.SelfLocation,
+                    Mesh.PktRx.MeshData.SelfEmotion,
+                    Mesh.PktRx.PayloadID,
+                    Mesh.PktRx.Payload.Hops,
+                    Mesh.PktRx.Payload.Timestamp,
+                    Mesh.PktRx.Payload.TimeDiff,
+                    Mesh.PktRx.Payload.Reason,
+                    Mesh.PktRx.Payload.Location,
+                    Mesh.PktRx.Payload.Emotion
+                    );
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
 //        if(chTimeNow() < (Valets.RxStartTime + CYCLE_TIME - SLOT_TIME))
