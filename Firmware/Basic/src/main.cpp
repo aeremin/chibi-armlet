@@ -10,51 +10,17 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
-#include "indication.h"
-#include "colors_sounds.h"
 #include "pill_mgr.h"
 #include "cmd_uart.h"
-#include "application.h"
-#include "radio_lvl1.h"
-#include "eestore.h"
 #include "evt_mask.h"
-#include "adc15x.h"
+#include "cc1101defins.h"
+#include "rlvl1_defins.h"
+#include "cc1101.h"
 
-#if 1 // ============================ Timers ===================================
-void TmrUartRxCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_UART_RX_POLL);
-    chVTSetI(&App.TmrUartRx, MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-// Pill check
-void TmrPillCheckCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_PILL_CHECK);
-    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS), TmrPillCheckCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-
-void TmrDoseSaveCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
-    chVTSetI(&App.TmrDoseSave, MS2ST(T_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-
-void TmrMeasureCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
-    chVTSetI(&App.TmrMeasure, MS2ST(T_MEASUREMENT_MS), TmrMeasureCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-
-// Universal callback
-void TmrGeneralCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, (eventmask_t)p);
-    chSysUnlockFromIsr();
-}
+// Device type
+#define TRANSMITTER
+#ifndef TRANSMITTER
+#define RECEIVER
 #endif
 
 int main(void) {
@@ -67,59 +33,34 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Uart.Printf("\rRst\r\n");
-    Indication.Init();
     PillMgr.Init();
 
-    App.Init();
-    App.PThd = chThdSelf();
-    Radio.Init();
+    // Init radioIC
+    CC.Init();
+    CC.SetTxPower(CC_Pwr0dBm);
+    CC.SetPktSize(RPKT_LEN);
+    CC.SetChannel(4);
 
-    // Battery measurement
-    PinSetupAnalog(GPIOA, 0);
-    Adc.InitHardware();
-    Adc.PThreadToSignal = chThdSelf();
+    rPkt_t rPkt;
 
-    // Common Timers
-    chSysLock();
-    chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
-    chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
-    chVTSetI(&App.TmrMeasure,   MS2ST(99),                 TmrMeasureCallback, nullptr); // Start soon
-    chSysUnlock();
-
-    // Event-generating framework
-    bool PillWasConnected = false;
     while(true) {
-        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        // ==== Uart cmd ====
-        if(EvtMsk & EVTMSK_UART_RX_POLL) Uart.PollRx(); // Check if new cmd received
-
-        // ==== Check pill ====
-        if(EvtMsk & EVTMSK_PILL_CHECK) {
-            bool IsNowConnected = (PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK);
-            if(IsNowConnected and !PillWasConnected) {  // OnConnect
-                PillWasConnected = true;
-                App.OnPillConnect();
-            }
-            else if(!IsNowConnected and PillWasConnected) PillWasConnected = false;
-        } // if EVTMSK_PILL_CHECK
-        if(EvtMsk & EVTMSK_PROLONGED_PILL) App.OnProlongedPill();
-
-        // ==== Dose ====
-        if(EvtMsk & EVTMSK_DOSE_STORE) App.SaveDose();
-
-        // ==== Measure battery ====
-        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
-        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
-            uint32_t AdcRslt = Adc.GetResult(0);
-//            Uart.Printf("Adc=%u\r", AdcRslt);
-            Indication.BatteryState = (AdcRslt >= BATTERY_DISCHARGED_ADC)? bsGood : bsBad;
+#ifdef TRANSMITTER
+        chThdSleepMilliseconds(207);
+        rPkt.AccX = 1;
+        rPkt.AccY = 2;
+        rPkt.AccZ = 3;
+        CC.TransmitSync((void*)&rPkt);
+#else
+        int8_t Rssi;
+        uint8_t RxRslt = CC.ReceiveSync(360, &rPkt, &Rssi);
+        if(RxRslt == OK) {
+            Uart.Printf(
+                    "%u %u %u %u %u %u %u %u %u\r\n",
+                    rPkt.AccX, rPkt.AccY, rPkt.AccZ,
+                    rPkt.AngleU, rPkt.AngleV, rPkt.AngleW,
+                    rPkt.AngVelU, rPkt.AngVelV, rPkt.AngVelW
+            );
         }
-
-        // ==== EMP ====
-        if(EvtMsk & EVTMSK_KEY_POLL)      App.Grenade.OnKeyPoll();
-        if(EvtMsk & EVTMSK_RADIATION_END) App.Grenade.OnRadiationEnd();
-
-        // ==== Radio ====
-        if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
+#endif
     } // while true
 }

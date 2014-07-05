@@ -16,7 +16,7 @@
 #include <cstring>
 
 // Set to true if RX needed
-#define UART_RX_ENABLED     TRUE
+#define UART_RX_ENABLED     FALSE
 
 // UART
 #define UART_TXBUF_SIZE     504
@@ -49,7 +49,6 @@
                             STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
                             STM32_DMA_CR_DIR_P2M |    /* Direction is peripheral to memory */ \
                             STM32_DMA_CR_CIRC         /* Circular buffer enable */
-#endif
 
 #define DELIMITERS      " ,"
 
@@ -76,6 +75,7 @@ public:
     bool NameIs(const char *SCmd) { return (strcasecmp(Name, SCmd) == 0); }
     friend class CmdUart_t;
 };
+#endif
 
 class CmdUart_t {
 private:

@@ -7,7 +7,6 @@
 
 #include "cmd_uart.h"
 #include <string.h>
-#include "application.h"
 
 CmdUart_t Uart;
 
