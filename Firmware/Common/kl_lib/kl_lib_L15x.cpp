@@ -146,7 +146,7 @@ void chDbgPanic(const char *msg1) {
 #if 1 // ============================= I2C =====================================
 void i2cDmaIrqHandler(void *p, uint32_t flags) {
     chSysLockFromIsr();
-    //Uart.Printf("===T===");
+//    Uart.Printf("===T===");
     Thread *PThd = ((i2c_t*)p)->PRequestingThread;
     if (PThd != NULL) {
         ((i2c_t*)p)->PRequestingThread = NULL;

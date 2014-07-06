@@ -10,18 +10,33 @@
 #include "ch.h"
 #include "hal.h"
 #include "clocking_L1xx.h"
-#include "pill_mgr.h"
 #include "cmd_uart.h"
 #include "evt_mask.h"
 #include "cc1101defins.h"
 #include "rlvl1_defins.h"
 #include "cc1101.h"
+#include "L3G.h"
 
 // Device type
 #define TRANSMITTER
 #ifndef TRANSMITTER
 #define RECEIVER
 #endif
+
+// I2C & hardware
+#define PERIPH_PWR_GPIO     GPIOB
+#define PERIPH_PWR_PIN      7
+#define I2C_GPIO            GPIOB
+#define SCL_PIN             8
+#define SDA_PIN             9
+
+#define I2C                 I2C1
+#define I2C_BITRATE_HZ      200000
+#define I2C_DMATX           STM32_DMA1_STREAM6
+#define I2C_DMARX           STM32_DMA1_STREAM7
+
+i2c_t i2c;
+L3G gyro;
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -33,7 +48,6 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Uart.Printf("\rRst\r\n");
-    PillMgr.Init();
 
     // Init radioIC
     CC.Init();
@@ -41,14 +55,21 @@ int main(void) {
     CC.SetPktSize(RPKT_LEN);
     CC.SetChannel(4);
 
+    // I2C
+    i2c.Standby();
+    i2c.Init(I2C, I2C_GPIO, SCL_PIN, SDA_PIN, I2C_BITRATE_HZ, I2C_DMATX, I2C_DMARX);
+
+    // Sensors
+    gyro.init();
+    gyro.writeReg(L3G_CTRL_REG4, 0x20); // 2000 dps full scale
+    gyro.writeReg(L3G_CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz
+
     rPkt_t rPkt;
 
     while(true) {
 #ifdef TRANSMITTER
-        chThdSleepMilliseconds(207);
-        rPkt.AccX = 1;
-        rPkt.AccY = 2;
-        rPkt.AccZ = 3;
+        chThdSleepMilliseconds(360);
+        gyro.read(&rPkt.AccX, &rPkt.AccY, &rPkt.AccZ);
         CC.TransmitSync((void*)&rPkt);
 #else
         int8_t Rssi;
