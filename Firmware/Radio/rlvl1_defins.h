@@ -10,9 +10,9 @@
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint16_t AccX, AccY, AccZ;
-    uint16_t AngleU, AngleV, AngleW;
-    uint16_t AngVelU, AngVelV, AngVelW;
+    int16_t AccX, AccY, AccZ;
+    int16_t AngleU, AngleV, AngleW;
+    int16_t AngVelU, AngVelV, AngVelW;
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif

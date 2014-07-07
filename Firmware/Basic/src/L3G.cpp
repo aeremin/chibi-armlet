@@ -1,4 +1,4 @@
-#include <L3G.h>
+#include "L3G.h"
 #include "kl_lib_L15x.h"
 #include "cmd_uart.h"
 
@@ -64,18 +64,18 @@ void L3G::writeReg(uint8_t reg, uint8_t value) {
 uint8_t L3G::readReg(uint8_t reg) {
 //    Uart.Printf("addr=%X\r\n", address);
     uint8_t value = 0;
-    uint8_t r = reg;
 //    uint8_t Rslt =
-    i2c.CmdWriteRead(address, &r, 1, &value, 1);
+    i2c.CmdWriteRead(address, &reg, 1, &value, 1);
 //    Uart.Printf("RReg=%X; %X; r=%u\r\n", reg, value, Rslt);
     return value;
 }
 
 // Reads the 3 gyro channels and stores them in vector g
-void L3G::read(uint16_t *pX, uint16_t *pY, uint16_t *pZ) {
+void L3G::read(int16_t *pX, int16_t *pY, int16_t *pZ) {
     uint16_t Buf[3];
     uint8_t reg = L3G_OUT_X_L | (1 << 7);
-    uint8_t Rslt = i2c.CmdWriteRead(address, &reg, 1, (uint8_t*) &Buf, 6);
+//    uint8_t Rslt =
+    i2c.CmdWriteRead(address, &reg, 1, (uint8_t*) &Buf, 6);
 
     *pX = Buf[0];
     *pY = Buf[1];

@@ -16,6 +16,7 @@
 #include "rlvl1_defins.h"
 #include "cc1101.h"
 #include "L3G.h"
+#include "lsm303.h"
 
 // Device type
 #define TRANSMITTER
@@ -37,6 +38,7 @@
 
 i2c_t i2c;
 L3G gyro;
+LSM303 compass;
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -45,6 +47,9 @@ int main(void) {
     // ==== Init OS ====
     halInit();
     chSysInit();
+
+    chThdSleepMilliseconds(999);
+
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Uart.Printf("\rRst\r\n");
@@ -55,6 +60,7 @@ int main(void) {
     CC.SetPktSize(RPKT_LEN);
     CC.SetChannel(4);
 
+#ifdef TRANSMITTER
     // I2C
     i2c.Standby();
     i2c.Init(I2C, I2C_GPIO, SCL_PIN, SDA_PIN, I2C_BITRATE_HZ, I2C_DMATX, I2C_DMARX);
@@ -64,19 +70,40 @@ int main(void) {
     gyro.writeReg(L3G_CTRL_REG4, 0x20); // 2000 dps full scale
     gyro.writeReg(L3G_CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz
 
+    compass.init();
+    compass.enableDefault();
+    compass.writeReg(LSM303::CTRL_REG4_A, 0x28); // 8 g full scale: FS = 10; high resolution output mode
+#endif
+
     rPkt_t rPkt;
+    uint8_t *p = (uint8_t*)&rPkt;
+    for(uint8_t i=0; i<sizeof(rPkt_t); i++) *p++ = 0;
 
     while(true) {
 #ifdef TRANSMITTER
-        chThdSleepMilliseconds(360);
-        gyro.read(&rPkt.AccX, &rPkt.AccY, &rPkt.AccZ);
+        chThdSleepMilliseconds(2);
+        gyro.read(&rPkt.AngVelU, &rPkt.AngVelV, &rPkt.AngVelW);
+        compass.read();
+        rPkt.AccX = compass.a.x;
+        rPkt.AccY = compass.a.y;
+        rPkt.AccZ = compass.a.z;
+        rPkt.AngleU = compass.m.x;
+        rPkt.AngleV = compass.m.y;
+        rPkt.AngleW = compass.m.z;
+
+//        Uart.Printf(
+//                "%d %d %d %d %d %d %d %d %d\r\n",
+//                rPkt.AccX, rPkt.AccY, rPkt.AccZ,
+//                rPkt.AngleU, rPkt.AngleV, rPkt.AngleW,
+//                rPkt.AngVelU, rPkt.AngVelV, rPkt.AngVelW
+//        );
         CC.TransmitSync((void*)&rPkt);
 #else
         int8_t Rssi;
-        uint8_t RxRslt = CC.ReceiveSync(360, &rPkt, &Rssi);
+        uint8_t RxRslt = CC.ReceiveSync(36, &rPkt, &Rssi);
         if(RxRslt == OK) {
             Uart.Printf(
-                    "%u %u %u %u %u %u %u %u %u\r\n",
+                    "%d %d %d %d %d %d %d %d %d\r\n",
                     rPkt.AccX, rPkt.AccY, rPkt.AccZ,
                     rPkt.AngleU, rPkt.AngleV, rPkt.AngleW,
                     rPkt.AngVelU, rPkt.AngVelV, rPkt.AngVelW

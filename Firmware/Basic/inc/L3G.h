@@ -60,7 +60,7 @@ class L3G
     void writeReg(uint8_t reg, uint8_t value);
     uint8_t readReg(uint8_t reg);
 
-    void read(uint16_t *pX, uint16_t *pY, uint16_t *pZ);
+    void read(int16_t *pX, int16_t *pY, int16_t *pZ);
 
 
   private:
