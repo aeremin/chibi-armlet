@@ -21,7 +21,6 @@
  * .
  * .
  * n - Every n cycle
- *
  */
 #define SEND_IN_COUNT   1
 
@@ -30,7 +29,7 @@ private:
     uint8_t Cnt;
 public:
     Console_t() : Cnt(0) {}
-    void Send_Info(uint16_t ID, PayloadString_t *Ptr);
+    void Send_Info(uint16_t ID, AlienInfo_t *Ptr);
     void SetTime_Ack(int32_t NewCycDiff);
     void GetMeshInfo_Ack(uint32_t Rslt);
 };

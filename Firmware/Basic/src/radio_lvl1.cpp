@@ -49,20 +49,20 @@ void rLevel1_t::ITask() {
 
                 if(EvtMsk & EVTMSK_MESH_TX) {
 //                    Uart.Printf("rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
-//                            Mesh.PktTx.MeshData.SelfID,
-//                            Mesh.PktTx.MeshData.CycleN,
-//                            Mesh.PktTx.MeshData.TimeOwnerID,
-//                            Mesh.PktTx.MeshData.TimeAge,
-//                            Mesh.PktTx.MeshData.SelfReason,
-//                            Mesh.PktTx.MeshData.SelfLocation,
-//                            Mesh.PktTx.MeshData.SelfEmotion,
-//                            Mesh.PktTx.PayloadID,
-//                            Mesh.PktTx.Payload.Hops,
-//                            Mesh.PktTx.Payload.Timestamp,
-//                            Mesh.PktTx.Payload.TimeDiff,
-//                            Mesh.PktTx.Payload.Reason,
-//                            Mesh.PktTx.Payload.Location,
-//                            Mesh.PktTx.Payload.Emotion
+//                            Mesh.PktTx.SenderInfo.Mesh.SelfID,
+//                            Mesh.PktTx.SenderInfo.Mesh.CycleN,
+//                            Mesh.PktTx.SenderInfo.Mesh.TimeOwnerID,
+//                            Mesh.PktTx.SenderInfo.Mesh.TimeAge,
+//                            Mesh.PktTx.SenderInfo.State.Reason,
+//                            Mesh.PktTx.SenderInfo.State.Location,
+//                            Mesh.PktTx.SenderInfo.State.Emotion,
+//                            Mesh.PktTx.AlienID,
+//                            Mesh.PktTx.AlienIfo.Mesh.Hops,
+//                            Mesh.PktTx.AlienIfo.Mesh.Timestamp,
+//                            Mesh.PktTx.AlienIfo.Mesh.TimeDiff,
+//                            Mesh.PktTx.AlienIfo.State.Reason,
+//                            Mesh.PktTx.AlienIfo.State.Location,
+//                            Mesh.PktTx.AlienIfo.State.Emotion
 //                            );
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                     Mesh.ITxEnd();
@@ -312,22 +312,22 @@ void rLevel1_t::IMeshRx() {
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI); // TODO: Rx Time
         if(RxRslt == OK) { // Pkt received correctly
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
-            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
-                    Mesh.PktRx.MeshData.SelfID,
-                    Mesh.PktRx.MeshData.CycleN,
-                    Mesh.PktRx.MeshData.TimeOwnerID,
-                    Mesh.PktRx.MeshData.TimeAge,
-                    Mesh.PktRx.MeshData.SelfReason,
-                    Mesh.PktRx.MeshData.SelfLocation,
-                    Mesh.PktRx.MeshData.SelfEmotion,
-                    Mesh.PktRx.PayloadID,
-                    Mesh.PktRx.Payload.Hops,
-                    Mesh.PktRx.Payload.Timestamp,
-                    Mesh.PktRx.Payload.TimeDiff,
-                    Mesh.PktRx.Payload.Reason,
-                    Mesh.PktRx.Payload.Location,
-                    Mesh.PktRx.Payload.Emotion
-                    );
+//            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+//                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
+//                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
+//                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
+//                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
+//                    Mesh.PktRx.SenderInfo.State.Reason,
+//                    Mesh.PktRx.SenderInfo.State.Location,
+//                    Mesh.PktRx.SenderInfo.State.Emotion,
+//                    Mesh.PktRx.AlienID,
+//                    Mesh.PktRx.AlienIfo.Mesh.Hops,
+//                    Mesh.PktRx.AlienIfo.Mesh.Timestamp,
+//                    Mesh.PktRx.AlienIfo.Mesh.TimeDiff,
+//                    Mesh.PktRx.AlienIfo.State.Reason,
+//                    Mesh.PktRx.AlienIfo.State.Location,
+//                    Mesh.PktRx.AlienIfo.State.Emotion
+//                    );
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok
 //        if(chTimeNow() < (Valets.RxStartTime + CYCLE_TIME - SLOT_TIME))

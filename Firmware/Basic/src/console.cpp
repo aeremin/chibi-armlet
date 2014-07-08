@@ -12,17 +12,17 @@
 
 Console_t Console;
 
-void Console_t::Send_Info(uint16_t ID, PayloadString_t *Ptr) {
+void Console_t::Send_Info(uint16_t ID, AlienInfo_t *Ptr) {
     Cnt++;
     if(Cnt == SEND_IN_COUNT) {
         Uart.Printf("#Node %u %u %u %d %u %u %u\r\n",
                 ID,
-                Ptr->Hops,
-                Ptr->Timestamp,
-                Ptr->TimeDiff,
-                Ptr->Location,
-                Ptr->Reason,
-                Ptr->Emotion);
+                Ptr->Mesh.Hops,
+                Ptr->Mesh.Timestamp,
+                Ptr->Mesh.TimeDiff,
+                Ptr->State.Location,
+                Ptr->State.Reason,
+                Ptr->State.Emotion);
         Cnt = 0;
     }
 }

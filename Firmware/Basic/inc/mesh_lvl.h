@@ -15,7 +15,7 @@
 #include "stdlib.h"
 
 #include "mesh_params.h"
-#include "payload.h"
+#include "AlienTable.h"
 #include "application.h"
 
 #if 1 // ======================== Circ Buf of Pkt ==============================
@@ -41,11 +41,11 @@ public:
     uint8_t GetFilledSlots()        { return (uint8_t)FilledCount; }
     uint8_t GetFreeSlots()          { return (uint8_t)(CIRC_PKT_BUF_SZ-FilledCount); }
     void WritePkt(mshMsg_t Ptr)     {
-        PWPkt->Timestamp =          Ptr.Timestamp;
-        PWPkt->RSSI =               Ptr.RSSI;
-        PWPkt->RadioPkt.MeshData =  Ptr.pRadioPkt->MeshData;
-        PWPkt->RadioPkt.PayloadID = Ptr.pRadioPkt->PayloadID;
-        PWPkt->RadioPkt.Payload =   Ptr.pRadioPkt->Payload;
+        PWPkt->Timestamp            = Ptr.Timestamp;
+        PWPkt->RSSI                 = Ptr.RSSI;
+        PWPkt->RadioPkt.SenderInfo  = Ptr.pRadioPkt->SenderInfo;
+        PWPkt->RadioPkt.AlienID     = Ptr.pRadioPkt->AlienID;
+        PWPkt->RadioPkt.AlienIfo    = Ptr.pRadioPkt->AlienIfo;
         PWPkt++;
         FilledCount++;
         if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf;
@@ -75,8 +75,6 @@ private:
     uint32_t RxCycleN;
     uint32_t SleepTime;
     int8_t PreliminaryRSSI;
-//    uint16_t SelfID;
-//    uint8_t NeedToSendTable;
 
     // Synchronization
     bool GetPrimaryPkt;
@@ -113,17 +111,17 @@ private:
 
     void INewCycle();
     void IUpdateTimer();
-    void IPktPutCycle(uint32_t NewCycle)            { PktTx.MeshData.CycleN = NewCycle; }
-    void IPktPutTimeOwner(uint16_t NewTimeOwner)    { PktTx.MeshData.TimeOwnerID = NewTimeOwner; }
-    uint16_t IGetTimeOwner()                        { return PktTx.MeshData.TimeOwnerID; }
+    void IPktPutCycle(uint32_t NewCycle)            { PktTx.SenderInfo.Mesh.CycleN = NewCycle; }
+    void IPktPutTimeOwner(uint16_t NewTimeOwner)    { PktTx.SenderInfo.Mesh.TimeOwnerID = NewTimeOwner; }
+    uint16_t IGetTimeOwner()                        { return PktTx.SenderInfo.Mesh.TimeOwnerID; }
     void ITimeAgeCounter() {
-        if(PktTx.MeshData.SelfID != PktTx.MeshData.TimeOwnerID) {
-            PktTx.MeshData.TimeAge++;
-            if(PktTx.MeshData.TimeAge > TIME_AGE_THRESHOLD) IResetTimeAge(App.ID, 0);
+        if(PktTx.SenderInfo.Mesh.SelfID != PktTx.SenderInfo.Mesh.TimeOwnerID) {
+            PktTx.SenderInfo.Mesh.TimeAge++;
+            if(PktTx.SenderInfo.Mesh.TimeAge > TIME_AGE_THRESHOLD) IResetTimeAge(App.ID, 0);
         }
     }
-    void IResetTimeAge(uint16_t NewID, uint8_t TA)  { PktTx.MeshData.TimeAge = TA; PktTx.MeshData.TimeOwnerID = NewID; }
-    uint8_t IGetTimeAge()                           { return PktTx.MeshData.TimeAge; }
+    void IResetTimeAge(uint16_t NewID, uint8_t TA)  { PktTx.SenderInfo.Mesh.TimeAge = TA; PktTx.SenderInfo.Mesh.TimeOwnerID = NewID; }
+    uint8_t IGetTimeAge()                           { return PktTx.SenderInfo.Mesh.TimeAge; }
 
 public:
     Mesh_t() :
@@ -132,8 +130,6 @@ public:
                 CurrCycle(0),
                 RxCycleN(*PRndTable),
                 SleepTime(0),
-//                NeedUpdateTime(false),
-//                SelfID(0),
                 PreliminaryRSSI(STATIONARY_MIN_LEVEL),
                 GetPrimaryPkt(false),
                 PriorityID(0),
@@ -141,7 +137,6 @@ public:
                 PNewCycleN(&NewCycleN),
                 TimeToWakeUp(0),
                 PTimeToWakeUp(&TimeToWakeUp),
-//                NeedToSendTable(0),
                 IPThread(NULL),
                 IPPktHanlderThread(NULL),
                 IsInit(false)  {}
@@ -149,11 +144,9 @@ public:
     Thread *IPThread, *IPPktHanlderThread;
     bool IsInit;
 
-//    void NewSelfID(uint32_t NewSelfID)  { SelfID = NewSelfID; }
     void UpdateSleepTime()              { SleepTime = ((App.ID-1)*SLOT_TIME); }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
-//    void SetAbsTimeMS(uint32_t MS)      { AbsCycle = (MS + (CYCLE_TIME/2)) / CYCLE_TIME; }
     int32_t SetNewAbsCycleN(uint32_t ANew)   {
         int32_t Diff = AbsCycle;
         AbsCycle = ANew;

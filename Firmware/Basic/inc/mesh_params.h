@@ -48,29 +48,39 @@ struct meshradio_t {
     uint32_t CurrentTime;
 };
 
-struct MeshPayload_t {
-    uint16_t SelfID;
-    uint32_t CycleN;
-    uint16_t TimeOwnerID;
-    uint8_t TimeAge;
-    uint8_t SelfLocation;
-    uint8_t SelfReason;
-    uint8_t SelfEmotion;
-} __attribute__ ((__packed__));
+struct state_t {
+    uint16_t    Location;
+    uint16_t    Reason;
+    uint8_t     Emotion;
+};
 
-struct PayloadString_t {
-    uint8_t Hops;
-    uint32_t Timestamp;
-    int32_t TimeDiff;
-    uint8_t Location;
-    uint8_t Reason;
-    uint8_t Emotion;
-} __attribute__ ((__packed__));
+struct sender_mesh_t {
+    uint16_t    SelfID;
+    uint32_t    CycleN;
+    uint16_t    TimeOwnerID;
+    uint8_t     TimeAge;
+};
+
+struct alien_mesh_t {
+    uint8_t     Hops;
+    uint32_t    Timestamp;
+    int32_t     TimeDiff;
+};
+
+struct SenderInfo_t {
+    sender_mesh_t   Mesh;
+    state_t         State;
+};
+
+struct AlienInfo_t {
+    alien_mesh_t    Mesh;
+    state_t         State;
+};
 
 struct MeshPkt_t {
-    MeshPayload_t MeshData;
-    uint16_t PayloadID;
-    PayloadString_t Payload;
+    SenderInfo_t    SenderInfo;
+    uint16_t        AlienID;
+    AlienInfo_t     AlienIfo;
 }__attribute__ ((__packed__));
 
 #define MESH_PKT_SZ sizeof(MeshPkt_t)
