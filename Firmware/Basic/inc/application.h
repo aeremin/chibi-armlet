@@ -11,7 +11,7 @@
 #include "kl_lib_L15x.h"
 #include "sequences.h"
 #include "Dose.h"
-#include "RxTable.h"
+#include "cmd_uart.h"
 
 #if 1 // ==== Timings ====
 #define TM_DOSE_INCREASE_MS 999
@@ -118,7 +118,6 @@ public:
     // Timers
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
     // Radio & damage
-    RxTable_t RxTable;
     uint32_t Damage;
     void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
     void Init();

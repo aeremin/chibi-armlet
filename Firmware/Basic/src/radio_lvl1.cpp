@@ -57,12 +57,12 @@ void rLevel1_t::ITask() {
 //                            Mesh.PktTx.SenderInfo.State.Location,
 //                            Mesh.PktTx.SenderInfo.State.Emotion,
 //                            Mesh.PktTx.AlienID,
-//                            Mesh.PktTx.AlienIfo.Mesh.Hops,
-//                            Mesh.PktTx.AlienIfo.Mesh.Timestamp,
-//                            Mesh.PktTx.AlienIfo.Mesh.TimeDiff,
-//                            Mesh.PktTx.AlienIfo.State.Reason,
-//                            Mesh.PktTx.AlienIfo.State.Location,
-//                            Mesh.PktTx.AlienIfo.State.Emotion
+//                            Mesh.PktTx.AlienInfo.Mesh.Hops,
+//                            Mesh.PktTx.AlienInfo.Mesh.Timestamp,
+//                            Mesh.PktTx.AlienInfo.Mesh.TimeDiff,
+//                            Mesh.PktTx.AlienInfo.State.Reason,
+//                            Mesh.PktTx.AlienInfo.State.Location,
+//                            Mesh.PktTx.AlienInfo.State.Emotion
 //                            );
                     CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                     Mesh.ITxEnd();
@@ -311,8 +311,10 @@ void rLevel1_t::IMeshRx() {
         Valets.CurrentTime = chTimeNow();
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI); // TODO: Rx Time
         if(RxRslt == OK) { // Pkt received correctly
-            Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx}); /* SendMsg to MeshThd with PktRx structure */
-//            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+            /* SendMsg to MeshThd with PktRx structure */
+            Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx});
+            /* Put To RxTable */
+//            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d \r",
 //                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
 //                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
 //                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
@@ -321,12 +323,13 @@ void rLevel1_t::IMeshRx() {
 //                    Mesh.PktRx.SenderInfo.State.Location,
 //                    Mesh.PktRx.SenderInfo.State.Emotion,
 //                    Mesh.PktRx.AlienID,
-//                    Mesh.PktRx.AlienIfo.Mesh.Hops,
-//                    Mesh.PktRx.AlienIfo.Mesh.Timestamp,
-//                    Mesh.PktRx.AlienIfo.Mesh.TimeDiff,
-//                    Mesh.PktRx.AlienIfo.State.Reason,
-//                    Mesh.PktRx.AlienIfo.State.Location,
-//                    Mesh.PktRx.AlienIfo.State.Emotion
+//                    Mesh.PktRx.AlienInfo.Mesh.Hops,
+//                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
+//                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
+//                    Mesh.PktRx.AlienInfo.State.Reason,
+//                    Mesh.PktRx.AlienInfo.State.Location,
+//                    Mesh.PktRx.AlienInfo.State.Emotion,
+//                    RSSI
 //                    );
 //            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
         } // Pkt Ok

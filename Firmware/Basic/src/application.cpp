@@ -303,39 +303,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
 #if 1 // =============================== Dose ==================================
 void App_t::OnRxTableReady() {
-//    uint32_t TimeElapsed = chTimeNow() - LastTime;
-//    LastTime = chTimeNow();
-    // Radio damage
-    Table_t *PTbl = RxTable.PTable;
-    uint32_t NaturalDmg = 1, RadioDmg = 0;
-    RxTable.dBm2PercentAll();
-//    RxTable.Print();
-    // Iterate received levels
-    for(uint32_t i=0; i<PTbl->Size; i++) {
-        Row_t *PRow = &PTbl->Row[i];
-        int32_t rssi = PRow->Rssi;
-        if(rssi >= PRow->LvlMin) {    // Only if signal level is enough
-            if((PRow->DmgMax == 0) and (PRow->DmgMin == 0)) NaturalDmg = 0; // "Clean zone"
-            else { // Ordinal lustra
-                int32_t EmDmg = 0;
-                if(rssi >= PRow->LvlMax) EmDmg = PRow->DmgMax;
-                else {
-                    int32_t DifDmg = PRow->DmgMax - PRow->DmgMin;
-                    int32_t DifLvl = PRow->LvlMax - PRow->LvlMin;
-                    EmDmg = (rssi * DifDmg + PRow->DmgMax * DifLvl - PRow->LvlMax * DifDmg) / DifLvl;
-                    if(EmDmg < 0) EmDmg = 0;
-//                    Uart.Printf("Ch %u; Dmg=%d\r", PRow->Channel, EmDmg);
-                }
-                RadioDmg += EmDmg;
-            } // ordinal
-        } // if lvl > min
-    } // for
-    Damage = NaturalDmg + RadioDmg;
-//    Uart.Printf("Total=%d\r", Damage);
-    if(Type == dtUmvos) {
-        Dose.Increase(Damage, diUsual);
-        Uart.Printf("Dz=%u; Dmg=%u\r", Dose.Get(), Damage);
-    }
+    Uart.Printf("[app.cpp] OnRxTable\r\n");
 }
 
 void App_t::OnClick() {

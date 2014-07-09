@@ -19,6 +19,7 @@
 #include "eestore.h"
 #include "evt_mask.h"
 #include "mesh_lvl.h"
+#include "RxTable.h"
 
 #if 1 // ============================ Timers ===================================
 void TmrUartRxCallback(void *p) {
@@ -73,6 +74,7 @@ int main(void) {
 
     App.Init();
     App.PThd = chThdSelf();
+    RxTable.RegisterAppThd(App.PThd);
     Radio.Init();
     Mesh.Init();
 

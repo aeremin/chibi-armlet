@@ -45,7 +45,7 @@ public:
         PWPkt->RSSI                 = Ptr.RSSI;
         PWPkt->RadioPkt.SenderInfo  = Ptr.pRadioPkt->SenderInfo;
         PWPkt->RadioPkt.AlienID     = Ptr.pRadioPkt->AlienID;
-        PWPkt->RadioPkt.AlienIfo    = Ptr.pRadioPkt->AlienIfo;
+        PWPkt->RadioPkt.AlienInfo   = Ptr.pRadioPkt->AlienInfo;
         PWPkt++;
         FilledCount++;
         if(PWPkt >= (PktBuf + CIRC_PKT_BUF_SZ)) PWPkt = PktBuf;

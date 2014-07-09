@@ -52,35 +52,35 @@ struct state_t {
     uint16_t    Location;
     uint16_t    Reason;
     uint8_t     Emotion;
-};
+}__attribute__ ((__packed__));
 
 struct sender_mesh_t {
     uint16_t    SelfID;
     uint32_t    CycleN;
     uint16_t    TimeOwnerID;
     uint8_t     TimeAge;
-};
+}__attribute__ ((__packed__));
 
 struct alien_mesh_t {
     uint8_t     Hops;
     uint32_t    Timestamp;
     int32_t     TimeDiff;
-};
+}__attribute__ ((__packed__));
 
 struct SenderInfo_t {
     sender_mesh_t   Mesh;
     state_t         State;
-};
+}__attribute__ ((__packed__));
 
 struct AlienInfo_t {
     alien_mesh_t    Mesh;
     state_t         State;
-};
+}__attribute__ ((__packed__));
 
 struct MeshPkt_t {
     SenderInfo_t    SenderInfo;
     uint16_t        AlienID;
-    AlienInfo_t     AlienIfo;
+    AlienInfo_t     AlienInfo;
 }__attribute__ ((__packed__));
 
 #define MESH_PKT_SZ sizeof(MeshPkt_t)

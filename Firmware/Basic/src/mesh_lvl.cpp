@@ -11,12 +11,9 @@
 #include "peripheral.h"
 #include "sequences.h"
 #include "application.h"
+#include "RxTable.h"
 
 //#define MESH_DBG        // On/Off Debug Message in MeshLvl
-
-//pyton translation for db
-//[22:19:36] Jolaf: str(tuple(1 + int(sqrt(float(i) / 65) * 99) for i in xrange(0, 65 + 1)))
-const int DbTranslate[66] = {1, 13, 18, 22, 25, 28, 31, 33, 35, 37, 39, 41, 43, 45, 46, 48, 50, 51, 53, 54, 55, 57, 58, 59, 61, 62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 86, 87, 88, 89, 90, 91, 92, 92, 93, 94, 95, 96, 96, 97, 98, 99, 100};
 
 Mesh_t Mesh;
 
@@ -125,30 +122,34 @@ void Mesh_t::IPktHandler(){
     if(PktBucket.GetFilledSlots() == 0) return;
     while(PktBucket.GetFilledSlots() != 0) {
         PktBucket.ReadPkt(&MeshMsg); /* Read Pkt from Buffer */
-//        Uart.Printf("Extruct Msg -> %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
-//                MeshMsg.RadioPkt.MeshData.SelfID,
-//                MeshMsg.RadioPkt.MeshData.CycleN,
-//                MeshMsg.RadioPkt.MeshData.TimeOwnerID,
-//                MeshMsg.RadioPkt.MeshData.TimeAge,
-//                MeshMsg.RadioPkt.MeshData.SelfReason,
-//                MeshMsg.RadioPkt.MeshData.SelfLocation,
-//                MeshMsg.RadioPkt.MeshData.SelfEmotion,
-//                MeshMsg.RadioPkt.PayloadID,
-//                MeshMsg.RadioPkt.Payload.Hops,
-//                MeshMsg.RadioPkt.Payload.Timestamp,
-//                MeshMsg.RadioPkt.Payload.TimeDiff,
-//                MeshMsg.RadioPkt.Payload.Reason,
-//                MeshMsg.RadioPkt.Payload.Location,
-//                MeshMsg.RadioPkt.Payload.Emotion
+//        Uart.Printf("Extruct Msg -> %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d \r",
+//                MeshMsg.RadioPkt.SenderInfo.Mesh.SelfID,
+//                MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN,
+//                MeshMsg.RadioPkt.SenderInfo.Mesh.TimeOwnerID,
+//                MeshMsg.RadioPkt.SenderInfo.Mesh.TimeAge,
+//                MeshMsg.RadioPkt.SenderInfo.State.Location,
+//                MeshMsg.RadioPkt.SenderInfo.State.Reason,
+//                MeshMsg.RadioPkt.SenderInfo.State.Emotion,
+//                MeshMsg.RadioPkt.AlienID,
+//                MeshMsg.RadioPkt.AlienInfo.Mesh.Hops,
+//                MeshMsg.RadioPkt.AlienInfo.Mesh.Timestamp,
+//                MeshMsg.RadioPkt.AlienInfo.Mesh.TimeDiff,
+//                MeshMsg.RadioPkt.AlienInfo.State.Reason,
+//                MeshMsg.RadioPkt.AlienInfo.State.Location,
+//                MeshMsg.RadioPkt.AlienInfo.State.Emotion,
+//                MeshMsg.RSSI
 //        );
 
         /* Put information from Pkt */
         AlienTable.PutSender(AbsCycle, &MeshMsg.RadioPkt.SenderInfo);
         uint32_t CycleDiff = (AbsCycle < MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN)? MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN - AbsCycle : AbsCycle - MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN;
-        AlienTable.PutAlien(MeshMsg.RadioPkt.AlienID, CycleDiff, &MeshMsg.RadioPkt.AlienIfo);
+        AlienTable.PutAlien(MeshMsg.RadioPkt.AlienID, CycleDiff, &MeshMsg.RadioPkt.AlienInfo);
+
+        /*Put Information to RxTable */
+        RxTable.PutRxInfo(MeshMsg.RadioPkt.SenderInfo.Mesh.SelfID, MeshMsg.RSSI, &MeshMsg.RadioPkt.SenderInfo.State);
+        RxTable.PutRxInfo(MeshMsg.RadioPkt.AlienID, 0, &MeshMsg.RadioPkt.AlienInfo.State);
 
         /* Dispatch Pkt */
-
        sender_mesh_t *pSM = &MeshMsg.RadioPkt.SenderInfo.Mesh;
        if( (pSM->TimeOwnerID < PriorityID) ||
                ((pSM->TimeOwnerID == PriorityID) &&
@@ -175,6 +176,7 @@ void Mesh_t::IPktHandler(){
 
 void Mesh_t::IUpdateTimer() {
     PreliminaryRSSI = STATIONARY_MIN_LEVEL;
+    RxTable.SendEvtReady();
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
 //        Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
@@ -202,7 +204,7 @@ void Mesh_t::PreparePktPayload() {
     NextID = AlienTable.GetID();
     AlienDataStr = AlienTable.GetInfo(NextID);
     PktTx.AlienID = NextID;
-    PktTx.AlienIfo = *AlienDataStr;
+    PktTx.AlienInfo = *AlienDataStr;
 //    Uart.Printf("MeshPkt: %u %u %u %d %u %u %u\r",
 //            PktTx.PayloadID,
 //            PktTx.Payload.Hops,
