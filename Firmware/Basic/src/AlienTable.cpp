@@ -36,6 +36,7 @@ ret_Err AlienTable_t::PutAlien(uint16_t ID, uint32_t TimeStampDiff, AlienInfo_t 
         iNewString.Mesh.Timestamp    -= TimeStampDiff;
         iNewString.Mesh.TimeDiff     -= TimeStampDiff;
         write_data(ID, &iNewString);
+        Console.Send_Info(ID, &iNewString);
         return OK;
     }
     return CMD_UNKNOWN;
@@ -54,6 +55,7 @@ ret_Err AlienTable_t::PutSender(uint32_t CurrentCycle, SenderInfo_t *Ptr) {
    iNewString.Mesh.TimeDiff     = (int32_t)(Ptr->Mesh.CycleN - CurrentCycle);
    iNewString.State             = Ptr->State; // copy State part
    write_data(Ptr->Mesh.SelfID, &iNewString);
+   Console.Send_Info(Ptr->Mesh.SelfID, &iNewString);
    return OK;
 }
 

@@ -22,11 +22,12 @@ void RxTable_t::ISwitchTable() {
 }
 
 void RxTable_t::PutRxInfo(uint16_t ID, int8_t RSSI, state_t *P) {
+    if(ID == App.ID) return; //
     /* Get Level (in %) from RSSI (in dBm) */
     uint8_t Level = 0;
     RSSI::Cut(RSSI, &RSSI);
     RSSI::ToPercent(RSSI, &Level);
-    Uart.Printf("[RxTable.cpp] Put:%u,%d,%u\r", ID, RSSI, Level);
+//    Uart.Printf("[RxTable.cpp] Put:%u,%d,%u\r\n", ID, RSSI, Level);
     if(PCurrTbl->Size >= RX_TABLE_SZ) return;
     for(uint32_t i=0; i<PCurrTbl->Size; i++) {
         if(PCurrTbl->Row[i].ID == ID) {
@@ -45,5 +46,8 @@ void RxTable_t::SendEvtReady() {
     chSysLock();
     ISwitchTable();
     if(IPThd != nullptr) chEvtSignalI(IPThd, RX_TABLE_READY_EVT);
+    else {
+//        Uart.Printf("[RxTable.cpp] IPthd = nullptr\r\n");
+    }
     chSysUnlock();
 }

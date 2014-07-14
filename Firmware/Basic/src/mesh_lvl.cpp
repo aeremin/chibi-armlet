@@ -147,7 +147,7 @@ void Mesh_t::IPktHandler(){
 
         /*Put Information to RxTable */
         RxTable.PutRxInfo(MeshMsg.RadioPkt.SenderInfo.Mesh.SelfID, MeshMsg.RSSI, &MeshMsg.RadioPkt.SenderInfo.State);
-        RxTable.PutRxInfo(MeshMsg.RadioPkt.AlienID, 0, &MeshMsg.RadioPkt.AlienInfo.State);
+        RxTable.PutRxInfo(MeshMsg.RadioPkt.AlienID, STATIONARY_MIN_LEVEL, &MeshMsg.RadioPkt.AlienInfo.State);
 
         /* Dispatch Pkt */
        sender_mesh_t *pSM = &MeshMsg.RadioPkt.SenderInfo.Mesh;

@@ -12,7 +12,7 @@
 #include "mesh_params.h"
 #include "evt_mask.h"
 #include "cmd_uart.h"
-
+#include "application.h"
 
 #define BOTTOM_TRSHHLD_RSSI     -100
 #define TOP_TRSHLD_RSSI         -35
