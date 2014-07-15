@@ -18,6 +18,7 @@
 #define STATIONARY_ID           6
 #define STATIONARY_MIN_LEVEL    -120
 
+
 // ==== MESH PARAMS ====
 #define MAX_ABONENTS        100   /* max ID, started from 1 */
 #define MESH_CHANNEL        1     /* mesh RF channel */
@@ -32,6 +33,9 @@
 #define CYCLE_TIME          (uint32_t)((SLOT_TIME * MAX_ABONENTS))
 #define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
 
+/* Time specific */
+#define TIME_SZ             6  // "mm:hh\0"
+#define MESH_MS_IN_DAY      (uint32_t)86400000
 
 //#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
 #define GET_RND_VALUE(Top)    (rand() % (Top))

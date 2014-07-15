@@ -147,6 +147,7 @@ public:
     void UpdateSleepTime()              { SleepTime = ((App.ID-1)*SLOT_TIME); }
     uint32_t GetCycleN()                { return (AbsCycle);             }
     uint32_t GetAbsTimeMS()             { return (AbsCycle*CYCLE_TIME);  }
+    uint8_t GetAstronomicTime(char *PToStr);
     int32_t SetNewAbsCycleN(uint32_t ANew)   {
         int32_t Diff = AbsCycle;
         AbsCycle = ANew;

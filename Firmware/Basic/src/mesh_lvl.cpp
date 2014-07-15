@@ -216,6 +216,32 @@ void Mesh_t::PreparePktPayload() {
 //            );
 }
 
+uint8_t Mesh_t::GetAstronomicTime(char *PToStr) {
+    uint8_t Rslt = FAILURE;
+    uint8_t StrSz = strlen(PToStr);
+    if(StrSz <= TIME_SZ) goto end;
+
+    else {
+        uint32_t Time;
+        Time = AbsCycle * CYCLE_TIME;          // Time from start of epoch
+        uint8_t Days;
+        Days = Time / MESH_MS_IN_DAY;           // now we got how many days procced after start
+        if(Days > 0) Time -= (Days * MESH_MS_IN_DAY);   // now we have days independent time if needed
+        Time /= 1000; // in seconds
+        uint8_t hh, mm, ss;
+        hh = Time/3600;
+        if(hh > 0) Time -= hh*3600;
+        mm = Time/60;
+        if(mm > 0) Time -= mm*60;
+        ss = Time;
+        Uart.Printf("time: %u:%u:%u\r", hh, mm, ss);
+        Rslt = OK;
+        goto end;
+    }
+end:
+    return Rslt;
+}
+
 void Mesh_t::IWaitTxEnd() {
     chSysLock();
     chSchGoSleepS(THD_STATE_SUSPENDED);
