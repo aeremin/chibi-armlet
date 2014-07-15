@@ -177,6 +177,7 @@ void Mesh_t::IPktHandler(){
 void Mesh_t::IUpdateTimer() {
     PreliminaryRSSI = STATIONARY_MIN_LEVEL;
     RxTable.SendEvtReady();
+
     if(GetPrimaryPkt) {
         uint32_t timeNow = chTimeNow();
 //        Uart.Printf("timeNow=%u, WupTime=%u\r", timeNow, *PTimeToWakeUp);
@@ -219,8 +220,7 @@ void Mesh_t::PreparePktPayload() {
 uint8_t Mesh_t::GetAstronomicTime(char *PToStr) {
     uint8_t Rslt = FAILURE;
     uint8_t StrSz = strlen(PToStr);
-    if(StrSz <= TIME_SZ) goto end;
-
+    if((StrSz < TIME_SZ) or (PToStr = nullptr)) goto end;
     else {
         uint32_t Time;
         Time = AbsCycle * CYCLE_TIME;          // Time from start of epoch
@@ -228,13 +228,15 @@ uint8_t Mesh_t::GetAstronomicTime(char *PToStr) {
         Days = Time / MESH_MS_IN_DAY;           // now we got how many days procced after start
         if(Days > 0) Time -= (Days * MESH_MS_IN_DAY);   // now we have days independent time if needed
         Time /= 1000; // in seconds
-        uint8_t hh, mm, ss;
+        uint8_t hh, mm;
+    //    uint8_t ss;
         hh = Time/3600;
         if(hh > 0) Time -= hh*3600;
         mm = Time/60;
         if(mm > 0) Time -= mm*60;
-        ss = Time;
-        Uart.Printf("time: %u:%u:%u\r", hh, mm, ss);
+    //    ss = Time;
+//        TimeSeparator = (TimeSeparator == ':')? ' ' : ':';
+        Time::PutTimeTo(PToStr, hh, mm, TimeSeparator);
         Rslt = OK;
         goto end;
     }

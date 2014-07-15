@@ -65,6 +65,24 @@ public:
 
 #define RND_TBL_BUFFER_SZ       25
 
+
+class Time {
+public:
+    static void PutTimeTo(char *PStr, uint8_t HH, uint8_t MM, char Sep) {
+        char digit;
+        digit = HH/10;
+        digit = (digit < 10)? '0'+digit : 'A'+digit-10;
+        PStr[0] = digit;
+        digit = HH%10;
+        PStr[1] = digit = (digit < 10)? '0'+digit : 'A'+digit-10;
+        PStr[2] = Sep;
+        digit = MM/10;
+        PStr[3] = digit = (digit < 10)? '0'+digit : 'A'+digit-10;
+        digit = MM%10;
+        PStr[4] = (digit < 10)? '0'+digit : 'A'+digit-10;
+    }
+};
+
 class Mesh_t {
 private:
     uint8_t RndTableBuf[RND_TBL_BUFFER_SZ];
@@ -78,6 +96,8 @@ private:
 
     // Synchronization
     bool GetPrimaryPkt;
+    // Time Specific
+    char TimeSeparator;
     uint16_t PriorityID;
     uint32_t NewCycleN, *PNewCycleN;
     uint32_t TimeToWakeUp, *PTimeToWakeUp;
@@ -132,6 +152,7 @@ public:
                 SleepTime(0),
                 PreliminaryRSSI(STATIONARY_MIN_LEVEL),
                 GetPrimaryPkt(false),
+                TimeSeparator(':'),
                 PriorityID(0),
                 NewCycleN(0),
                 PNewCycleN(&NewCycleN),

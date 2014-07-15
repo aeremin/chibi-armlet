@@ -34,7 +34,8 @@
 #define S_CYCLE_TIME        (uint32_t)(CYCLE_TIME * COUNT_OF_CYCLES)
 
 /* Time specific */
-#define TIME_SZ             6  // "mm:hh\0"
+#define TIME_SZ             5  //  "hh:mm\0"
+#define TIME_SZ_LONG        8   // "hh:mm:ss\0"
 #define MESH_MS_IN_DAY      (uint32_t)86400000
 
 //#define GET_RND_VALUE(Top)  ( ( (Random(chTimeNow()) ) % Top ))
