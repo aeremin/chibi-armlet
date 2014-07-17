@@ -30,7 +30,7 @@ public:
 
     /* External functionality */
     // Put Information to buffer
-    ret_Err PutAlien(uint16_t ID, uint32_t TimeStampDiff, AlienInfo_t *Ptr);
+    ret_Err PutAlien(uint16_t ID, int32_t TimeStampDiff, AlienInfo_t *Ptr);
     ret_Err PutSender(uint32_t CurrentCycle, SenderInfo_t *Ptr);
 
     /* Get Info by ID

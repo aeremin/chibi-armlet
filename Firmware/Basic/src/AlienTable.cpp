@@ -22,13 +22,13 @@ AlienTable_t AlienTable;
  * return UNKNOWN
  *      1) if anything unknown happend.
  */
-ret_Err AlienTable_t::PutAlien(uint16_t ID, uint32_t TimeStampDiff, AlienInfo_t *Ptr) {
+ret_Err AlienTable_t::PutAlien(uint16_t ID, int32_t TimeStampDiff, AlienInfo_t *Ptr) {
     if(ID > ALIEN_BUF_SIZE) return CMD_ERROR;
     else if(ID == App.ID) {
         Uart.Printf("[AlienTable.cpp] rcv SelfID\r\n");
         return OK;
     }
-    else if(Ptr->Mesh.Timestamp < Buf[ID].Mesh.Timestamp) return OK;
+    else if(Ptr->Mesh.Timestamp <= Buf[ID].Mesh.Timestamp) return OK;
     else { // Need to share information to Buf
         AlienInfo_t iNewString;
         iNewString = *Ptr; // copy input struct to new one

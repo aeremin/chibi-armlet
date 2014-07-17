@@ -142,7 +142,7 @@ void Mesh_t::IPktHandler(){
 
         /* Put information from Pkt */
         AlienTable.PutSender(AbsCycle, &MeshMsg.RadioPkt.SenderInfo);
-        uint32_t CycleDiff = (AbsCycle < MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN)? MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN - AbsCycle : AbsCycle - MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN;
+        int32_t CycleDiff = AbsCycle - MeshMsg.RadioPkt.SenderInfo.Mesh.CycleN;
         AlienTable.PutAlien(MeshMsg.RadioPkt.AlienID, CycleDiff, &MeshMsg.RadioPkt.AlienInfo);
 
         /*Put Information to RxTable */
@@ -158,7 +158,7 @@ void Mesh_t::IPktHandler(){
            GetPrimaryPkt = true;                        // received privilege pkt
            PriorityID = pSM->TimeOwnerID;
            IResetTimeAge(PriorityID, pSM->TimeAge);
-           *PNewCycleN = pSM->CycleN;   // TODO: cycle number increment: nedeed of not?
+           *PNewCycleN = pSM->CycleN + 1;   // TODO: cycle number increment: nedeed of not? Seems to be needed.
            *PTimeToWakeUp = MeshMsg.Timestamp - MESH_PKT_TIME - (SLOT_TIME*(PriorityID-1)) + CYCLE_TIME;
 //           *PTimeToWakeUp = (CYCLE_TIME - (SLOT_TIME * PriorityID)) + MeshMsg.Timestamp;
        }
