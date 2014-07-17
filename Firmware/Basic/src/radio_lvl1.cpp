@@ -64,8 +64,7 @@ void rLevel1_t::ITask() {
 //                            Mesh.PktTx.AlienInfo.State.Location,
 //                            Mesh.PktTx.AlienInfo.State.Emotion
 //                            );
-//                    CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
-                    chThdSleepMilliseconds(10);
+                    CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                     Mesh.ITxEnd();
 //                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
                 } // Mesh Tx
