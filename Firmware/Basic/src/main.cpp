@@ -17,6 +17,7 @@
 #include "cc1101.h"
 #include "L3G.h"
 #include "lsm303.h"
+#include "calcs.h"
 
 // Device type
 #define TRANSMITTER
@@ -39,6 +40,10 @@
 i2c_t i2c;
 L3G gyro;
 LSM303 compass;
+
+// LSM303 accelerometer: 8 g sensitivity
+// 3.9 mg/digit; 1 g = 256
+#define GRAVITY 256 //this equivalent to 1G in the raw data coming from the accelerometer
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -72,7 +77,24 @@ int main(void) {
 
     compass.init();
     compass.enableDefault();
-    compass.writeReg(LSM303::CTRL_REG4_A, 0x28); // 8 g full scale: FS = 10; high resolution output mode
+    compass.writeReg(CTRL_REG4_A, 0x28); // 8 g full scale: FS = 10; high resolution output mode
+
+    // Calibrate
+    for(int i=0;i<32;i++) { // We take some readings...
+        chThdSleepMilliseconds(20);
+        gyro.read();
+        for(int j=0; j<3; j++) gyro.AN_Offset[j] += gyro.AN[j];
+
+        compass.readAcc();
+        for(int j=0; j<3; j++) compass.AN_Offset[j] += compass.AN[j];
+    }
+
+    for(int j=0; j<3; j++) gyro.AN_Offset[j] /= 32;
+    for(int j=0; j<3; j++) compass.AN_Offset[j] /= 32;
+    compass.AN_Offset[2] -= GRAVITY * AccSign[2];
+
+    uint8_t cnt=0;
+    Calc.timer = chTimeNow();
 #endif
 
     rPkt_t rPkt;
@@ -81,15 +103,25 @@ int main(void) {
 
     while(true) {
 #ifdef TRANSMITTER
-        chThdSleepMilliseconds(2);
-        gyro.read(&rPkt.AngVelU, &rPkt.AngVelV, &rPkt.AngVelW);
-        compass.read();
-        rPkt.AccX = compass.a.x;
-        rPkt.AccY = compass.a.y;
-        rPkt.AccZ = compass.a.z;
-        rPkt.AngleU = compass.m.x;
-        rPkt.AngleV = compass.m.y;
-        rPkt.AngleW = compass.m.z;
+        chThdSleepMilliseconds(20);
+        Calc.TimeSSinceLastTime();
+
+        gyro.read();
+        compass.readAcc();
+        if(++cnt > 5) {
+            cnt = 0;
+            compass.readMag();
+            compass.heading();
+        }
+
+
+
+//        rPkt.AccX = compass.a.x;
+//        rPkt.AccY = compass.a.y;
+//        rPkt.AccZ = compass.a.z;
+//        rPkt.AngleU = compass.m.x;
+//        rPkt.AngleV = compass.m.y;
+//        rPkt.AngleW = compass.m.z;
 
 //        Uart.Printf(
 //                "%d %d %d %d %d %d %d %d %d\r\n",

@@ -50,24 +50,21 @@
 #define L3G_INT1_DURATION 0x38
 #define L3G_LOW_ODR 0x39
 
-class L3G
-{
-  public:
+const int16_t GyroSign[3] = {1, 1, 1};
+
+class L3G {
+private:
+    uint8_t _device; // chip type (4200D or D20)
+    uint8_t address;
+    bool autoDetectAddress(void);
+public:
+    int16_t AN[3], AN_Offset[3];
+    int16_t x, y, z;
     bool init(uint8_t device = L3G_DEVICE_AUTO, uint8_t sa0 = L3G_SA0_AUTO);
-
     void enableDefault(void);
-
     void writeReg(uint8_t reg, uint8_t value);
     uint8_t readReg(uint8_t reg);
-
-    void read(int16_t *pX, int16_t *pY, int16_t *pZ);
-
-
-  private:
-      uint8_t _device; // chip type (4200D or D20)
-      uint8_t address;
-
-      bool autoDetectAddress(void);
+    void read();
 };
 
 #endif

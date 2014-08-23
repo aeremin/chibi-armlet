@@ -32,8 +32,8 @@ LSM303::LSM303(void) {
      for your particular unit. The Heading example demonstrates how to
      adjust these values in your own sketch.
      */
-    m_min = (LSM303::vector<int16_t> ) { -32767, -32767, -32767 };
-    m_max = (LSM303::vector<int16_t> ) { +32767, +32767, +32767 };
+    m_min = (vector<int16_t> ) { -32767, -32767, -32767 };
+    m_max = (vector<int16_t> ) { +32767, +32767, +32767 };
 
     _device = device_auto;
 
@@ -361,36 +361,14 @@ uint8_t LSM303::readReg(regAddr reg) {
 void LSM303::readAcc(void) {
     uint8_t reg = OUT_X_L_A | (1 << 7);
     last_status = i2c.CmdWriteRead(acc_address, &reg, 1, (uint8_t*)&a, 6);
-//
-//    Wire.beginTransmission(acc_address);
-//    // assert the MSB of the address to get the accelerometer
-//    // to do slave-transmit subaddress updating.
-//    Wire.write(OUT_X_L_A | (1 << 7));
-//    last_status = Wire.endTransmission();
-//    Wire.requestFrom(acc_address, (uint8_t) 6);
-//
-//    unsigned int millis_start = millis();
-//    while (Wire.available() < 6) {
-//        if (io_timeout > 0
-//                && ((unsigned int) millis() - millis_start) > io_timeout) {
-//            did_timeout = true;
-//            return;
-//        }
-//    }
-//
-//    uint8_t xla = Wire.read();
-//    uint8_t xha = Wire.read();
-//    uint8_t yla = Wire.read();
-//    uint8_t yha = Wire.read();
-//    uint8_t zla = Wire.read();
-//    uint8_t zha = Wire.read();
-//
-//    // combine high and low uint8_ts
-//    // This no longer drops the lowest 4 bits of the readings from the DLH/DLM/DLHC, which are always 0
-//    // (12-bit resolution, left-aligned). The D has 16-bit resolution
-//    a.x = (int16_t) (xha << 8 | xla);
-//    a.y = (int16_t) (yha << 8 | yla);
-//    a.z = (int16_t) (zha << 8 | zla);
+
+    AN[0] = a.x >> 4;
+    AN[1] = a.y >> 4;
+    AN[2] = a.z >> 4;
+
+    acc_x = AccSign[0] * (AN[0] - AN_Offset[0]);
+    acc_y = AccSign[1] * (AN[1] - AN_Offset[1]);
+    acc_z = AccSign[2] * (AN[2] - AN_Offset[2]);
 }
 
 // Reads the 3 magnetometer channels and stores them in vector m
@@ -410,58 +388,9 @@ void LSM303::readMag(void) {
         }
     }
 
-//    Wire.beginTransmission(mag_address);
-//    // If LSM303D, assert MSB to enable subaddress updating
-//    // OUT_X_L_M comes first on D, OUT_X_H_M on others
-//    Wire.write(
-//            (_device == device_D) ? translated_regs[-OUT_X_L_M] | (1 << 7) :
-//                    translated_regs[-OUT_X_H_M]);
-//    last_status = Wire.endTransmission();
-//    Wire.requestFrom(mag_address, (uint8_t) 6);
-//
-//    unsigned int millis_start = millis();
-//    while (Wire.available() < 6) {
-//        if (io_timeout > 0
-//                && ((unsigned int) millis() - millis_start) > io_timeout) {
-//            did_timeout = true;
-//            return;
-//        }
-//    }
-//
-//    uint8_t xlm, xhm, ylm, yhm, zlm, zhm;
-//
-//    if (_device == device_D) {
-//        /// D: X_L, X_H, Y_L, Y_H, Z_L, Z_H
-//        xlm = Wire.read();
-//        xhm = Wire.read();
-//        ylm = Wire.read();
-//        yhm = Wire.read();
-//        zlm = Wire.read();
-//        zhm = Wire.read();
-//    } else {
-//        // DLHC, DLM, DLH: X_H, X_L...
-//        xhm = Wire.read();
-//        xlm = Wire.read();
-//
-//        if (_device == device_DLH) {
-//            // DLH: ...Y_H, Y_L, Z_H, Z_L
-//            yhm = Wire.read();
-//            ylm = Wire.read();
-//            zhm = Wire.read();
-//            zlm = Wire.read();
-//        } else {
-//            // DLM, DLHC: ...Z_H, Z_L, Y_H, Y_L
-//            zhm = Wire.read();
-//            zlm = Wire.read();
-//            yhm = Wire.read();
-//            ylm = Wire.read();
-//        }
-//    }
-//
-//    // combine high and low uint8_ts
-//    m.x = (int16_t) (xhm << 8 | xlm);
-//    m.y = (int16_t) (yhm << 8 | ylm);
-//    m.z = (int16_t) (zhm << 8 | zlm);
+    mg_x = MgSign[0] * m.x;
+    mg_y = MgSign[1] * m.y;
+    mg_z = MgSign[2] * m.z;
 }
 
 // Reads all 6 channels of the LSM303 and stores them in the object variables

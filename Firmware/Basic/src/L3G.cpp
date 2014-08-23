@@ -71,16 +71,13 @@ uint8_t L3G::readReg(uint8_t reg) {
 }
 
 // Reads the 3 gyro channels and stores them in vector g
-void L3G::read(int16_t *pX, int16_t *pY, int16_t *pZ) {
-    uint16_t Buf[3];
+void L3G::read() {
     uint8_t reg = L3G_OUT_X_L | (1 << 7);
-//    uint8_t Rslt =
-    i2c.CmdWriteRead(address, &reg, 1, (uint8_t*) &Buf, 6);
-
-    *pX = Buf[0];
-    *pY = Buf[1];
-    *pZ = Buf[2];
-//    Uart.Printf("Read: %u; %u; %u; r=%u\r\n", Buf[0], Buf[1], Buf[2], Rslt);
+    i2c.CmdWriteRead(address, &reg, 1, (uint8_t*)AN, 6);
+    //    Uart.Printf("Read: %u; %u; %u; r=%u\r\n", Buf[0], Buf[1], Buf[2], Rslt);
+    x = GyroSign[0] * (AN[0] - AN_Offset[0]);
+    y = GyroSign[1] * (AN[1] - AN_Offset[1]);
+    z = GyroSign[2] * (AN[2] - AN_Offset[2]);
 }
 
 // Private Methods //////////////////////////////////////////////////////////////
