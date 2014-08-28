@@ -12,6 +12,7 @@
 #include "sequences.h"
 #include "Dose.h"
 #include "cmd_uart.h"
+#include "mesh_params.h"
 
 #if 1 // ==== Timings ====
 #define TM_DOSE_INCREASE_MS 999
@@ -119,6 +120,7 @@ public:
     VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
     // Radio & damage
     uint32_t Damage;
+    state_t CurrInfo;
     void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
     void Init();
     void DetectorFound(int32_t RssiPercent);

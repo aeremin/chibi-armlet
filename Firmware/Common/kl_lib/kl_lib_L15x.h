@@ -354,7 +354,7 @@ public:
         uint32_t ClkCnt = *PClk / (ITmr->PSC + 1);
         SetTopValue((ClkCnt / FreqHz) - 1);
     }
-    void SetCounterFreq(uint32_t CounterFreqHz) { ITmr->PSC = (*PClk / CounterFreqHz) - 1; }
+    void SetupPrescaler(uint32_t CounterFreqHz) { ITmr->PSC = (*PClk / CounterFreqHz) - 1; }
     // Master/Slave
     void SetTriggerInput(TmrTrigInput_t TrgInput) {
         uint16_t tmp = ITmr->SMCR;
@@ -376,10 +376,10 @@ public:
     }
     void EnableExternalClk(ExtTrigPol_t ExtTrigPol = etpNotInverted, ExtTrigPsc_t ExtTrigPsc = etpOff) { ITmr->SMCR = (uint16_t)ExtTrigPol | (uint16_t)ExtTrigPsc | TIM_SMCR_ECE; }
     // DMA, Irq, Evt
-    void EnableDmaOnTrigger() { ITmr->DIER |= TIM_DIER_TDE; }
-    void GenerateUpdateEvt()  { ITmr->EGR = TIM_EGR_UG; }
-    void EnableIrqOnUpdate()  { ITmr->DIER |= TIM_DIER_UIE; }
-    void ClearIrqBits()       { ITmr->SR = 0; }
+    inline void DmaOnTriggerEnable() { ITmr->DIER |= TIM_DIER_TDE;  }
+    inline void GenerateUpdateEvt()  { ITmr->EGR   = TIM_EGR_UG;    }
+    inline void IrqOnTriggerEnable() { ITmr->DIER |= TIM_DIER_UIE;  }
+    inline void ClearIrqPendingBit() { ITmr->SR   &= ~TIM_SR_UIF;   }
     // PWM
     void InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed = ps10MHz);
     void SetPwm(uint16_t Value) { *PCCR = Value; }

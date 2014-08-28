@@ -74,7 +74,7 @@ int main(void) {
 
     App.Init();
     App.PThd = chThdSelf();
-    RxTable.RegisterAppThd(App.PThd);
+
     Radio.Init();
     Mesh.Init();
 

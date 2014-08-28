@@ -31,6 +31,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Common</locationURI>
 		</link>
 		<link>
+			<name>Mesh_lvl</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/ArmletGit/Armlet_fw/Mesh_lvl</locationURI>
+		</link>
+		<link>
 			<name>Radio</name>
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Radio</locationURI>
