@@ -38,16 +38,13 @@ static void rLvl1Thread(void *arg) {
 //#define LED_RX
 void rLevel1_t::ITask() {
     while(true) {
-        if(App.Type == dtUmvos) {
-            if(Mesh.IsInit) {
-                CC.Recalibrate();
-                CC.SetChannel(MESH_CHANNEL); /* set mesh channel */
-                CC.SetPktSize(MESH_PKT_SZ);
-                uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
+        if(Mesh.IsInit) {
+            uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
 
-                if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
+            if(EvtMsk & EVTMSK_MESH_RX) IMeshRx();
 
-                if(EvtMsk & EVTMSK_MESH_TX) {
+            if(EvtMsk & EVTMSK_MESH_TX) {
+#if 1 // printf pkt
 //                    Uart.Printf("rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
 //                            Mesh.PktTx.SenderInfo.Mesh.SelfID,
 //                            Mesh.PktTx.SenderInfo.Mesh.CycleN,
@@ -64,13 +61,11 @@ void rLevel1_t::ITask() {
 //                            Mesh.PktTx.AlienInfo.State.Location,
 //                            Mesh.PktTx.AlienInfo.State.Emotion
 //                            );
-                    CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
-                    Mesh.ITxEnd();
-//                    IIterateChannels(); /* Mesh pkt was transmited now lets check channels */
-                } // Mesh Tx
-            } // Mesh Init
-            else chThdSleepMilliseconds(41);
-        }
+#endif
+                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
+                Mesh.ITxEnd();
+            } // Mesh Tx
+        } // Mesh Init
         else chThdSleepMilliseconds(41);
     }
 }
@@ -79,25 +74,21 @@ void rLevel1_t::ITask() {
 #if 1 // ==== Mesh Rx Cycle ====
 
 static void RxEnd(void *p) {
-//    Uart.Printf("RxEnd, t=%u\r", chTimeNow());
     Radio.Valets.InRx = false;
 }
 
 void rLevel1_t::IMeshRx() {
-//    Uart.Printf("Rx Start, t=%u\r", chTimeNow());
     int8_t RSSI = 0;
     Valets.RxEndTime = (chTimeNow()) + CYCLE_TIME - SLOT_TIME;
     Valets.InRx = true;
     chEvtSignal(Mesh.IPPktHanlderThread, EVTMSK_MESH_PKT_RDY);
     chVTSet(&Valets.RxVT, MS2ST(CYCLE_TIME-SLOT_TIME), RxEnd, nullptr); /* Set VT */
-
-    // TODO: while(1) -> currtime -> break
     do {
         Valets.CurrentTime = chTimeNow();
-        uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI); // TODO: Rx Time
+        uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
-            /* SendMsg to MeshThd with PktRx structure */
-            Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx});
+            Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx});  /* SendMsg to MeshThd with PktRx structure */
+#if 1 // printf RxPkt
 //            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d \r",
 //                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
 //                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
@@ -115,11 +106,8 @@ void rLevel1_t::IMeshRx() {
 //                    Mesh.PktRx.AlienInfo.State.Emotion,
 //                    RSSI
 //                    );
-//            Uart.Printf("rst MsgPost t=%u\r", chTimeNow());
+#endif
         } // Pkt Ok
-//        if(chTimeNow() < (Valets.RxStartTime + CYCLE_TIME - SLOT_TIME))
-//        if(chTimeNow() < Valets.CurrentTime + SLOT_TIME) chThdSleepUntil(Valets.CurrentTime + SLOT_TIME);
-//        Valets.RxTmt = ((chTimeNow() - Valets.CurrentTime) > 0)? Valets.RxTmt - (chTimeNow() - Valets.CurrentTime) : 0;
     } while(Radio.Valets.InRx);
     Mesh.SendEvent(EVTMSK_MESH_RX_END);
 }
