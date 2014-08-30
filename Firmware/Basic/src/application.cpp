@@ -235,41 +235,55 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
     //mist logic
-
-//    if(
-//            (RxTable.PTable->Row[i].ID>=LOCATION_ID_START && RxTable.PTable->Row[i].ID<=LOCATIONS_ID_END) ||
-//            (RxTable.PTable->Row[i].ID>=FOREST_ID_START && RxTable.PTable->Row[i].ID<=FOREST_ID_END)
-//      )
-//    {
-//        if(RxTable.PTable->Row[i].Level<75)
     //если я не туман, и если я локация
 
 //#define MIST_ID_START 90
 //#define MIST_ID_END 100
 #ifdef MIST_SUPPORT_CHIBI
-    int32_t timeaddmillisec=3000;
-    //tick tack mist
+
+    send_info.Location=(uint16_t)App.ID;
+    send_info.Reason=(uint16_t)0;
+    send_info.Emotion=(uint8_t)reasons[App.ID].eID;
+
+
+    bool is_tuman_incoming=false;
+//    for(int i=0;i<RxTable.PTable->Size;i++)
+//    {
+//        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
+//            is_tuman_incoming=true;
+//    }
+    if(App.ID>=LOCATION_IN_GAME_ID_START)
+        if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
+{
+    //mesh l
+    int32_t timeaddmillisec=S_CYCLE_TIME;
+    //если туман активен - тикать!
     if(App.mist_msec_ctr>0)
         App.mist_msec_ctr+=timeaddmillisec;
+    //если давно не приходил
     if(App.mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
     {
         App.mist_msec_ctr=-1;
+        //вернуть резон
+        send_info.Reason=App.reason_saved;
     }
-    //если время идет - инкрементировать.
-    //если я не туман, то я транслирую
-    if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
+    //если пришел туман - включить. если уже не было включено - сохранить старый резон
+
+    if(is_tuman_incoming)
     {
         if( App.mist_msec_ctr==-1)//save old reason
         {
-
+              App.reason_saved=send_info.Reason;
         }
         App.mist_msec_ctr=0;
+        send_info.Reason=(uint16_t)REASON_MPROJECT;
     }
        // for(int i=0;i<RxTable.PTable->Size;i++)
-        {
+        //{
           //  if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
            // RxTable.PTable->Row[i].
-        }
+       // }
+}
 #endif
 
 }

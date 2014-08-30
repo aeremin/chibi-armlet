@@ -121,7 +121,8 @@ public:
     void OnClick();
 #ifdef MIST_SUPPORT_CHIBI
     int32_t mist_msec_ctr; //-1 - not active, else - sec from begining
-    int reason_saved;
+    uint16_t reason_saved;
+    state_t send_info;
 #endif
 
 };
