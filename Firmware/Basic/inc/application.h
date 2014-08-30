@@ -54,71 +54,42 @@ enum DeviceType_t {
 #endif
 
 #if 1 // ==== Pill ====
-enum PillType_t {
-    ptSetID = 1,
-    ptCure = 9,
-    ptDrug = 10,
-};
 #define PILL_TYPEID_SET_ID      1
 
 struct Pill_t {
     int32_t TypeID;
-    union {
-        int32_t DeviceID;
-        int32_t DoseAfter;  // Contains dose value after pill application
-    };
-    union {
-        // Cure / drug
-        struct {
-            int32_t ChargeCnt;
-            int32_t Value;
-        } __attribute__ ((__packed__));
-        int32_t DoseTop;
-    };
+    int32_t DeviceID;
 } __attribute__ ((__packed__));
 #define PILL_SZ     sizeof(Pill_t)
 #define PILL_SZ32   (sizeof(Pill_t) / sizeof(int32_t))
 
-// Data to save in EE and to write to pill
-struct DataToWrite_t {
-    uint32_t Sz32;
-    int32_t Data[PILL_SZ32];
-};
 #endif // Pill
 
 #if 1 // ==== Eeprom ====
 // Addresses
 #define EE_DEVICE_ID_ADDR       0
-#define EE_DEVICE_TYPE_ADDR     4
-#define EE_DOSETOP_ADDR         8  // ID is uint32_t
-#define EE_REPDATA_ADDR         12
 #endif
 
 // ==== Application class ====
 class App_t {
 private:
     Pill_t Pill;
-    DataToWrite_t Data2Wr;  // for pill flasher
     uint8_t ISetID(uint32_t NewID);
-    uint8_t ISetType(uint8_t AType);
     Eeprom_t EE;
-    uint32_t LastTime;
 public:
     uint32_t ID;
-    DeviceType_t Type;
     Thread *PThd;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrMeasurement;
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrMeasurement, TmrFade;
     // Radio & damage
     state_t CurrInfo;
     void Init();
-    void DetectorFound(int32_t RssiPercent);
+    void CheckIfLightGreen();
     // Events
     void OnPillConnect();
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
-    void OnClick();
 #ifdef MIST_SUPPORT_CHIBI
     int32_t mist_msec_ctr; //-1 - not active, else - sec from begining
     uint16_t reason_saved;

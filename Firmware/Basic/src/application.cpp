@@ -41,29 +41,8 @@ void App_t::OnPillConnect() {
     int32_t *p = (int32_t*)&Pill;
     for(uint32_t i=0; i<PILL_SZ32; i++) Uart.Printf("%d ", *p++);
     Uart.Printf("\r\n");
-    if(Type == dtPillFlasher) {
-        uint8_t b = FAILURE;
-        // Write pill if data exists
-        EE.ReadBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
-        if(Data2Wr.Sz32 != 0) {
-            Uart.Printf("#PillWrite32 0");
-            for(uint8_t i=0; i<Data2Wr.Sz32; i++) Uart.Printf(",%d", Data2Wr.Data[i]);
-            Uart.Printf("\r\n");
-            b = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, Data2Wr.Data, sizeof(Data2Wr));
-            Uart.Ack(b);
-        }
-        if(b == OK) {
-            Led.StartBlink(LedPillSetupOk);
-            Beeper.Beep(BeepPillOk);
-        }
-        else {
-            Led.StartBlink(LedPillBad);
-            Beeper.Beep(BeepPillBad);
-        }
-    }
-    else {
-        uint8_t rslt __attribute__((unused));
-        switch(Pill.TypeID) {
+    uint8_t rslt __attribute__((unused));
+    switch(Pill.TypeID) {
 #if 0 // ==== Set ID ====
             case PILL_TYPEID_SET_ID:
                 if(ID == 0) {
@@ -89,12 +68,11 @@ void App_t::OnPillConnect() {
                 break;
 #endif
 
-            default:
-                Uart.Printf("Unknown Pill\r");
-                Beeper.Beep(BeepPillBad);
-                break;
-        } // switch
-    } // if pill flasher
+        default:
+            Uart.Printf("Unknown Pill\r");
+            Beeper.Beep(BeepPillBad);
+            break;
+    } // switch
 }
 #endif
 
@@ -115,15 +93,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         else Uart.Ack(CMD_ERROR);
     }
     else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r\n", ID);
-
-    else if(PCmd->NameIs("#SetType")) {
-        if(PCmd->TryConvertTokenToNumber(&dw32) == OK) {  // Next token is number
-            b = ISetType(dw32);
-            Uart.Ack(b);
-        }
-        else Uart.Ack(CMD_ERROR);
-    }
-    else if(PCmd->NameIs("#GetType")) Uart.Printf("#Type %u\r\n", Type);
 #endif
 
 #if 1 // ==== Pills ====
@@ -185,32 +154,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         } // if pill addr
         Uart.Ack(CMD_ERROR);
     }
-
-    else if(PCmd->NameIs("#PillRepeatWrite32") and (Type == dtPillFlasher)) {
-        uint32_t PillAddr;
-        if(PCmd->TryConvertTokenToNumber(&PillAddr) == OK) {
-            if((PillAddr >= 0) and (PillAddr <= 7)) {
-                b = OK;
-                Data2Wr.Sz32 = 0;
-                for(uint32_t i=0; i<PILL_SZ32; i++) Data2Wr.Data[i] = 0;
-                // Iterate data
-                for(uint32_t i=0; i<PILL_SZ32; i++) {
-                    if(PCmd->GetNextToken() != OK) break;   // Get next data to write, get out if end
-                    //Uart.Printf("%S\r", PCmd->Token);
-                    b = PCmd->TryConvertTokenToNumber(&Data2Wr.Data[i]);
-                    if(b == OK) Data2Wr.Sz32++;
-                    else break; // Token is NAN
-                } // while
-                // Save data to EEPROM
-                if(b == OK) b = EE.WriteBuf(&Data2Wr, sizeof(Data2Wr), EE_REPDATA_ADDR);
-                Uart.Ack(b);
-                // Write pill immediately if connected
-                if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) App.OnPillConnect();
-                return;
-            } // if pill addr ok
-        } // if pill addr
-        Uart.Ack(CMD_ERROR);
-    }
 #endif // Pills
 
 #if 1 // Mesh
@@ -235,7 +178,8 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 #if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
-	RxTable.PTable->Print();
+	RxTable.PTable->Print();    // Debug
+	CheckIfLightGreen();
     //mist logic
     //если я не туман, и если я локация
 
@@ -287,14 +231,22 @@ void App_t::OnRxTableReady() {
        // }
 }
 #endif
+}
 
+void App_t::CheckIfLightGreen() {
+    for(uint32_t i=0; i < RxTable.PTable->Size; i++) {
+        uint32_t ID = RxTable.PTable->Row[i].ID;
+        if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
+            // Light Up
+//            if(chT)
+        }
+    } // for
 }
 #endif // Mesh
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
-    ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
 #ifdef MIST_SUPPORT_CHIBI
     mist_msec_ctr=-1;
 #endif
@@ -312,20 +264,5 @@ uint8_t App_t::ISetID(uint32_t NewID) {
         Uart.Printf("EE error: %u\r", rslt);
         return FAILURE;
     }
-}
-
-uint8_t App_t::ISetType(uint8_t AType) {
-    if(AType > dtPillFlasher) return FAILURE;
-    Type = (DeviceType_t)AType;
-    // Reinit timers
-    chSysLock();
-    if(chVTIsArmedI(&TmrMeasurement)) chVTResetI(&TmrMeasurement);
-    chSysUnlock();
-    // Save in EE if not equal
-    uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
-    uint8_t rslt = OK;
-    if(EEType != Type) rslt = EE.Write32(EE_DEVICE_TYPE_ADDR, Type);
-    Uart.Printf("Type=%u\r\n", Type);
-    return rslt;
 }
 #endif
