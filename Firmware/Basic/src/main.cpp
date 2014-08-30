@@ -1,7 +1,7 @@
 /*
  * File:   main.cpp
  * Author: Kreyl
- * Project: Armlet2South
+ * Project: ChibiArmlet-Atlantis
  *
  * Created on Feb 05, 2013, 20:27
  */
@@ -68,10 +68,10 @@ int main(void) {
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
-    if(App.Type != dtDetectorMobile) {
-//        Beeper.Init();
+//    if(App.Type != dtDetectorMobile) {
+        Beeper.Init();
         Beeper.Beep(BeepBeep);
-    }
+//    }
 
     // Timers
     chSysLock();
@@ -108,7 +108,7 @@ int main(void) {
 //        }
 
         // ==== Radio ====
-        if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
+        if(EvtMsk & EVTMSK_SENS_TABLE_READY) App.OnRxTableReady();
     } // while true
 
 }

@@ -15,6 +15,7 @@
 #include "adc15x.h"
 
 #include "mesh_lvl.h"
+#include "RxTable.h"
 #include "console.h"
 
 #include <cstdlib>
@@ -234,6 +235,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 #if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
+    RxTable.PTable->Print();
 }
 #endif // Mesh
 
