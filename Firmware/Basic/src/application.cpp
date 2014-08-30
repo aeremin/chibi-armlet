@@ -245,7 +245,7 @@ void App_t::OnRxTableReady() {
 
     send_info.Location=(uint16_t)App.ID;
     send_info.Reason=(uint16_t)0;
-    send_info.Emotion=(uint8_t)reasons[App.ID].eID;
+    send_info.Emotion = 0;  // Lustra has no emotion
 
 
     bool is_tuman_incoming=false;

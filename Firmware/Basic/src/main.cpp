@@ -68,10 +68,8 @@ int main(void) {
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
-//    if(App.Type != dtDetectorMobile) {
-        Beeper.Init();
-        Beeper.Beep(BeepBeep);
-//    }
+    Beeper.Init();
+    Beeper.Beep(BeepBeep);
 
     // Timers
     chSysLock();
