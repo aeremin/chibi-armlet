@@ -40,5 +40,10 @@
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Radio</locationURI>
 		</link>
+		<link>
+			<name>SharedAtlLogic</name>
+			<type>2</type>
+			<locationURI>PARENT-3-PROJECT_LOC/ArmletGit/Armlet_fw/SharedAtlLogic</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>

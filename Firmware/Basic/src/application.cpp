@@ -16,7 +16,7 @@
 
 #include "mesh_lvl.h"
 #include "console.h"
-
+#include "emotions.h"
 #include <cstdlib>
 
 App_t App;
@@ -234,6 +234,44 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 #if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
+    //mist logic
+
+//    if(
+//            (RxTable.PTable->Row[i].ID>=LOCATION_ID_START && RxTable.PTable->Row[i].ID<=LOCATIONS_ID_END) ||
+//            (RxTable.PTable->Row[i].ID>=FOREST_ID_START && RxTable.PTable->Row[i].ID<=FOREST_ID_END)
+//      )
+//    {
+//        if(RxTable.PTable->Row[i].Level<75)
+    //если я не туман, и если я локация
+
+//#define MIST_ID_START 90
+//#define MIST_ID_END 100
+#ifdef MIST_SUPPORT_CHIBI
+    int32_t timeaddmillisec=3000;
+    //tick tack mist
+    if(App.mist_msec_ctr>0)
+        App.mist_msec_ctr+=timeaddmillisec;
+    if(App.mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
+    {
+        App.mist_msec_ctr=-1;
+    }
+    //если время идет - инкрементировать.
+    //если я не туман, то я транслирую
+    if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
+    {
+        if( App.mist_msec_ctr==-1)//save old reason
+        {
+
+        }
+        App.mist_msec_ctr=0;
+    }
+       // for(int i=0;i<RxTable.PTable->Size;i++)
+        {
+          //  if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
+           // RxTable.PTable->Row[i].
+        }
+#endif
+
 }
 #endif // Mesh
 
@@ -242,6 +280,9 @@ void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
     Uart.Printf("ID=%u\r\n", ID);
+#ifdef MIST_SUPPORT_CHIBI
+    mist_msec_ctr=-1;
+#endif
 }
 
 uint8_t App_t::ISetID(uint32_t NewID) {

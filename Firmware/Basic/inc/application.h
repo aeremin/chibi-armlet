@@ -47,6 +47,11 @@ enum DeviceType_t {
 
 // ==== Indication constants ====
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
+// ==== mist support ====
+#define MIST_SUPPORT_CHIBI
+#ifdef MIST_SUPPORT_CHIBI
+#define MIST_TRANSLATE_TIME_SEC 600
+#endif
 
 #if 1 // ==== Pill ====
 enum PillType_t {
@@ -114,6 +119,11 @@ public:
     void OnBatteryMeasured();
     void OnRxTableReady();
     void OnClick();
+#ifdef MIST_SUPPORT_CHIBI
+    int32_t mist_msec_ctr; //-1 - not active, else - sec from begining
+    int reason_saved;
+#endif
+
 };
 
 extern App_t App;

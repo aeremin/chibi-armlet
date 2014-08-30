@@ -9,7 +9,6 @@
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
@@ -93,6 +92,7 @@
 									<listOptionValue builtIn="false" value="../../Radio"/>
 									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/Mesh_lvl/"/>
 									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/Mesh_lvl/inc/"/>
+									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/SharedAtlLogic"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1368711610" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
