@@ -36,24 +36,10 @@ void TmrPillCheckCallback(void *p) {
     chSysUnlockFromIsr();
 }
 
-void TmrDoseSaveCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_DOSE_STORE);
-    chVTSetI(&App.TmrDoseSave, MS2ST(TM_DOSE_SAVE_MS), TmrDoseSaveCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-
 void TmrMeasurementCallback(void *p) {
     chSysLockFromIsr();
     chEvtSignalI(App.PThd, EVTMSK_MEASURE_TIME);
     chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
-    chSysUnlockFromIsr();
-}
-
-void TmrClickCallback(void *p) {
-    chSysLockFromIsr();
-    chEvtSignalI(App.PThd, EVTMSK_CLICK);
-    chVTSetI(&App.TmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -112,9 +98,6 @@ int main(void) {
             else PillConnected = false;
         } // if EVTMSK_PILL_CHECK
 
-        // ==== Dose ====
-        if(EvtMsk & EVTMSK_DOSE_STORE) App.SaveDose();
-
         // ==== Measure battery ====
 //        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
 //        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
@@ -126,7 +109,6 @@ int main(void) {
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_RX_TABLE_READY) App.OnRxTableReady();
-        if(EvtMsk & EVTMSK_CLICK) App.OnClick();
     } // while true
 
 }

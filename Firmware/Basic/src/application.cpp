@@ -21,22 +21,11 @@
 
 App_t App;
 // Timers callbacks prototypes
-extern void TmrDoseSaveCallback(void *p) __attribute__((unused));
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
-extern void TmrClickCallback(void *p);
 
 // Table of colors depending on type
 #define DEVICETYPE_BLINK_T_MS   999
 const LedChunk_t TypeColorTbl[] = {
-        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtNothing
-        {{0,1,0},   DEVICETYPE_BLINK_T_MS, ckStop}, // dtUmvos
-        {clBlue,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraClean
-        {clGreen,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraWeak
-        {clYellow,  DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraStrong
-        {clRed,     DEVICETYPE_BLINK_T_MS, ckStop}, // dtLustraLethal
-        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorMobile
-        {clMagenta, DEVICETYPE_BLINK_T_MS, ckStop}, // dtDetectorFixed
-        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpMech
         {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
         {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
         {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
@@ -98,39 +87,6 @@ void App_t::OnPillConnect() {
                 chThdSleepMilliseconds(1800);
                 break;
 #endif
-            // ==== Cure ====
-            case PILL_TYPEID_CURE:
-                if(Pill.ChargeCnt > 0) {
-                    rslt = OK;
-                    Pill.ChargeCnt--;
-                    rslt = PillMgr.Write(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t));
-                }
-                else rslt = FAILURE; // Discharged pill
-
-                if(rslt == OK) {
-                    Beeper.Beep(BeepPillOk);
-                    Led.StartBlink(LedPillCureOk);
-                    // Decrease dose if not dead
-                    if(Dose.State != hsDeath) Dose.Decrease(Pill.Value, diNeverIndicate);
-                    chThdSleepMilliseconds(2007);    // Let indication to complete
-                    Dose.RenewIndication();
-                }
-                else {
-                    Beeper.Beep(BeepPillBad);
-                    Led.StartBlink(LedPillBad);
-                    chThdSleepMilliseconds(2007);    // Let indication to complete
-                }
-                break;
-
-            // ==== Set consts ====
-            case PILL_TYPEID_SET_DOSETOP:
-                Dose.Consts.Setup(Pill.DoseTop);
-                SaveDoseTop();
-                Uart.Printf("Top=%u; Red=%u; Yellow=%u\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-                Led.StartBlink(LedPillSetupOk);
-                Beeper.Beep(BeepPillOk);
-                chThdSleepMilliseconds(2007);
-                break;
 
             default:
                 Uart.Printf("Unknown Pill\r");
@@ -256,32 +212,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
     }
 #endif // Pills
 
-#if 1 // ==== Dose ====
-    else if(PCmd->NameIs("#SetDoseTop")) {
-        int32_t NewTop;
-        if(PCmd->TryConvertTokenToNumber(&NewTop) == OK) {  // Next token is number
-            Dose.Consts.Setup(NewTop);
-            SaveDoseTop();
-            Uart.Printf("Top=%d; Red=%d; Yellow=%d\r", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-            Uart.Ack(OK);
-        }
-        else Uart.Ack(CMD_ERROR);
-    }
-    else if(PCmd->NameIs("#GetDoseTop")) Uart.Printf("#DoseTop %u\r\n", Dose.Consts.Top);
-
-    else if(PCmd->NameIs("#SetDose")) {
-        int32_t NewDose;
-        if(PCmd->TryConvertTokenToNumber(&NewDose) == OK) {  // Next token is number
-            if(NewDose <= Dose.Consts.Top) {
-                Dose.Set(NewDose, diAlwaysIndicate);
-                Uart.Ack(OK);
-            }
-        }
-        else Uart.Ack(CMD_ERROR);
-    }
-    else if(PCmd->NameIs("#GetDose")) Uart.Printf("#Dose %u\r\n", Dose.Get());
-#endif // Dose
-
 #if 1 // Mesh
 
     else if(PCmd->NameIs("#SetMeshCycle")) {
@@ -301,32 +231,17 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 }
 #endif
 
-#if 1 // =============================== Dose ==================================
+#if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
-    Uart.Printf("[app.cpp] OnRxTable\r\n");
+    Uart.Printf("\rOnRxTable");
 }
-
-void App_t::OnClick() {
-    if(Damage > 0) {
-        int32_t r = rand() % (DMG_SND_MAX - 1);
-        int32_t DmgSnd = (((DMG_SND_MAX - DMG_SND_BCKGND) * (Damage - 1)) / (DMG_MAX - 1)) + DMG_SND_BCKGND;
-//        Uart.Printf("%d; %d\r", Damage, DmgSnd);
-        if(r < DmgSnd) {
-            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-            Led.StartBlink(LedClick);
-            return;
-        }
-    }
-    Led.SetColor(CLR_NO_DAMAGE);
-}
-#endif // Dose
+#endif // Mesh
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
     Uart.Printf("ID=%u\r\n", ID);
-    Damage = 1; // DEBUG
 }
 
 uint8_t App_t::ISetID(uint32_t NewID) {
@@ -348,56 +263,8 @@ uint8_t App_t::ISetType(uint8_t AType) {
     Type = (DeviceType_t)AType;
     // Reinit timers
     chSysLock();
-    if(chVTIsArmedI(&TmrDoseSave))    chVTResetI(&TmrDoseSave);
     if(chVTIsArmedI(&TmrMeasurement)) chVTResetI(&TmrMeasurement);
-    if(chVTIsArmedI(&TmrClick))       chVTResetI(&TmrClick);
-    switch(App.Type) {
-        case dtUmvos:
-//            chVTSetI(&TmrMeasurement, MS2ST(TM_MEASUREMENT_MS),   TmrMeasurementCallback, nullptr);
-#if DO_DOSE_SAVE
-            chVTSetI(&TmrDoseSave,    MS2ST(TM_DOSE_SAVE_MS),     TmrDoseSaveCallback, nullptr);
-#endif
-            break;
-        case dtDetectorMobile:
-            chVTSetI(&TmrClick, MS2ST(TM_CLICK), TmrClickCallback, nullptr);
-            break;
-        default: break;
-    }
     chSysUnlock();
-
-    // Reinit constants
-    uint32_t tmp1;
-    switch(Type) {
-        case dtUmvos:
-            // Read dose constants
-            tmp1 = EE.Read32(EE_DOSETOP_ADDR);
-            if(tmp1 == 0) tmp1 = DOSE_DEFAULT_TOP;  // In case of clear EEPROM, use default value
-            Dose.Consts.Setup(tmp1);
-            Uart.Printf("Top=%u; Red=%u; Yellow=%u\r\n", Dose.Consts.Top, Dose.Consts.Red, Dose.Consts.Yellow);
-#if DO_DOSE_SAVE
-            Dose.Load();
-#endif
-            break;
-
-        case dtDetectorMobile:
-            rccEnableTIM2(FALSE);
-            PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
-            TIM2->CR1 = TIM_CR1_CEN | TIM_CR1_OPM;
-            TIM2->CR2 = 0;
-            TIM2->ARR = 22;
-            TIM2->CCMR1 |= (0b111 << 12);
-            TIM2->CCER  |= TIM_CCER_CC2E;
-            tmp1 = TIM2->ARR * 1000;
-            tmp1 = Clk.APB1FreqHz / tmp1;
-            if(tmp1 != 0) tmp1--;
-            TIM2->PSC = (uint16_t)tmp1;
-            TIM2->CCR2 = 20;
-            break;
-
-        default: break;
-    } // switch
-
-    Led.StartBlink(&TypeColorTbl[AType]);   // Blink with correct color
     // Save in EE if not equal
     uint32_t EEType = EE.Read32(EE_DEVICE_TYPE_ADDR);
     uint8_t rslt = OK;

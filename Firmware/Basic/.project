@@ -33,7 +33,7 @@
 		<link>
 			<name>Mesh_lvl</name>
 			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/ArmletGit/Armlet_fw/Mesh_lvl</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/ArmletGit/Armlet_fw/Mesh_lvl</locationURI>
 		</link>
 		<link>
 			<name>Radio</name>

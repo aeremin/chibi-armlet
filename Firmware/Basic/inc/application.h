@@ -10,7 +10,6 @@
 
 #include "kl_lib_L15x.h"
 #include "sequences.h"
-#include "Dose.h"
 #include "cmd_uart.h"
 #include "mesh_params.h"
 
@@ -56,15 +55,6 @@ enum PillType_t {
     ptDrug = 10,
 };
 #define PILL_TYPEID_SET_ID      1
-#define PILL_TYPEID_CURE        9
-#define PILL_TYPEID_DRUG        10
-#define PILL_TYPEID_PANACEA     11
-#define PILL_TYPEID_AUTODOC     12
-#define PILL_TYPEID_SET_DOSETOP 18
-#define PILL_TYPEID_DIAGNOSTIC  27
-#define PILL_TYPEID_EMP_BREAKER 31
-#define PILL_TYPEID_EMP_REPAIR  32
-#define PILL_TYPEID_EMP_CHARGE  33
 
 struct Pill_t {
     int32_t TypeID;
@@ -99,8 +89,6 @@ struct DataToWrite_t {
 #define EE_REPDATA_ADDR         12
 #endif
 
-#define DO_DOSE_SAVE            FALSE
-
 // ==== Application class ====
 class App_t {
 private:
@@ -108,20 +96,16 @@ private:
     DataToWrite_t Data2Wr;  // for pill flasher
     uint8_t ISetID(uint32_t NewID);
     uint8_t ISetType(uint8_t AType);
-    Dose_t Dose;
     Eeprom_t EE;
-    void SaveDoseTop() { EE.Write32(EE_DOSETOP_ADDR, Dose.Consts.Top); }
     uint32_t LastTime;
 public:
     uint32_t ID;
     DeviceType_t Type;
     Thread *PThd;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasurement, TmrClick;
+    VirtualTimer TmrUartRx, TmrPillCheck, TmrMeasurement;
     // Radio & damage
-    uint32_t Damage;
     state_t CurrInfo;
-    void SaveDose() { if(Dose.Save() != OK) Uart.Printf("Dose Store Fail\r"); }
     void Init();
     void DetectorFound(int32_t RssiPercent);
     // Events
