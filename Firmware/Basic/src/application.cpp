@@ -242,7 +242,7 @@ void App_t::OnRxTableReady() {
     }
 }
         //если я игротехник страха с mscource, я его излучаю
-        else if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
+        if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
         {
             send_info.Reason=(uint16_t)REASON_MSOURCE;
 
