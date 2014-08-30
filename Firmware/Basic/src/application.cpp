@@ -187,17 +187,33 @@ void App_t::OnRxTableReady() {
 //#define MIST_ID_END 100
 #ifdef MIST_SUPPORT_CHIBI
 
-    send_info.Location=(uint16_t)App.ID;
+    send_info.Location=(uint16_t)0;
+	uint8_t SignalPwr = 0;
+	    uint8_t LocationID = 0;
+	    uint16_t tmpID=0;
+	    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
+	        tmpID = RxTable.PTable->Row[i].ID;
+	        if( (tmpID >= LOCATION_ID_START && tmpID <= FOREST_ID_END) ||
+	            (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) )    {
+	            if(RxTable.PTable->Row[i].Level > SignalPwr) {
+	                SignalPwr = RxTable.PTable->Row[i].Level;
+	                LocationID = tmpID;
+	            } // if Signal present
+	        } // if location correct
+	    }
+	    if(LocationID) send_info.Location = LocationID;
+
     send_info.Reason=(uint16_t)0;
     send_info.Emotion = 0;  // Lustra has no emotion
 
 
     bool is_tuman_incoming=false;
-//    for(int i=0;i<RxTable.PTable->Size;i++)
-//    {
-//        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
-//            is_tuman_incoming=true;
-//    }
+    for(uint32_t i=0;i<RxTable.PTable->Size;i++)
+    {
+        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
+            is_tuman_incoming=true;
+    }
+    //логика люстр, слушающих туман
     if(App.ID>=LOCATION_IN_GAME_ID_START)
         if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
 {
@@ -224,12 +240,13 @@ void App_t::OnRxTableReady() {
         App.mist_msec_ctr=0;
         send_info.Reason=(uint16_t)REASON_MPROJECT;
     }
-       // for(int i=0;i<RxTable.PTable->Size;i++)
-        //{
-          //  if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
-           // RxTable.PTable->Row[i].
-       // }
 }
+        //если я игротехник страха с mscource, я его излучаю
+        if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
+        {
+            send_info.Reason=(uint16_t)REASON_MSOURCE;
+
+        }
 #endif
 }
 
