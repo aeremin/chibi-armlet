@@ -238,7 +238,10 @@ void App_t::CheckIfLightGreen() {
         uint32_t ID = RxTable.PTable->Row[i].ID;
         if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
             // Light Up
-//            if(chT)
+//            Led.IPFirstChunk
+            chSysLock();
+//            chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)PCh);
+            chSysUnlock();
         }
     } // for
 }
