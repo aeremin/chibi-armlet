@@ -29,6 +29,7 @@ rLevel1_t Radio;
 
 #if 1 // ================================ Task =================================
 static WORKING_AREA(warLvl1Thread, 256);
+__attribute__ ((__noreturn__))
 static void rLvl1Thread(void *arg) {
     chRegSetThreadName("rLvl1");
     while(true) Radio.ITask();
@@ -36,6 +37,7 @@ static void rLvl1Thread(void *arg) {
 
 //#define TX
 //#define LED_RX
+__attribute__ ((__noreturn__))
 void rLevel1_t::ITask() {
     while(true) {
         if(Mesh.IsInit) {
@@ -88,24 +90,24 @@ void rLevel1_t::IMeshRx() {
         uint8_t RxRslt = CC.ReceiveSync(Valets.RxEndTime - Valets.CurrentTime, &Mesh.PktRx, &RSSI);
         if(RxRslt == OK) { // Pkt received correctly
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx});  /* SendMsg to MeshThd with PktRx structure */
-#if 1 // printf RxPkt
-//            Uart.Printf("rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d \r",
-//                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
-//                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
-//                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
-//                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
-//                    Mesh.PktRx.SenderInfo.State.Reason,
-//                    Mesh.PktRx.SenderInfo.State.Location,
-//                    Mesh.PktRx.SenderInfo.State.Emotion,
-//                    Mesh.PktRx.AlienID,
-//                    Mesh.PktRx.AlienInfo.Mesh.Hops,
-//                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
-//                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
-//                    Mesh.PktRx.AlienInfo.State.Reason,
-//                    Mesh.PktRx.AlienInfo.State.Location,
-//                    Mesh.PktRx.AlienInfo.State.Emotion,
-//                    RSSI
-//                    );
+#if 0 // printf RxPkt
+            Uart.Printf("\rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d",
+                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
+                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
+                    Mesh.PktRx.SenderInfo.State.Reason,
+                    Mesh.PktRx.SenderInfo.State.Location,
+                    Mesh.PktRx.SenderInfo.State.Emotion,
+                    Mesh.PktRx.AlienID,
+                    Mesh.PktRx.AlienInfo.Mesh.Hops,
+                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
+                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
+                    Mesh.PktRx.AlienInfo.State.Reason,
+                    Mesh.PktRx.AlienInfo.State.Location,
+                    Mesh.PktRx.AlienInfo.State.Emotion,
+                    RSSI
+                    );
 #endif
         } // Pkt Ok
     } while(Radio.Valets.InRx);

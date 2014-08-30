@@ -15,6 +15,7 @@
 #include "adc15x.h"
 
 #include "mesh_lvl.h"
+#include "RxTable.h"
 #include "console.h"
 #include "emotions.h"
 #include <cstdlib>
@@ -234,6 +235,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 #if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
+	RxTable.PTable->Print();
     //mist logic
     //если я не туман, и если я локация
 
@@ -293,7 +295,6 @@ void App_t::OnRxTableReady() {
 void App_t::Init() {
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
-    Uart.Printf("ID=%u\r\n", ID);
 #ifdef MIST_SUPPORT_CHIBI
     mist_msec_ctr=-1;
 #endif
