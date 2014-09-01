@@ -277,11 +277,11 @@ uint8_t App_t::ISetID(uint32_t NewID) {
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
     if(rslt == OK) {
         ID = NewID;
-        Uart.Printf("New ID: %u\r", ID);
+        Uart.Printf("\r\nNew ID: %u", ID);
         return OK;
     }
     else {
-        Uart.Printf("EE error: %u\r", rslt);
+        Uart.Printf("\r\nEE error: %u", rslt);
         return FAILURE;
     }
 }
