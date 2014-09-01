@@ -21,6 +21,8 @@
 #include "mesh_lvl.h"
 #include "RxTable.h"
 
+#include "power_led.h"
+
 #if 1 // ============================ Timers ===================================
 void TmrUartRxCallback(void *p) {
     chSysLockFromIsr();
@@ -55,8 +57,10 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Led.Init();
+//    Led.Init();
     PillMgr.Init();
+    PowerLed.Init();
+    PowerLed.Gleam();
 
     App.Init();
     App.PThd = chThdSelf();
@@ -69,7 +73,7 @@ int main(void) {
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
     Beeper.Init();
-    Beeper.Beep(BeepBeep);
+//    Beeper.Beep(BeepBeep);
 
     // Timers
     chSysLock();
