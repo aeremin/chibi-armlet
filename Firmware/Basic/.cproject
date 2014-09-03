@@ -90,9 +90,9 @@
 									<listOptionValue builtIn="false" value="../../Common/os/ports/common/ARMCMx"/>
 									<listOptionValue builtIn="false" value="../../Common/os/hal/platforms/STM32"/>
 									<listOptionValue builtIn="false" value="../../Radio"/>
-									<listOptionValue builtIn="false" value="../../../../../ArmletGit/Armlet_fw/Mesh_lvl/"/>
-									<listOptionValue builtIn="false" value="../../../../../ArmletGit/Armlet_fw/Mesh_lvl/inc/"/>
-									<listOptionValue builtIn="false" value="../../../../../ArmletGit/Armlet_fw/SharedAtlLogic"/>
+									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/Mesh_lvl/"/>
+									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/Mesh_lvl/inc/"/>
+									<listOptionValue builtIn="false" value="../../../../ArmletGit/Armlet_fw/SharedAtlLogic"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1368711610" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
