@@ -67,7 +67,6 @@ int main(void) {
 
     Radio.Init();
     Mesh.Init();
-
 //     Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
