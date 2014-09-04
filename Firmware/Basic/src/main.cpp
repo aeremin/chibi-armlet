@@ -20,6 +20,7 @@
 #include "evt_mask.h"
 #include "mesh_lvl.h"
 #include "RxTable.h"
+#include "led_rgb.h"
 
 #include "power_led.h"
 
@@ -59,8 +60,8 @@ int main(void) {
     Uart.Init(115200);
 //    Led.Init();
     PillMgr.Init();
-    PowerLed.Init();
-    PowerLed.Gleam();
+//    PowerLed.Init();
+//    PowerLed.Gleam();
 
     App.Init();
     App.PThd = chThdSelf();
@@ -72,7 +73,10 @@ int main(void) {
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
     Beeper.Init();
-//    Beeper.Beep(BeepBeep);
+    Beeper.Beep(BeepBeep);
+
+    Led.Init();
+    Led.StartSequence(LedBatteryDischarged);
 
     // Timers
     chSysLock();

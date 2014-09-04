@@ -34,30 +34,31 @@ const LedChnl_t
 // ==== LedRGB itself ====
 class LedRGB_t {
 private:
-    const LedChunk_t *IPFirstChunk;
+    const LedChunk_t *IPStartChunk;
     VirtualTimer ITmr;
-
+    Color_t ICurrColor;
 public:
     void Init();
     void SetColor(Color_t AColor) {
         R.Set(AColor.Red);
         G.Set(AColor.Green);
         B.Set(AColor.Blue);
+        ICurrColor = AColor;
     }
-    void StartBlink(const LedChunk_t *PLedChunk) {
+    void StartSequence(const LedChunk_t *PLedChunk) {
         chSysLock();
-        IPFirstChunk = PLedChunk; // Save first chunk
-        IStartBlinkI(PLedChunk);
+        IPStartChunk = PLedChunk; // Save first chunk
+        IStartSequenceI(PLedChunk);
         chSysUnlock();
     }
-    void StopBlink() {
+    void Stop() {
         chSysLock();
         if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
         SetColor(clBlack);
         chSysUnlock();
     }
     // Inner use
-    void IStartBlinkI(const LedChunk_t *PLedChunk);
+    void IStartSequenceI(const LedChunk_t *PLedChunk);
 };
 
 extern LedRGB_t Led;

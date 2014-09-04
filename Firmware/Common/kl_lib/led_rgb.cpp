@@ -12,36 +12,55 @@ LedRGB_t Led;
 // Timer callback
 static void LedTmrCallback(void *p) {
     chSysLockFromIsr();
-    Led.IStartBlinkI((const LedChunk_t*)p);
+    Led.IStartSequenceI((const LedChunk_t*)p);
     chSysUnlockFromIsr();
 }
-
 
 void LedRGB_t::Init() {
     R.Init();
     G.Init();
     B.Init();
     // Initial value
-    SetColor(clGreen);
+    SetColor(clBlack);
 }
 
-void LedRGB_t::IStartBlinkI(const LedChunk_t *PLedChunk) {
+void LedRGB_t::IStartSequenceI(const LedChunk_t *PLedChunk) {
     // Reset timer
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
-    if(PLedChunk == nullptr) {
-        SetColor(clBlack);
-        return;
-    }
-    // Process chunk
-    SetColor(PLedChunk->Color);
-    // Proceed sequence, stop it or restart
-    const LedChunk_t *PCh = nullptr;
-    switch(PLedChunk->ChunkSort) {
-        case ckNormal: PCh = PLedChunk + 1; break;
-        case ckStop:                        break;
-        case ckJump: PCh = IPFirstChunk;  break;
-    }
-    chVTSetI(&ITmr, MS2ST(PLedChunk->Time_ms), LedTmrCallback, (void*)PCh); // Start timer
+    // Process the sequence
+    while(PLedChunk != nullptr) {
+        switch(PLedChunk->ChunkSort) {
+            case csSetColor:
+                if(PLedChunk->Time_ms == 0) {   // If smooth time is zero,
+                    SetColor(PLedChunk->Color); // set color now,
+                    PLedChunk++;                // and goto next chunk
+                }
+                else {
+                    ICurrColor.Adjust(&PLedChunk->Color);
+                    SetColor(ICurrColor);
+                    // Which color is most different?
+                    uint8_t ChValue = ICurrColor.MostDifferentChannel(&PLedChunk->Color);
+                    // Check if equal
+                    if(ChValue == 0) PLedChunk++; // Adjustment completed
+                    else { // Calculate time to next adjustment
+
+
+                    }
+                }
+                break;
+
+            case csWait: // Start timer, pointing to next chunk
+                chVTSetI(&ITmr, MS2ST(PLedChunk->Time_ms), LedTmrCallback, (void*)(PLedChunk+1));
+                return;
+                break;
+
+            case csJump:
+                PLedChunk = IPStartChunk + PLedChunk->ChunkToJumpTo;
+                break;
+
+            case csEnd: return; break;
+        } // switch
+    } // while
 }
 
 

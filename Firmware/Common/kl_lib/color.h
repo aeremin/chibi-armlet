@@ -8,6 +8,9 @@
 #ifndef COLOR_H_
 #define COLOR_H_
 
+#include "inttypes.h"
+#include "stdbool.h"
+
 struct Color_t {
     uint8_t Red, Green, Blue;
     bool operator == (const Color_t AColor) { return ((Red == AColor.Red) and (Green == AColor.Green) and (Blue == AColor.Blue)); }
@@ -23,6 +26,19 @@ struct Color_t {
     }
     void Set(uint8_t R, uint8_t G, uint8_t B) { Red = R; Green = G; Blue = B; }
     void Get(uint8_t *PR, uint8_t *PG, uint8_t *PB) { *PR = Red; *PG = Green; *PB = Blue; }
+    // Return channel value, which differs most from PColor
+    uint8_t MostDifferentChannel(const Color_t *PColor) {
+        uint8_t rslt = Red;
+        uint8_t DifHi = (Red > PColor->Red)? Red - PColor->Red : PColor->Red - Red;
+        uint8_t DifLo = (Green > PColor->Green)? Green - PColor->Green : PColor->Green - Green;
+        if(DifLo > DifHi) {
+            DifHi = DifLo;
+            rslt = Green;
+        }
+        DifLo = (Blue > PColor->Blue)? Blue - PColor->Blue : PColor->Blue - Blue;
+        if(DifLo > DifHi) rslt = Blue;
+        return rslt;
+    }
 };
 
 // ==== Colors ====
@@ -35,7 +51,7 @@ struct Color_t {
 #define clCyan      ((Color_t){0, 255, 255})
 #define clWhite     ((Color_t){255, 255, 255})
 
-#if 1 // ============================ Color table ==============================
+#if 0 // ============================ Color table ==============================
 const Color_t ColorTable[] = {
         {255,0,0},
         {255,24,0},

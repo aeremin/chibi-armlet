@@ -10,41 +10,39 @@
 
 #include "color.h"
 
-enum ChunkSort_t {ckNormal=0, ckEnd=1, ckJump=2};
-/*
- * ckNormal => after this, goto next chunk
- * ckStop   => after this, stop and off
- * ckRepeat => after this, goto begin
- */
-
 #if 1 // ============================ LED RGB ==================================
 // ==== Led Chunk ====
+enum LedChunkSort_t {csSetColor, csWait, csJump, csEnd};
 struct LedChunk_t {
-    ChunkSort_t ChunkSort;
-    Color_t Color;
+    LedChunkSort_t ChunkSort;
     union {
-        uint16_t Time_ms;
-        int16_t ChunkToJumpTo;
+        uint32_t Time_ms;
+        uint32_t ChunkToJumpTo;
     };
+    Color_t Color;
 };
 #define LED_CHUNK_SZ   sizeof(LedChunk_t)
 
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
-        {ckEnd, clRed, 180},
+//        {csSetColor, 0, clRed}, // Set color immediately
+//        {csWait, 270},
+        {csSetColor, 1800, clGreen},
+        {csWait, 270},
+        {csSetColor, 900, clBlack},
+        {csWait, 270},
+        {csJump, 0}
+        //{csSetColor, 0, clBlack},
+        //{csEnd}
 };
 
 // Bad ID
 const LedChunk_t LedBadID[] = {
-        {ckEnd, {99, 0, 0},  99},
+        {csSetColor, 0, clRed}, // Set color immediately
+        {csWait, 99},
+        {csSetColor, 0, clBlack},
+        {csEnd}
 };
-
-const LedChunk_t LedLightUpAndGlow[] = {
-        {ckNormal, clGreen, 999},
-        {ckNormal, {0, 7, 0}, 999},
-        {ckJump, clBlack, 0},
-};
-
 
 #endif
 
@@ -57,6 +55,12 @@ const LedChunk_t LedLightUpAndGlow[] = {
     ChunkKind_t ChunkKind;
   };
 */
+enum ChunkSort_t {ckNormal, ckEnd, ckJump};
+/*
+ * ckNormal => after this, goto next chunk
+ * ckStop   => after this, stop and off
+ * ckRepeat => after this, goto begin
+ */
 struct BeepChunk_t {
     uint8_t Volume;   // 0 means silence, 10 means top
     uint16_t Freq_Hz;

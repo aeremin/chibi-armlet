@@ -39,7 +39,7 @@ void Beeper_t::BeepI(const BeepChunk_t *PSequence) {
     const BeepChunk_t *PCh = nullptr;
     switch(PSequence->ChunkSort) {
         case ckNormal: PCh = PSequence + 1; break;
-        case ckStop:                        break;
+        case ckEnd:                        break;
         case ckJump: PCh = IPFirstChunk;  break;
     }
     // Start timer
