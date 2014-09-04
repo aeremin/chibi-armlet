@@ -9,24 +9,57 @@
 #define LED_RGB_H_
 
 #include "hal.h"
+#include "kl_lib_L15x.h"
+#include "color.h"
+#include "sequences.h"
 
-// LED's ports, pins and Tmr
-struct KeyData_t {
+// ==== LED's ports, pins and Tmr ====
+struct LedChnl_t {
     GPIO_TypeDef *PGpio;
     uint16_t Pin;
-};
-const KeyData_t KeyData[] = {
-        {GPIOD, 0},  // A
-        {GPIOD, 1},  // B
-        {GPIOD, 3},  // C
-        {GPIOD, 9},  // X
-        {GPIOD, 10}, // Y
-        {GPIOD, 11}, // Z
-        {GPIOD, 4},  // L
-        {GPIOD, 7},  // E
-        {GPIOD, 8},  // R
+    TIM_TypeDef *PTimer;
+    uint32_t TmrChnl;
+    void Set(const uint8_t AValue) const { *(uint32_t*)(&PTimer->CCR1 + TmrChnl - 1) = AValue; }    // CCR[N] = AValue
+    void Init() const;
 };
 
+// Port, pin and timer settings. Edit this properly.
+#define LED_TOP_VALUE       255
+#define LED_INVERTED_PWM    FALSE
+const LedChnl_t
+    R = {GPIOB, 0, TIM3, 4},
+    G = {GPIOB, 1, TIM3, 3},
+    B = {GPIOB, 5, TIM3, 2};
 
+// ==== LedRGB itself ====
+class LedRGB_t {
+private:
+    const LedChunk_t *IPFirstChunk;
+    VirtualTimer ITmr;
+
+public:
+    void Init();
+    void SetColor(Color_t AColor) {
+        R.Set(AColor.Red);
+        G.Set(AColor.Green);
+        B.Set(AColor.Blue);
+    }
+    void StartBlink(const LedChunk_t *PLedChunk) {
+        chSysLock();
+        IPFirstChunk = PLedChunk; // Save first chunk
+        IStartBlinkI(PLedChunk);
+        chSysUnlock();
+    }
+    void StopBlink() {
+        chSysLock();
+        if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
+        SetColor(clBlack);
+        chSysUnlock();
+    }
+    // Inner use
+    void IStartBlinkI(const LedChunk_t *PLedChunk);
+};
+
+extern LedRGB_t Led;
 
 #endif /* LED_RGB_H_ */

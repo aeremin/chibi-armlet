@@ -8,8 +8,9 @@
 #ifndef SEQUENCES_H_
 #define SEQUENCES_H_
 
-#include "peripheral.h"
+#include "color.h"
 
+enum ChunkSort_t {ckNormal=0, ckEnd=1, ckJump=2};
 /*
  * ckNormal => after this, goto next chunk
  * ckStop   => after this, stop and off
@@ -17,68 +18,35 @@
  */
 
 #if 1 // ============================ LED RGB ==================================
-// Pill
-const LedChunk_t LedPillCureOk[] = {
-        {clBlue,  540, ckStop},
+// ==== Led Chunk ====
+struct LedChunk_t {
+    ChunkSort_t ChunkSort;
+    Color_t Color;
+    union {
+        uint16_t Time_ms;
+        int16_t ChunkToJumpTo;
+    };
 };
-const LedChunk_t LedPillBad[] = {
-        {clRed,  540, ckStop},
-};
-
-const LedChunk_t LedPillIdSet[] = {
-        {clCyan,  999, ckStop},
-};
-const LedChunk_t LedPillIdNotSet[] = {
-        {clYellow,  999, ckStop},
-};
-const LedChunk_t LedPillSetupOk[] = {
-        {clGreen,  999, ckStop},
-};
+#define LED_CHUNK_SZ   sizeof(LedChunk_t)
 
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
-        {clRed,  180, ckStop},
+        {ckEnd, clRed, 180},
 };
 
 // Bad ID
 const LedChunk_t LedBadID[] = {
-        {{99, 0, 0},  99, ckStop},
+        {ckEnd, {99, 0, 0},  99},
 };
 
-// Detector blink
-const LedChunk_t LedClick[] = {
-        {{255, 18, 0},  11, ckStop},
+const LedChunk_t LedLightUpAndGlow[] = {
+        {ckNormal, clGreen, 999},
+        {ckNormal, {0, 7, 0}, 999},
+        {ckJump, clBlack, 0},
 };
-#define CLR_NO_DAMAGE   (Color_t){0, 1, 0}
 
-// Health states
-const LedChunk_t LedRedFast[] = {
-        {clRed,   36, ckNormal},
-        {clBlack, 36, ckRepeat},
-};
-const LedChunk_t LedRedSlow[] = {
-        {clRed,   36, ckNormal},
-        {clBlack, 1008, ckRepeat},
-};
-const LedChunk_t LedYellow[] = {
-        {clYellow, 36, ckNormal},
-        {clBlack,  3006, ckRepeat},
-};
-const LedChunk_t LedGreen[] = {
-        {clGreen, 36, ckNormal},
-        {clBlack, 3006, ckRepeat},
-};
 
 #endif
-
-// Snd coeffs
-#define DMG_SND_MAX     1000
-#define DMG_SND_BCKGND  40
-#define DMG_MAX         50      // Maximum radiation value
-// Just for example
-#define DMG_SND_MID     220
-#define DMG_SND_HEAVY   700
-
 
 #if 1 // ============================= Beep ====================================
 /* Every sequence is an array of BeepCmd_t:
@@ -89,39 +57,47 @@ const LedChunk_t LedGreen[] = {
     ChunkKind_t ChunkKind;
   };
 */
+struct BeepChunk_t {
+    uint8_t Volume;   // 0 means silence, 10 means top
+    uint16_t Freq_Hz;
+    uint16_t Time_ms;
+    ChunkSort_t ChunkSort;
+};
+#define BEEP_CHUNK_SZ   sizeof(BeepChunk_t)
+
 #define BEEP_VOLUME     2   // set to 10 in production, and to 1 when someone sleeps near
 
 const BeepChunk_t BeepBeep[] = {
         {BEEP_VOLUME, 1975, 54, ckNormal},
         {0, 0, 54, ckNormal},
-        {BEEP_VOLUME, 1975, 54, ckStop},
+        {BEEP_VOLUME, 1975, 54, ckEnd},
 };
 
 const BeepChunk_t BeepShort[] = {
-        {BEEP_VOLUME, 1975, 54, ckStop},
+        {BEEP_VOLUME, 1975, 54, ckEnd},
 };
 
 // Pill
 const BeepChunk_t BeepPillOk[] = {
         {BEEP_VOLUME, 1975, 180, ckNormal},
         {BEEP_VOLUME, 2489, 180, ckNormal},
-        {BEEP_VOLUME, 2960, 180, ckStop},
+        {BEEP_VOLUME, 2960, 180, ckEnd},
 };
 
 const BeepChunk_t BeepPillBad[] = {
         {BEEP_VOLUME, 2794, 180, ckNormal},
         {BEEP_VOLUME, 2349, 180, ckNormal},
-        {BEEP_VOLUME, 1975, 180, ckStop},
+        {BEEP_VOLUME, 1975, 180, ckEnd},
 };
 
 // Health states
 const BeepChunk_t BeepDeath[] = {
         {BEEP_VOLUME, 1975, 2000, ckNormal},
-        {0, 0, 10000, ckRepeat},
+        {0, 0, 10000, ckJump},
 };
 const BeepChunk_t BeepRedFast[] = {
         {BEEP_VOLUME, 1975, 54, ckNormal},
-        {0, 0, 54, ckRepeat},
+        {0, 0, 54, ckJump},
 };
 #endif
 
