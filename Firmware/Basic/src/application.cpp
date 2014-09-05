@@ -200,12 +200,19 @@ void App_t::OnRxTableReady() {
 
 
     bool is_tuman_incoming=false;
+    bool is_masterka_incoming=false;
     for(uint32_t i=0;i<RxTable.PTable->Size;i++)
     {
         if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
             is_tuman_incoming=true;
+        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_HUB)
+            is_masterka_incoming=true;
     }
     //логика люстр, слушающих туман
+    //на мастеркетуманнепашет!
+    if(is_masterka_incoming)
+        is_tuman_incoming=false;
+
     if(App.ID>=LOCATION_IN_GAME_ID_START)
         if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
 {
@@ -214,6 +221,8 @@ void App_t::OnRxTableReady() {
     //если туман активен - тикать!
     if(App.mist_msec_ctr>0)
         App.mist_msec_ctr+=timeaddmillisec;
+    if(is_masterka_incoming)//тикнуть и всё!
+        App.mist_msec_ctr+=(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000;
     //если давно не приходил
     if(App.mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
     {
