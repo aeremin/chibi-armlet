@@ -31,12 +31,30 @@ const LedChnl_t
     G = {GPIOB, 1, TIM3, 3},
     B = {GPIOB, 5, TIM3, 2};
 
+// ==== Smoothening ====
+/* TimeToWaitBeforeNextAdjustment = SmoothVar / (N+4) + 1, where N - current LED brightness.
+ * SmoothVar depends on DesiredSetupTime and CurrentBrightness (==N):
+ * SmoothVar = (DesiredSetupTime - LED_TOP_VALUE) * 1000 / HarmonicNumber[N]
+ * Initially, SmoothVar==-1 to demonstrate necessity of recalculation */
+extern const uint16_t LedHarmonicNumber[]; // Here, Harmonic numbers are sums of 1000/(N+4).
+
 // ==== LedRGB itself ====
 class LedRGB_t {
 private:
     const LedChunk_t *IPStartChunk;
+    int32_t SmoothVar;
+    uint32_t ICalcDelay(int32_t CurrentBrightness) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
+    void ICalcSmoothVar(int32_t CurrentBrightness, int32_t DesiredSetupTime) {
+        SmoothVar = (DesiredSetupTime < LED_TOP_VALUE)? 0 : ((DesiredSetupTime - LED_TOP_VALUE) * 1000) / LedHarmonicNumber[CurrentBrightness];
+    }
     VirtualTimer ITmr;
     Color_t ICurrColor;
+    uint8_t *PMostDifferentChannel; // Pointer to one of ICurrentColor channels
+    void ISetCurrent() {
+        R.Set(ICurrColor.Red);
+        G.Set(ICurrColor.Green);
+        B.Set(ICurrColor.Blue);
+    }
 public:
     void Init();
     void SetColor(Color_t AColor) {
@@ -47,7 +65,8 @@ public:
     }
     void StartSequence(const LedChunk_t *PLedChunk) {
         chSysLock();
-        IPStartChunk = PLedChunk; // Save first chunk
+        IPStartChunk = PLedChunk;   // Save first chunk
+        SmoothVar = -1;             // Demonstrate necessity of recalculation
         IStartSequenceI(PLedChunk);
         chSysUnlock();
     }

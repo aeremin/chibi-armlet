@@ -27,17 +27,20 @@ struct Color_t {
     void Set(uint8_t R, uint8_t G, uint8_t B) { Red = R; Green = G; Blue = B; }
     void Get(uint8_t *PR, uint8_t *PG, uint8_t *PB) { *PR = Red; *PG = Green; *PB = Blue; }
     // Return channel value, which differs most from PColor
-    uint8_t MostDifferentChannel(const Color_t *PColor) {
-        uint8_t rslt = Red;
+    void PMostDifferentChannel(const Color_t *PColor, uint8_t *PChannel, int32_t *PDiff) {
+        PChannel = &Red;
         uint8_t DifHi = (Red > PColor->Red)? Red - PColor->Red : PColor->Red - Red;
         uint8_t DifLo = (Green > PColor->Green)? Green - PColor->Green : PColor->Green - Green;
         if(DifLo > DifHi) {
             DifHi = DifLo;
-            rslt = Green;
+            PChannel = &Green;
         }
         DifLo = (Blue > PColor->Blue)? Blue - PColor->Blue : PColor->Blue - Blue;
-        if(DifLo > DifHi) rslt = Blue;
-        return rslt;
+        if(DifLo > DifHi) {
+            PChannel = &Blue;
+            *PDiff = DifLo;
+        }
+        else *PDiff = DifHi;
     }
 };
 
