@@ -24,14 +24,6 @@ App_t App;
 // Timers callbacks prototypes
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
 
-// Table of colors depending on type
-#define DEVICETYPE_BLINK_T_MS   999
-const LedChunk_t TypeColorTbl[] = {
-        {clCyan,    DEVICETYPE_BLINK_T_MS, ckStop}, // dtEmpGrenade
-        {clWhite,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPelengator
-        {clBlack,   DEVICETYPE_BLINK_T_MS, ckStop}, // dtPillFlasher
-};
-
 #if 1 // ================================ Pill =================================
 void App_t::OnPillConnect() {
     if(PillMgr.Read(PILL_I2C_ADDR, PILL_START_ADDR, &Pill, sizeof(Pill_t)) != OK) return;
