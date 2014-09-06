@@ -66,14 +66,14 @@ int main(void) {
     App.Init();
     App.PThd = chThdSelf();
 
-    Radio.Init();
-    Mesh.Init();
+//    Radio.Init();
+//    Mesh.Init();
 //     Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
     Beeper.Init();
-    Beeper.Beep(BeepBeep);
+//    Beeper.Beep(BeepBeep);
 
     Led.Init();
     Led.StartSequence(LedBatteryDischarged);

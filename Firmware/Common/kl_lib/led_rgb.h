@@ -31,12 +31,19 @@ const LedChnl_t
     G = {GPIOB, 1, TIM3, 3},
     B = {GPIOB, 5, TIM3, 2};
 
+// TimeToWaitBeforeNextAdjustment = SmoothVar / (N+4) + 1, where N - current LED brightness.
 // ==== LedRGB itself ====
 class LedRGB_t {
 private:
     const LedChunk_t *IPStartChunk;
+    uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
     VirtualTimer ITmr;
     Color_t ICurrColor;
+    void ISetCurrent() {
+        R.Set(ICurrColor.Red);
+        G.Set(ICurrColor.Green);
+        B.Set(ICurrColor.Blue);
+    }
 public:
     void Init();
     void SetColor(Color_t AColor) {
@@ -47,7 +54,7 @@ public:
     }
     void StartSequence(const LedChunk_t *PLedChunk) {
         chSysLock();
-        IPStartChunk = PLedChunk; // Save first chunk
+        IPStartChunk = PLedChunk;   // Save first chunk
         IStartSequenceI(PLedChunk);
         chSysUnlock();
     }

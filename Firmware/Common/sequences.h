@@ -16,6 +16,7 @@ enum LedChunkSort_t {csSetColor, csWait, csJump, csEnd};
 struct LedChunk_t {
     LedChunkSort_t ChunkSort;
     union {
+        uint32_t SmoothVar;       // 0 means immediately. Up to several thounds
         uint32_t Time_ms;
         uint32_t ChunkToJumpTo;
     };
@@ -27,10 +28,10 @@ struct LedChunk_t {
 const LedChunk_t LedBatteryDischarged[] = {
 //        {csSetColor, 0, clRed}, // Set color immediately
 //        {csWait, 270},
-        {csSetColor, 1800, clGreen},
-        {csWait, 270},
-        {csSetColor, 900, clBlack},
-        {csWait, 270},
+//        {csSetColor, 900, clBlue},
+        {csSetColor, 360, clGreen},
+        {csSetColor, 180, clRed},
+//        {csSetColor, 1800, clBlack},
         {csJump, 0}
         //{csSetColor, 0, clBlack},
         //{csEnd}
