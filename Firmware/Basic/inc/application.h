@@ -91,6 +91,8 @@ public:
     void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
+    void CallBlueLightStop(){};
+    void CallBlueLightStart(){};
 #ifdef MIST_SUPPORT_CHIBI
     int32_t mist_msec_ctr; //-1 - not active, else - sec from begining
     uint16_t reason_saved;

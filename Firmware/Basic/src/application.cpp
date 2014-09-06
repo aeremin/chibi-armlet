@@ -198,7 +198,6 @@ void App_t::OnRxTableReady() {
     send_info.Reason=(uint16_t)0;
     send_info.Emotion = 0;  // Lustra has no emotion
 
-
     bool is_tuman_incoming=false;
     bool is_masterka_incoming=false;
     for(uint32_t i=0;i<RxTable.PTable->Size;i++)
@@ -229,6 +228,7 @@ void App_t::OnRxTableReady() {
         App.mist_msec_ctr=-1;
         //вернуть резон
         send_info.Reason=App.reason_saved;
+        CallBlueLightStop();
     }
     //если пришел туман - включить. если уже не было включено - сохранить старый резон
 
@@ -236,6 +236,7 @@ void App_t::OnRxTableReady() {
     {
         if( App.mist_msec_ctr==-1)//save old reason
         {
+            CallBlueLightStart();
               App.reason_saved=send_info.Reason;
         }
         App.mist_msec_ctr=0;
