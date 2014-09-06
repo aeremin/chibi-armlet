@@ -205,7 +205,7 @@ void App_t::OnRxTableReady() {
     {
         if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
             is_tuman_incoming=true;
-        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_HUB)
+        if(RxTable.PTable->Row[i].State.Reason<=(uint16_t)LOCATION_IN_GAME_ID_START)
             is_masterka_incoming=true;
     }
     //логика люстр, слушающих туман
@@ -245,6 +245,7 @@ void App_t::OnRxTableReady() {
         //если я игротехник страха с mscource, я его излучаю
         if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
         {
+            Uart.Printf("\rSETREASONMIST");
             send_info.Reason=(uint16_t)REASON_MSOURCE;
 
         }
