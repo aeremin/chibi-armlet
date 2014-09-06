@@ -27,10 +27,10 @@ struct LedChunk_t {
 const LedChunk_t LedBatteryDischarged[] = {
 //        {csSetColor, 0, clRed}, // Set color immediately
 //        {csWait, 270},
-        {csSetColor, 1800, clGreen},
-//        {csWait, 270},
-        {csSetColor, 900, clBlue},
-//        {csWait, 270},
+//        {csSetColor, 900, clBlue},
+        {csSetColor, 3600, clGreen},
+        {csSetColor, 3600, clRed},
+//        {csSetColor, 1800, clBlack},
         {csJump, 0}
         //{csSetColor, 0, clBlack},
         //{csEnd}

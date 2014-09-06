@@ -185,7 +185,7 @@ void App_t::OnRxTableReady() {
 	    uint16_t tmpID=0;
 	    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
 	        tmpID = RxTable.PTable->Row[i].ID;
-	        if( (tmpID >= LOCATION_ID_START && tmpID <= FOREST_ID_END) ||
+	        if( (tmpID >= LOCATION_ID_START && tmpID <= FORESTA_ID_END) ||
 	            (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) )    {
 	            if(RxTable.PTable->Row[i].Level > SignalPwr) {
 	                SignalPwr = RxTable.PTable->Row[i].Level;
@@ -213,7 +213,7 @@ void App_t::OnRxTableReady() {
     if(is_masterka_incoming)
         is_tuman_incoming=false;
 
-    if(App.ID>=LOCATION_IN_GAME_ID_START)
+    if(App.ID>=LOCATION_ID_START)
         if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
 {
     //mesh l

@@ -57,6 +57,7 @@ typedef void (*ftVoidVoid)(void);
 // Simple pseudofunctions
 #define MIN(a, b)   ( ((a)<(b))? (a) : (b) )
 #define MAX(a, b)   ( ((a)>(b))? (a) : (b) )
+#define ABS(a)      ( ((a) < 0)? -(a) : (a) )
 #define TRIM_VALUE(v, Max)  { if((v) > (Max)) (v) = (Max); }
 #define IS_LIKE(v, precise, deviation)  (((precise - deviation) < v) and (v < (precise + deviation)))
 

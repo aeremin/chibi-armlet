@@ -36,7 +36,7 @@ const LedChnl_t
  * SmoothVar depends on DesiredSetupTime and CurrentBrightness (==N):
  * SmoothVar = (DesiredSetupTime - LED_TOP_VALUE) * 1000 / HarmonicNumber[N]
  * Initially, SmoothVar==-1 to demonstrate necessity of recalculation */
-extern const uint16_t LedHarmonicNumber[]; // Here, Harmonic numbers are sums of 1000/(N+4).
+extern const int16_t LedHarmonicNumber[]; // Here, Harmonic numbers are sums of 1000/(N+4).
 
 // ==== LedRGB itself ====
 class LedRGB_t {
@@ -44,9 +44,7 @@ private:
     const LedChunk_t *IPStartChunk;
     int32_t SmoothVar;
     uint32_t ICalcDelay(int32_t CurrentBrightness) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
-    void ICalcSmoothVar(int32_t CurrentBrightness, int32_t DesiredSetupTime) {
-        SmoothVar = (DesiredSetupTime < LED_TOP_VALUE)? 0 : ((DesiredSetupTime - LED_TOP_VALUE) * 1000) / LedHarmonicNumber[CurrentBrightness];
-    }
+    void ICalcSmoothVar(int32_t DesiredSetupTime, Color_t *PDesiredColor);
     VirtualTimer ITmr;
     Color_t ICurrColor;
     uint8_t *PMostDifferentChannel; // Pointer to one of ICurrentColor channels

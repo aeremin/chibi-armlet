@@ -26,6 +26,7 @@ void LedRGB_t::Init() {
 }
 
 void LedRGB_t::IStartSequenceI(const LedChunk_t *PLedChunk) {
+    static uint32_t t=0;
     // Reset timer
     if(chVTIsArmedI(&ITmr)) chVTResetI(&ITmr);
     // Process the sequence
@@ -46,19 +47,24 @@ void LedRGB_t::IStartSequenceI(const LedChunk_t *PLedChunk) {
                         if(ICurrColor == PLedChunk->Color) {
                             SmoothVar = -1; // Reset SmoothVar before exit
                             PLedChunk++;
+                            uint32_t d = chTimeNow() - t;
+                            Uart.Printf("\rt=%u", d);
                         }
                         else { // Not completed
                             // Recalculate SmoothVar if needed
                             if(SmoothVar == -1) {
-                                // Which color is most different?
-                                int32_t Diff=0;
-                                ICurrColor.PMostDifferentChannel(&PLedChunk->Color, PMostDifferentChannel, &Diff);
-                                ICalcSmoothVar(Diff, PLedChunk->Time_ms);
-                                Uart.Printf("\rClr: %u %u %u", ICurrColor.Red, ICurrColor.Green, ICurrColor.Blue);
-                                Uart.Printf("\rDifCh=%u; SmoothVar=%d", *PMostDifferentChannel, SmoothVar);
+                                t=chTimeNow();
+                                ICalcSmoothVar(PLedChunk->Time_ms, (Color_t*)&PLedChunk->Color);
                             }
                             // Calculate time to next adjustment
-                            uint32_t Delay = ICalcDelay(*PMostDifferentChannel);
+                            uint32_t DelayR = (ICurrColor.Red   == PLedChunk->Color.Red  )? 0 : ICalcDelay(ICurrColor.Red);
+                            uint32_t DelayG = (ICurrColor.Green == PLedChunk->Color.Green)? 0 : ICalcDelay(ICurrColor.Green);
+                            uint32_t DelayB = (ICurrColor.Blue  == PLedChunk->Color.Blue )? 0 : ICalcDelay(ICurrColor.Blue);
+                            uint32_t Delay = DelayR;
+                            if(DelayG > Delay) Delay = DelayG;
+                            if(DelayB > Delay) Delay = DelayB;
+//                            uint32_t Delay = ICalcDelay(*PMostDifferentChannel);
+                            Uart.Printf(" %u", Delay);
                             chVTSetI(&ITmr, MS2ST(Delay), LedTmrCallback, (void*)PLedChunk);
                             return;
                         } // Not completed
@@ -79,6 +85,39 @@ void LedRGB_t::IStartSequenceI(const LedChunk_t *PLedChunk) {
             case csEnd: return; break;
         } // switch
     } // while
+}
+
+void LedRGB_t::ICalcSmoothVar(int32_t DesiredSetupTime, Color_t *PDesiredColor) {
+    Uart.Printf("\rClr: %u %u %u", ICurrColor.Red, ICurrColor.Green, ICurrColor.Blue);
+    int32_t StartBrt, StopBrt;
+    // Which color is most different?
+    uint8_t DifRed   = (ICurrColor.Red   > PDesiredColor->Red  )? ICurrColor.Red   - PDesiredColor->Red   : PDesiredColor->Red   - ICurrColor.Red;
+    uint8_t DifGreen = (ICurrColor.Green > PDesiredColor->Green)? ICurrColor.Green - PDesiredColor->Green : PDesiredColor->Green - ICurrColor.Green;
+    uint8_t DifBlue  = (ICurrColor.Blue  > PDesiredColor->Blue )? ICurrColor.Blue  - PDesiredColor->Blue  : PDesiredColor->Blue  - ICurrColor.Blue;
+    Uart.Printf("\rDR=%u; DG=%u; DB=%u", DifRed, DifGreen, DifBlue);
+    if(DifRed >= DifGreen and DifRed >= DifBlue) {
+        PMostDifferentChannel = &ICurrColor.Red;
+        StartBrt = ICurrColor.Red;
+        StopBrt  = PDesiredColor->Red;
+    }
+    else if(DifGreen >= DifRed and DifGreen >= DifBlue) {
+        PMostDifferentChannel = &ICurrColor.Green;
+        StartBrt = ICurrColor.Green;
+        StopBrt  = PDesiredColor->Green;
+    }
+    else {
+        PMostDifferentChannel = &ICurrColor.Blue;
+        StartBrt = ICurrColor.Blue;
+        StopBrt  = PDesiredColor->Blue;
+    }
+    int32_t Diff = ABS(StartBrt - StopBrt);
+    if(DesiredSetupTime < Diff) SmoothVar = 0;
+    else {
+        int32_t SumDif = LedHarmonicNumber[StartBrt] - LedHarmonicNumber[StopBrt];
+        if(SumDif < 0) SumDif = -SumDif;
+        SmoothVar = ((DesiredSetupTime - Diff) * 1000) / SumDif;
+        Uart.Printf("\rS=%d; P=%d; Dif=%d; SumDif=%d; t=%u; SmoothVar=%d", StartBrt, StopBrt, Diff, SumDif, DesiredSetupTime, SmoothVar);
+    }
 }
 
 
@@ -130,7 +169,7 @@ void LedChnl_t::Init() const {
 #endif
 
 #if 1 // ========================= Harmonic numbers ============================
-const uint16_t LedHarmonicNumber[256] = {
+const int16_t LedHarmonicNumber[256] = {
         250, // 0
         450, // 1
         616, // 2
