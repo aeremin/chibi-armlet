@@ -27,7 +27,7 @@ struct LedChunk_t {
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
         {csSetColor, 0, clRed}, // Set color immediately
-        {csWait, 270},
+        {csWait, 99},
         {csSetColor, 0, clBlack},
         {csEnd}
 };
@@ -51,10 +51,17 @@ const LedChunk_t LedNobodyHere[] = {
         {csEnd}
 };
 
-// Bad ID
+// ID
+const LedChunk_t LedGoodID[] = {
+        {csSetColor, 0, clGreen},
+        {csWait, 504},
+        {csSetColor, 0, clBlack},
+        {csEnd}
+};
+
 const LedChunk_t LedBadID[] = {
         {csSetColor, 0, clRed}, // Set color immediately
-        {csWait, 99},
+        {csWait, 504},
         {csSetColor, 0, clBlack},
         {csEnd}
 };

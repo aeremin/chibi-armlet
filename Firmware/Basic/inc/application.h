@@ -50,8 +50,8 @@ enum DeviceType_t {
 // ==== mist support ====
 #define MIST_SUPPORT_CHIBI
 #ifdef MIST_SUPPORT_CHIBI
-//#define MIST_TRANSLATE_TIME_SEC 600
-#define MIST_TRANSLATE_TIME_SEC 30
+#define MIST_TRANSLATE_TIME_SEC 600
+//#define MIST_TRANSLATE_TIME_SEC 30    // DEBUG value
 #endif
 
 #if 1 // ==== Pill ====

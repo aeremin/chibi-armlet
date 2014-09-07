@@ -21,6 +21,7 @@
 #include "mesh_lvl.h"
 #include "RxTable.h"
 #include "led_rgb.h"
+#include "adc15x.h"
 
 #include "power_led.h"
 
@@ -68,10 +69,11 @@ int main(void) {
 
     Radio.Init();
     Mesh.Init();
-//     Battery measurement
-//    PinSetupAnalog(GPIOA, 0);
-//    Adc.InitHardware();
-//    Adc.PThreadToSignal = PThd;
+
+    // Battery measurement
+    PinSetupAnalog(GPIOA, 0);
+    Adc.InitHardware();
+    Adc.PThreadToSignal = chThdSelf();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
 
@@ -79,6 +81,7 @@ int main(void) {
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
     chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
+    chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
@@ -101,13 +104,13 @@ int main(void) {
         } // if EVTMSK_PILL_CHECK
 
         // ==== Measure battery ====
-//        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
-//        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
-//            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
-//            Uart.Printf("Adc=%u\r", AdcRslt);
-//            // Blink Red if discharged
-//            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartBlink(LedDischarged);
-//        }
+        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
+        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
+            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
+//            Uart.Printf("\rAdc=%u", AdcRslt);
+            // Blink Red if discharged
+            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartSequence(LedBatteryDischarged);
+        }
 
         // ==== Radio ====
         if(EvtMsk & EVTMSK_SENS_TABLE_READY) App.OnRxTableReady();
