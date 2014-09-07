@@ -36,7 +36,14 @@ const LedChunk_t LedBatteryDischarged[] = {
         //{csSetColor, 0, clBlack},
         //{csEnd}
 };
-
+//Tuman
+const LedChunk_t LedTumanBeg[] = {
+        {csSetColor, 180, clBlue},
+};
+const LedChunk_t LedTumanEnd[] = {
+        {csSetColor, 180, clBlack},
+        {csEnd}
+};
 // Bad ID
 const LedChunk_t LedBadID[] = {
         {csSetColor, 0, clRed}, // Set color immediately

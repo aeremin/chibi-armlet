@@ -20,6 +20,7 @@
 #include "emotions.h"
 #include <cstdlib>
 
+#include "led_rgb.h"
 App_t App;
 // Timers callbacks prototypes
 extern void TmrMeasurementCallback(void *p) __attribute__((unused));
@@ -179,7 +180,7 @@ void App_t::OnRxTableReady() {
 //#define MIST_ID_END 100
 #ifdef MIST_SUPPORT_CHIBI
 
-    send_info.Location=(uint16_t)0;
+	CurrInfo.Location=(uint16_t)0;
 	uint8_t SignalPwr = 0;
 	    uint8_t LocationID = 0;
 	    uint16_t tmpID=0;
@@ -193,10 +194,10 @@ void App_t::OnRxTableReady() {
 	            } // if Signal present
 	        } // if location correct
 	    }
-	    if(LocationID) send_info.Location = LocationID;
+	    if(LocationID) CurrInfo.Location = LocationID;
 
-    send_info.Reason=(uint16_t)0;
-    send_info.Emotion = 0;  // Lustra has no emotion
+	    CurrInfo.Reason=(uint16_t)0;
+	    CurrInfo.Emotion = 0;  // Lustra has no emotion
 
     bool is_tuman_incoming=false;
     bool is_masterka_incoming=false;
@@ -204,7 +205,7 @@ void App_t::OnRxTableReady() {
     {
         if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
             is_tuman_incoming=true;
-        if(RxTable.PTable->Row[i].State.Reason<=(uint16_t)LOCATION_IN_GAME_ID_START)
+        if(RxTable.PTable->Row[i].State.Reason<=(uint16_t)MASTER_ID_END && RxTable.PTable->Row[i].State.Reason>=MASTER_ID_START && RxTable.PTable->Row[i].State.Reason!=REASON_HUB)
             is_masterka_incoming=true;
     }
     //логика люстр, слушающих туман
@@ -227,7 +228,7 @@ void App_t::OnRxTableReady() {
     {
         App.mist_msec_ctr=-1;
         //вернуть резон
-        send_info.Reason=App.reason_saved;
+        CurrInfo.Reason=App.reason_saved;
         CallBlueLightStop();
     }
     //если пришел туман - включить. если уже не было включено - сохранить старый резон
@@ -236,18 +237,19 @@ void App_t::OnRxTableReady() {
     {
         if( App.mist_msec_ctr==-1)//save old reason
         {
-            CallBlueLightStart();
-              App.reason_saved=send_info.Reason;
+            //CallBlueLightStart();
+            Led.StartSequence(LedTumanBeg);
+              App.reason_saved=CurrInfo.Reason;
         }
         App.mist_msec_ctr=0;
-        send_info.Reason=(uint16_t)REASON_MPROJECT;
+        CurrInfo.Reason=(uint16_t)REASON_MPROJECT;
     }
 }
         //если я игротехник страха с mscource, я его излучаю
         if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
         {
             Uart.Printf("\rSETREASONMIST");
-            send_info.Reason=(uint16_t)REASON_MSOURCE;
+            CurrInfo.Reason=(uint16_t)REASON_MSOURCE;
 
         }
 #endif
