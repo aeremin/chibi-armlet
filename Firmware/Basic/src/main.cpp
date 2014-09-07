@@ -58,7 +58,7 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-//    Led.Init();
+    Led.Init();
     PillMgr.Init();
 //    PowerLed.Init();
 //    PowerLed.Gleam();
@@ -66,17 +66,14 @@ int main(void) {
     App.Init();
     App.PThd = chThdSelf();
 
-//    Radio.Init();
-//    Mesh.Init();
+    Radio.Init();
+    Mesh.Init();
 //     Battery measurement
 //    PinSetupAnalog(GPIOA, 0);
 //    Adc.InitHardware();
 //    Adc.PThreadToSignal = PThd;
     Beeper.Init();
-//    Beeper.Beep(BeepBeep);
-
-    Led.Init();
-    Led.StartSequence(LedBatteryDischarged);
+    Beeper.Beep(BeepBeep);
 
     // Timers
     chSysLock();
