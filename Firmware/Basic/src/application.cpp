@@ -212,42 +212,44 @@ void App_t::OnRxTableReady() {
     //на мастеркетуманнепашет!
     if(is_masterka_incoming)
     {
-        Uart.Printf("\r MASTERKA_IS_COMING ");
+      //  Uart.Printf("\r MASTERKA_IS_COMING ");
         is_tuman_incoming=false;
     }
 
     // If not mist, check if light green
-    if(!is_tuman_incoming) CheckIfLightGreen();
+    if(mist_msec_ctr<0) CheckIfLightGreen();
 
     if(SelfID>=LOCATION_ID_START)
         if(!(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END))
 {
     //mesh l
-            Uart.Printf("\rSETREASONMIST");
+       //     Uart.Printf("\rMISTCALC, M_msec=%d",mist_msec_ctr);
     int32_t timeaddmillisec=S_CYCLE_TIME;
     //если туман активен - тикать!
-    if(mist_msec_ctr>0)
+    if(mist_msec_ctr>=0)
         mist_msec_ctr+=timeaddmillisec;
     if(is_masterka_incoming)//тикнуть и всё!
         mist_msec_ctr+=(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000;
     //если давно не приходил
     if(mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
     {
+       // Uart.Printf("\rMISTCALC FINISH M_msec=%d, msec_limit=",mist_msec_ctr,(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000);
         mist_msec_ctr=-1;
         //вернуть резон
         CurrInfo.Reason=reason_saved;
-        CallBlueLightStop();
+        Led.StartSequence(LedTumanEnd);
     }
     //если пришел туман - включить. если уже не было включено - сохранить старый резон
 
     if(is_tuman_incoming)
     {
+       // Uart.Printf("\r TUMAN_IS_COMING ");
         if( mist_msec_ctr==-1)//save old reason
         {
             //CallBlueLightStart();
-            Led.StartSequence(LedTumanBeg);
+            if(Led.GetCurrentSequence() != LedTumanBeg) Led.StartSequence(LedTumanBeg);
               reason_saved=CurrInfo.Reason;
-              Uart.Printf("\r TUMAN_IS_COMING ");
+
         }
         mist_msec_ctr=0;
         CurrInfo.Reason=(uint16_t)REASON_MPROJECT;
@@ -256,21 +258,25 @@ void App_t::OnRxTableReady() {
         //если я игротехник страха с mscource, я его излучаю
         if(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END)
         {
-            Uart.Printf("\rSETREASONMIST");
+           // Uart.Printf("\rSETREASONMIST");
             CurrInfo.Reason=(uint16_t)REASON_MSOURCE;
 
         }
 #endif
 }
 
+#define RLEVEL_MIN_TO_GREENLIGHT    72  // 63: 15-25m; 81: 4m;
+#define LOSS_TIMEOUT                9999
 void App_t::CheckIfLightGreen() {
     bool ActOnEveryone = FORESTA_ID_START <= SelfID and SelfID <= FORESTA_ID_END;
     bool ActSelectively = FORESTBC_ID_START <= SelfID and SelfID <= FORESTBC_ID_END;
     if(!ActOnEveryone and !ActSelectively) return;
 
     // Iterate RxTable
+    static uint32_t TimestampSomeone = 0;
     bool SomeoneIsNear = false;
     for(uint32_t i=0; i < RxTable.PTable->Size; i++) {
+        if(RxTable.PTable->Row[i].Level < RLEVEL_MIN_TO_GREENLIGHT) continue;   // Ignore weak signals
         uint32_t ID = RxTable.PTable->Row[i].ID;
         if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
             bool ParityIsEqual = !((ID & 1) xor (SelfID & 1));
@@ -280,8 +286,16 @@ void App_t::CheckIfLightGreen() {
             } // if parity or everyone
         } // if character
     } // for
-    if(SomeoneIsNear) Led.StartSequence(LedSomeoneIsNear);
-    else Led.StartSequence(LedNobodyHere);
+    if(SomeoneIsNear) {
+        TimestampSomeone = chTimeNow();
+        if(Led.GetCurrentSequence() != LedSomeoneIsNear) Led.StartSequence(LedSomeoneIsNear);
+    }
+    else {
+        // Check if enough time passed since last someone
+        if((chTimeNow() - TimestampSomeone) > LOSS_TIMEOUT) {
+            if(Led.GetCurrentSequence() != LedNobodyHere) Led.StartSequence(LedNobodyHere);
+        }
+    }
 }
 #endif // Mesh
 

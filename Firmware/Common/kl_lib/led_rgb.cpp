@@ -69,7 +69,10 @@ void LedRGB_t::IStartSequenceI(const LedChunk_t *PLedChunk) {
                 PLedChunk = IPStartChunk + PLedChunk->ChunkToJumpTo;
                 break;
 
-            case csEnd: return; break;
+            case csEnd:
+                IPStartChunk = nullptr;
+                return;
+                break;
         } // switch
     } // while
 }
