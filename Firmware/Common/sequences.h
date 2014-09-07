@@ -34,6 +34,7 @@ const LedChunk_t LedBatteryDischarged[] = {
 //Tuman
 const LedChunk_t LedTumanBeg[] = {
         {csSetColor, 180, clBlue},
+        {csEnd}
 };
 const LedChunk_t LedTumanEnd[] = {
         {csSetColor, 180, clBlack},
