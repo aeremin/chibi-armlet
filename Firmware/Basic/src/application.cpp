@@ -176,9 +176,16 @@ void App_t::OnRxTableReady() {
 	    uint16_t tmpID=0;
 	    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
 	        tmpID = RxTable.PTable->Row[i].ID;
-	        if( (tmpID >= LOCATION_ID_START && tmpID <= LOCATIONS_ID_END) ||
+	        if( (tmpID >= MASTER_ID_START && tmpID <= MASTER_ID_END) ||
+	            (tmpID >= MOB_ID_START && tmpID <= MOB_ID_END) ||
+	            (tmpID >= PLACEHOLDER_ID_END && tmpID <= PLACEHOLDER_ID_END) ||
+	            (tmpID >= LOCATION_ID_START && tmpID <= LOCATIONS_ID_END) ||
 	            (tmpID >= FORESTA_ID_START && tmpID <= FORESTA_ID_END) ||
-	            (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) ) {
+	            (tmpID >= LODGE_ID_START && tmpID <= LODGE_ID_END) ||
+                (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) ||
+	            (tmpID >= MIST_ID_START && tmpID <= MIST_ID_END) ||
+	            (tmpID >= FORESTBC_ID_START && tmpID <= FORESTBC_ID_END)
+	        ) {
 	            if(RxTable.PTable->Row[i].Level > SignalPwr) {
 	                SignalPwr = RxTable.PTable->Row[i].Level;
 	                LocationID = tmpID;
@@ -196,7 +203,7 @@ void App_t::OnRxTableReady() {
     {
         if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
             is_tuman_incoming=true;
-        if(RxTable.PTable->Row[i].State.Reason<=(uint16_t)MASTER_ID_END && RxTable.PTable->Row[i].State.Reason>=MASTER_ID_START && RxTable.PTable->Row[i].State.Reason!=REASON_HUB)
+        if( RxTable.PTable->Row[i].ID==REASON_NOFEAR)
             is_masterka_incoming=true;
     }
     //логика люстр, слушающих туман
@@ -210,7 +217,7 @@ void App_t::OnRxTableReady() {
     // If not mist, check if light green
     if(mist_msec_ctr<0) CheckIfLightGreen();
 
-    if(SelfID>=LOCATION_ID_START)
+    if(SelfID>MASTER_ID_END)
         if(!(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END))
 {
     //mesh l
