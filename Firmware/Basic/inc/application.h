@@ -78,7 +78,7 @@ private:
     uint8_t ISetID(uint32_t NewID);
     Eeprom_t EE;
 public:
-    uint32_t ID;
+    uint32_t SelfID;
     Thread *PThd;
     // Timers
     VirtualTimer TmrUartRx, TmrPillCheck, TmrMeasurement, TmrFade;

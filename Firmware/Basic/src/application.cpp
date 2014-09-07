@@ -85,7 +85,7 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
         }
         else Uart.Ack(CMD_ERROR);
     }
-    else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r\n", ID);
+    else if(PCmd->NameIs("#GetID")) Uart.Printf("#ID %u\r\n", SelfID);
 #endif
 
 #if 1 // ==== Pills ====
@@ -172,7 +172,6 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 void App_t::OnRxTableReady() {
     Uart.Printf("\rOnRxTable");
 	RxTable.PTable->Print();    // Debug
-	CheckIfLightGreen();
     //mist logic
     //если я не туман, и если я локация
 
@@ -217,42 +216,45 @@ void App_t::OnRxTableReady() {
         is_tuman_incoming=false;
     }
 
-    if(App.ID>=LOCATION_ID_START)
-        if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
+    // If not mist, check if light green
+    if(!is_tuman_incoming) CheckIfLightGreen();
+
+    if(SelfID>=LOCATION_ID_START)
+        if(!(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END))
 {
     //mesh l
             Uart.Printf("\rSETREASONMIST");
     int32_t timeaddmillisec=S_CYCLE_TIME;
     //если туман активен - тикать!
-    if(App.mist_msec_ctr>0)
-        App.mist_msec_ctr+=timeaddmillisec;
+    if(mist_msec_ctr>0)
+        mist_msec_ctr+=timeaddmillisec;
     if(is_masterka_incoming)//тикнуть и всё!
-        App.mist_msec_ctr+=(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000;
+        mist_msec_ctr+=(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000;
     //если давно не приходил
-    if(App.mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
+    if(mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
     {
-        App.mist_msec_ctr=-1;
+        mist_msec_ctr=-1;
         //вернуть резон
-        CurrInfo.Reason=App.reason_saved;
+        CurrInfo.Reason=reason_saved;
         CallBlueLightStop();
     }
     //если пришел туман - включить. если уже не было включено - сохранить старый резон
 
     if(is_tuman_incoming)
     {
-        if( App.mist_msec_ctr==-1)//save old reason
+        if( mist_msec_ctr==-1)//save old reason
         {
             //CallBlueLightStart();
             Led.StartSequence(LedTumanBeg);
-              App.reason_saved=CurrInfo.Reason;
+              reason_saved=CurrInfo.Reason;
               Uart.Printf("\r TUMAN_IS_COMING ");
         }
-        App.mist_msec_ctr=0;
+        mist_msec_ctr=0;
         CurrInfo.Reason=(uint16_t)REASON_MPROJECT;
     }
 }
         //если я игротехник страха с mscource, я его излучаю
-        if(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END)
+        if(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END)
         {
             Uart.Printf("\rSETREASONMIST");
             CurrInfo.Reason=(uint16_t)REASON_MSOURCE;
@@ -262,22 +264,30 @@ void App_t::OnRxTableReady() {
 }
 
 void App_t::CheckIfLightGreen() {
+    bool ActOnEveryone = FORESTA_ID_START <= SelfID and SelfID <= FORESTA_ID_END;
+    bool ActSelectively = FORESTBC_ID_START <= SelfID and SelfID <= FORESTBC_ID_END;
+    if(!ActOnEveryone and !ActSelectively) return;
+
+    // Iterate RxTable
+    bool SomeoneIsNear = false;
     for(uint32_t i=0; i < RxTable.PTable->Size; i++) {
         uint32_t ID = RxTable.PTable->Row[i].ID;
         if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
-            // Light Up
-//            Led.IPFirstChunk
-            chSysLock();
-//            chVTSetI(&ITmr, MS2ST(PSequence->Time_ms), BeeperTmrCallback, (void*)PCh);
-            chSysUnlock();
-        }
+            bool ParityIsEqual = !((ID & 1) xor (SelfID & 1));
+            if(ActOnEveryone or ParityIsEqual) {    // Light Up and get out
+                SomeoneIsNear = true;
+                break;
+            } // if parity or everyone
+        } // if character
     } // for
+    if(SomeoneIsNear) Led.StartSequence(LedSomeoneIsNear);
+    else Led.StartSequence(LedNobodyHere);
 }
 #endif // Mesh
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
-    ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
+    SelfID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
 #ifdef MIST_SUPPORT_CHIBI
     mist_msec_ctr=-1;
 #endif
@@ -287,8 +297,8 @@ uint8_t App_t::ISetID(uint32_t NewID) {
     if(NewID > 0xFFFF) return FAILURE;
     uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
     if(rslt == OK) {
-        ID = NewID;
-        Uart.Printf("\r\nNew ID: %u", ID);
+        SelfID = NewID;
+        Uart.Printf("\r\nNew ID: %u", SelfID);
         return OK;
     }
     else {

@@ -26,15 +26,10 @@ struct LedChunk_t {
 
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
-//        {csSetColor, 0, clRed}, // Set color immediately
-//        {csWait, 270},
-//        {csSetColor, 900, clBlue},
-        {csSetColor, 360, clGreen},
-        {csSetColor, 180, clRed},
-//        {csSetColor, 1800, clBlack},
-        {csJump, 0}
-        //{csSetColor, 0, clBlack},
-        //{csEnd}
+        {csSetColor, 0, clRed}, // Set color immediately
+        {csWait, 270},
+        {csSetColor, 0, clBlack},
+        {csEnd}
 };
 //Tuman
 const LedChunk_t LedTumanBeg[] = {
@@ -44,6 +39,17 @@ const LedChunk_t LedTumanEnd[] = {
         {csSetColor, 180, clBlack},
         {csEnd}
 };
+
+// Someone Near
+const LedChunk_t LedSomeoneIsNear[] = {
+        {csSetColor, 720, clGreen},
+        {csEnd}
+};
+const LedChunk_t LedNobodyHere[] = {
+        {csSetColor, 720, clBlack},
+        {csEnd}
+};
+
 // Bad ID
 const LedChunk_t LedBadID[] = {
         {csSetColor, 0, clRed}, // Set color immediately
