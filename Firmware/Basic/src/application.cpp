@@ -265,32 +265,36 @@ void App_t::OnRxTableReady() {
 #endif
 }
 
+#define RLEVEL_MIN_TO_GREENLIGHT    72  // 63: 15-25m; 81: 4m;
+#define LOSS_TIMEOUT                9999
 void App_t::CheckIfLightGreen() {
     bool ActOnEveryone = FORESTA_ID_START <= SelfID and SelfID <= FORESTA_ID_END;
     bool ActSelectively = FORESTBC_ID_START <= SelfID and SelfID <= FORESTBC_ID_END;
     if(!ActOnEveryone and !ActSelectively) return;
 
     // Iterate RxTable
+    static uint32_t TimestampSomeone = 0;
     bool SomeoneIsNear = false;
     for(uint32_t i=0; i < RxTable.PTable->Size; i++) {
+        if(RxTable.PTable->Row[i].Level < RLEVEL_MIN_TO_GREENLIGHT) continue;   // Ignore weak signals
         uint32_t ID = RxTable.PTable->Row[i].ID;
         if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
             bool ParityIsEqual = !((ID & 1) xor (SelfID & 1));
             if(ActOnEveryone or ParityIsEqual) {    // Light Up and get out
-              //  Uart.Printf("\r CheckIfLightGreen ID OK");
                 SomeoneIsNear = true;
                 break;
             } // if parity or everyone
         } // if character
     } // for
     if(SomeoneIsNear) {
-      //  Uart.Printf("\r SomeoneIsNear");
+        TimestampSomeone = chTimeNow();
         if(Led.GetCurrentSequence() != LedSomeoneIsNear) Led.StartSequence(LedSomeoneIsNear);
     }
-    else if(Led.GetCurrentSequence() != LedNobodyHere)
-    {
-       // Uart.Printf("\r LedNobodyHere");
-        Led.StartSequence(LedNobodyHere);
+    else {
+        // Check if enough time passed since last someone
+        if((chTimeNow() - TimestampSomeone) > LOSS_TIMEOUT) {
+            if(Led.GetCurrentSequence() != LedNobodyHere) Led.StartSequence(LedNobodyHere);
+        }
     }
 }
 #endif // Mesh
