@@ -186,7 +186,8 @@ void App_t::OnRxTableReady() {
 	    uint16_t tmpID=0;
 	    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
 	        tmpID = RxTable.PTable->Row[i].ID;
-	        if( (tmpID >= LOCATION_ID_START && tmpID <= FORESTA_ID_END) ||
+	        if( (tmpID >= LOCATION_ID_START && tmpID <= LOCATIONS_ID_END) ||
+	            (tmpID >= FORESTA_ID_START && tmpID <= FORESTA_ID_END) ||
 	            (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) )    {
 	            if(RxTable.PTable->Row[i].Level > SignalPwr) {
 	                SignalPwr = RxTable.PTable->Row[i].Level;
@@ -211,12 +212,16 @@ void App_t::OnRxTableReady() {
     //логика люстр, слушающих туман
     //на мастеркетуманнепашет!
     if(is_masterka_incoming)
+    {
+        Uart.Printf("\r MASTERKA_IS_COMING ");
         is_tuman_incoming=false;
+    }
 
     if(App.ID>=LOCATION_ID_START)
         if(!(App.ID>=MIST_ID_START && App.ID<=MIST_ID_END))
 {
     //mesh l
+            Uart.Printf("\rSETREASONMIST");
     int32_t timeaddmillisec=S_CYCLE_TIME;
     //если туман активен - тикать!
     if(App.mist_msec_ctr>0)
@@ -240,6 +245,7 @@ void App_t::OnRxTableReady() {
             //CallBlueLightStart();
             Led.StartSequence(LedTumanBeg);
               App.reason_saved=CurrInfo.Reason;
+              Uart.Printf("\r TUMAN_IS_COMING ");
         }
         App.mist_msec_ctr=0;
         CurrInfo.Reason=(uint16_t)REASON_MPROJECT;
