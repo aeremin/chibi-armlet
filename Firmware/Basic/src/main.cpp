@@ -60,7 +60,7 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Led.Init();
-    PillMgr.Init();
+//    PillMgr.Init();
 //    PowerLed.Init();
 //    PowerLed.Gleam();
 
@@ -68,52 +68,54 @@ int main(void) {
     App.PThd = chThdSelf();
 
     Radio.Init();
-    Mesh.Init();
+//    Mesh.Init();
 
     // Battery measurement
-    PinSetupAnalog(GPIOA, 0);
-    Adc.InitHardware();
-    Adc.PThreadToSignal = chThdSelf();
+//    PinSetupAnalog(GPIOA, 0);
+//    Adc.InitHardware();
+//    Adc.PThreadToSignal = chThdSelf();
     Beeper.Init();
     Beeper.Beep(BeepBeep);
+
+    Uart.Printf("\rMesh Sniffer");
 
     // Timers
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
-    chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
-    chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
+//    chVTSetI(&App.TmrPillCheck, MS2ST(TM_PILL_CHECK_MS),   TmrPillCheckCallback, nullptr);
+//    chVTSetI(&App.TmrMeasurement, MS2ST(TM_MEASUREMENT_MS), TmrMeasurementCallback, nullptr);
     chSysUnlock();
 
     // Event-generating framework
-    bool PillConnected = false;
+//    bool PillConnected = false;
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Uart cmd ====
         if(EvtMsk & EVTMSK_UART_RX_POLL) Uart.PollRx(); // Check if new cmd received
 
         // ==== Check pill ====
-        if(EvtMsk & EVTMSK_PILL_CHECK) {
-            // Check if new connection occured
-            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
-                if(!PillConnected) {
-                    PillConnected = true;
-                    App.OnPillConnect();
-                }
-            }
-            else PillConnected = false;
-        } // if EVTMSK_PILL_CHECK
-
-        // ==== Measure battery ====
-        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
-        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
-            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
+//        if(EvtMsk & EVTMSK_PILL_CHECK) {
+//            // Check if new connection occured
+//            if(PillMgr.CheckIfConnected(PILL_I2C_ADDR) == OK) {
+//                if(!PillConnected) {
+//                    PillConnected = true;
+//                    App.OnPillConnect();
+//                }
+//            }
+//            else PillConnected = false;
+//        } // if EVTMSK_PILL_CHECK
+//
+//        // ==== Measure battery ====
+//        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
+//        if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
+//            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
 //            Uart.Printf("\rAdc=%u", AdcRslt);
-            // Blink Red if discharged
-            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartSequence(LedBatteryDischarged);
-        }
+//            // Blink Red if discharged
+//            if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartSequence(LedBatteryDischarged);
+//        }
 
         // ==== Radio ====
-        if(EvtMsk & EVTMSK_SENS_TABLE_READY) App.OnRxTableReady();
+//        if(EvtMsk & EVTMSK_SENS_TABLE_READY) App.OnRxTableReady();
     } // while true
 
 }

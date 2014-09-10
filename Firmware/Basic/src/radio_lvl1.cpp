@@ -39,42 +39,32 @@ static void rLvl1Thread(void *arg) {
 //#define LED_RX
 __attribute__ ((__noreturn__))
 void rLevel1_t::ITask() {
+    int8_t RSSI=0;
+    uint8_t Rslt;
     while(true) {
-        if(Mesh.IsInit) {
-            uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS); /* wait mesh cycle */
-
-            if(EvtMsk & EVTMSK_MESH_RX) {
-//                Uart.Printf("\r\nRxIn, t=%u", chTimeNow());
-                IMeshRx();
-//                Uart.Printf("\r\nRxOut, t=%u", chTimeNow());
-            }
-
-            if(EvtMsk & EVTMSK_MESH_TX) {
-//                Uart.Printf("\r\nTxIn");
-#if 0 // printf pkt
-                    Uart.Printf("rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
-                            Mesh.PktTx.SenderInfo.Mesh.SelfID,
-                            Mesh.PktTx.SenderInfo.Mesh.CycleN,
-                            Mesh.PktTx.SenderInfo.Mesh.TimeOwnerID,
-                            Mesh.PktTx.SenderInfo.Mesh.TimeAge,
-                            Mesh.PktTx.SenderInfo.State.Reason,
-                            Mesh.PktTx.SenderInfo.State.Location,
-                            Mesh.PktTx.SenderInfo.State.Emotion,
-                            Mesh.PktTx.AlienID,
-                            Mesh.PktTx.AlienInfo.Mesh.Hops,
-                            Mesh.PktTx.AlienInfo.Mesh.Timestamp,
-                            Mesh.PktTx.AlienInfo.Mesh.TimeDiff,
-                            Mesh.PktTx.AlienInfo.State.Reason,
-                            Mesh.PktTx.AlienInfo.State.Location,
-                            Mesh.PktTx.AlienInfo.State.Emotion
-                            );
+        Rslt = CC.ReceiveSync(CYCLE_TIME, &Mesh.PktRx, &RSSI);
+        if(Rslt == OK) { // Pkt received correctly
+#if 1 // printf pkt
+            Uart.Printf("\r%u %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u %u}",
+                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
+                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
+                    Mesh.PktRx.SenderInfo.State.Reason,
+                    Mesh.PktRx.SenderInfo.State.Location,
+                    Mesh.PktRx.SenderInfo.State.Emotion,
+                    Mesh.PktRx.SenderInfo.State.Energy,
+                    Mesh.PktRx.AlienID,
+                    Mesh.PktRx.AlienInfo.Mesh.Hops,
+                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
+                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
+                    Mesh.PktRx.AlienInfo.State.Reason,
+                    Mesh.PktRx.AlienInfo.State.Location,
+                    Mesh.PktRx.AlienInfo.State.Emotion,
+                    Mesh.PktRx.AlienInfo.State.Energy
+                    );
 #endif
-                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
-                Mesh.ITxEnd();
-//                Uart.Printf("\r\nTxOut");
-            } // Mesh Tx
-        } // Mesh Init
-        else chThdSleepMilliseconds(41);
+        }
     }
 }
 #endif
