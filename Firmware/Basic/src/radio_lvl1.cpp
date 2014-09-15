@@ -41,11 +41,14 @@ __attribute__ ((__noreturn__))
 void rLevel1_t::ITask() {
     int8_t RSSI=0;
     uint8_t Rslt;
+    uint32_t RxTimeSlot = 0;
     while(true) {
         Rslt = CC.ReceiveSync(CYCLE_TIME, &Mesh.PktRx, &RSSI);
         if(Rslt == OK) { // Pkt received correctly
+            if(Mesh.PktRx.SenderInfo.Mesh.SelfID == 1) StartTimeOfRx = chTimeNow();
+            RxTimeSlot = (chTimeNow() - StartTimeOfRx)/SLOT_TIME;
 #if 1 // printf pkt
-            Uart.Printf("\r%u %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u %u}",
+            Uart.Printf("%u %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u %u} %d, slot %u\r",
                     Mesh.PktRx.SenderInfo.Mesh.SelfID,
                     Mesh.PktRx.SenderInfo.Mesh.CycleN,
                     Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
@@ -61,7 +64,9 @@ void rLevel1_t::ITask() {
                     Mesh.PktRx.AlienInfo.State.Reason,
                     Mesh.PktRx.AlienInfo.State.Location,
                     Mesh.PktRx.AlienInfo.State.Emotion,
-                    Mesh.PktRx.AlienInfo.State.Energy
+                    Mesh.PktRx.AlienInfo.State.Energy,
+                    RSSI,
+                    RxTimeSlot
                     );
 #endif
         }
