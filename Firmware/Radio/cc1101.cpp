@@ -6,6 +6,7 @@
  */
 
 #include "cc1101.h"
+#include "cmd_uart.h"
 
 #define GPIO0_IRQ_MASK  ((uint32_t)0x10)    // Line 4
 

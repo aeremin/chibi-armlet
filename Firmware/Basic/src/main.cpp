@@ -107,8 +107,11 @@ int main(void) {
         if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
         if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
             uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);
-//            Uart.Printf("\rAdc=%u", AdcRslt);
+            Uart.Printf("Adc=%u\r", AdcRslt);
             // Blink Red if discharged
+            App.CurrInfo.Battery = 100 - (((BATTERY_FULLY_CHRG_ADC - AdcRslt)/BATTERY_10_PERCENT) * 10);//Percent
+            if(App.CurrInfo.Battery > 100) App.CurrInfo.Battery = 0;
+            Uart.Printf("Bat perc %u\r",  App.CurrInfo.Battery);
             if(AdcRslt < BATTERY_DISCHARGED_ADC) Led.StartSequence(LedBatteryDischarged);
         }
 

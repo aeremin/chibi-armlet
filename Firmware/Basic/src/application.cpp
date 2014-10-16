@@ -17,7 +17,7 @@
 #include "mesh_lvl.h"
 #include "RxTable.h"
 #include "console.h"
-#include "emotions.h"
+#include "reasons.h"
 #include <cstdlib>
 
 #include "led_rgb.h"
@@ -161,128 +161,50 @@ void App_t::OnUartCmd(Cmd_t *PCmd) {
 
 #if 1 // =============================== Mesh ==================================
 void App_t::OnRxTableReady() {
-//    Uart.Printf("\rOnRxTable");
 //	RxTable.PTable->Print();    // Debug
-    //mist logic
-    //если я не туман, и если я локация
-
-//#define MIST_ID_START 90
-//#define MIST_ID_END 100
-#ifdef MIST_SUPPORT_CHIBI
-
-	CurrInfo.Location=(uint16_t)0;
-	uint8_t SignalPwr = 0;
-	    uint8_t LocationID = 0;
-	    uint16_t tmpID=0;
-	    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
-	        tmpID = RxTable.PTable->Row[i].ID;
-	        if( (tmpID >= MASTER_ID_START && tmpID <= MASTER_ID_END) ||
-	            (tmpID >= MOB_ID_START && tmpID <= MOB_ID_END) ||
-	            (tmpID >= PLACEHOLDER_ID_END && tmpID <= PLACEHOLDER_ID_END) ||
-	            (tmpID >= LOCATION_ID_START && tmpID <= LOCATIONS_ID_END) ||
-	            (tmpID >= FORESTA_ID_START && tmpID <= FORESTA_ID_END) ||
-	            (tmpID >= LODGE_ID_START && tmpID <= LODGE_ID_END) ||
-                (tmpID >= EMOTION_FIX_ID_START && tmpID <= EMOTION_FIX_ID_END) ||
-	            (tmpID >= MIST_ID_START && tmpID <= MIST_ID_END) ||
-	            (tmpID >= FORESTBC_ID_START && tmpID <= FORESTBC_ID_END)
-	        ) {
-	            if(RxTable.PTable->Row[i].Level > SignalPwr) {
-	                SignalPwr = RxTable.PTable->Row[i].Level;
-	                LocationID = tmpID;
-	            } // if Signal present
-	        } // if location correct
-	    }
-	    if(LocationID) CurrInfo.Location = LocationID;
-
-	    CurrInfo.Reason=(uint16_t)0;
-	    CurrInfo.Emotion = 0;  // Lustra has no emotion
-
-    bool is_tuman_incoming=false;
-    bool is_masterka_incoming=false;
-    for(uint32_t i=0;i<RxTable.PTable->Size;i++)
-    {
-        if(RxTable.PTable->Row[i].State.Reason==(uint16_t)REASON_MSOURCE)
-            is_tuman_incoming=true;
-        if( RxTable.PTable->Row[i].ID==REASON_NOFEAR)
-            is_masterka_incoming=true;
-    }
-    //логика люстр, слушающих туман
-    //на мастеркетуманнепашет!
-    if(is_masterka_incoming)
-    {
-      //  Uart.Printf("\r MASTERKA_IS_COMING ");
-        is_tuman_incoming=false;
-    }
-
-    // If not mist, check if light green
-    if(mist_msec_ctr<0) CheckIfLightGreen();
-
-    if(SelfID>MASTER_ID_END)
-        if(!(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END))
-{
-    //mesh l
-       //     Uart.Printf("\rMISTCALC, M_msec=%d",mist_msec_ctr);
-    int32_t timeaddmillisec=S_CYCLE_TIME;
-    //если туман активен - тикать!
-    if(mist_msec_ctr>=0)
-        mist_msec_ctr+=timeaddmillisec;
-    if(is_masterka_incoming)//тикнуть и всё!
-        mist_msec_ctr+=(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000;
-    //если давно не приходил
-    if(mist_msec_ctr>(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000)
-    {
-       // Uart.Printf("\rMISTCALC FINISH M_msec=%d, msec_limit=",mist_msec_ctr,(int32_t)MIST_TRANSLATE_TIME_SEC*(int32_t)1000);
-        mist_msec_ctr=-1;
-        //вернуть резон
-        CurrInfo.Reason=reason_saved;
-        Led.StartSequence(LedTumanEnd);
-    }
-    //если пришел туман - включить. если уже не было включено - сохранить старый резон
-
-    if(is_tuman_incoming)
-    {
-       // Uart.Printf("\r TUMAN_IS_COMING ");
-        if( mist_msec_ctr==-1)//save old reason
-        {
-            //CallBlueLightStart();
-            if(Led.GetCurrentSequence() != LedTumanBeg) Led.StartSequence(LedTumanBeg);
-              reason_saved=CurrInfo.Reason;
-
+    uint8_t LocSignalPwr = 0;
+    uint8_t ReasonSigPwr = 0;
+    uint16_t LocationID = 0;
+    uint16_t NeighborID = 0;
+    uint16_t tmpID=0;
+    for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
+        tmpID = RxTable.PTable->Row[i].ID;
+        if((tmpID >= PLACEHOLDER_ID_START) && (PLACEHOLDER_ID_END >= tmpID))    {
+            if(RxTable.PTable->Row[i].Level > LocSignalPwr) {
+                LocSignalPwr = RxTable.PTable->Row[i].Level;
+                LocationID = tmpID;
+            } // if Signal present
+        } // if location correct
+        else if((tmpID >= PERSON_ID_START) && (PERSON_ID_END >= tmpID)) {
+            if(RxTable.PTable->Row[i].Level > ReasonSigPwr) {
+                ReasonSigPwr = RxTable.PTable->Row[i].Level;
+                NeighborID = tmpID;
+            } // if Signal present
         }
-        mist_msec_ctr=0;
-        CurrInfo.Reason=(uint16_t)REASON_MPROJECT;
     }
+    if(LocationID) {
+        CurrInfo.Location = LocationID;
+        LocationValid();
+    }
+    else LocationInvalid();
+    if(NeighborID) {
+        CurrInfo.Neighbor = NeighborID;
+    }
+    else CurrInfo.Neighbor = 0;
 }
-        //если я игротехник страха с mscource, я его излучаю
-        if(SelfID>=MIST_ID_START && SelfID<=MIST_ID_END)
-        {
-           // Uart.Printf("\rSETREASONMIST");
-            CurrInfo.Reason=(uint16_t)REASON_MSOURCE;
-
-        }
 #endif
-}
 
 #define RLEVEL_MIN_TO_GREENLIGHT    72  // 63: 15-25m; 81: 4m;
 #define LOSS_TIMEOUT                9999
 void App_t::CheckIfLightGreen() {
-    bool ActOnEveryone = FORESTA_ID_START <= SelfID and SelfID <= FORESTA_ID_END;
-    bool ActSelectively = FORESTBC_ID_START <= SelfID and SelfID <= FORESTBC_ID_END;
-    if(!ActOnEveryone and !ActSelectively) return;
-
     // Iterate RxTable
     static uint32_t TimestampSomeone = 0;
     bool SomeoneIsNear = false;
     for(uint32_t i=0; i < RxTable.PTable->Size; i++) {
         if(RxTable.PTable->Row[i].Level < RLEVEL_MIN_TO_GREENLIGHT) continue;   // Ignore weak signals
-        uint32_t ID = RxTable.PTable->Row[i].ID;
-        if(ID >= CHARACTER_ID_START and ID <= CHARACTER_ID_END) {
-            bool ParityIsEqual = !((ID & 1) xor (SelfID & 1));
-            if(ActOnEveryone or ParityIsEqual) {    // Light Up and get out
+//        uint32_t ID = RxTable.PTable->Row[i].ID;
                 SomeoneIsNear = true;
                 break;
-            } // if parity or everyone
-        } // if character
     } // for
     if(SomeoneIsNear) {
         TimestampSomeone = chTimeNow();
@@ -295,14 +217,10 @@ void App_t::CheckIfLightGreen() {
         }
     }
 }
-#endif // Mesh
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
     SelfID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
-#ifdef MIST_SUPPORT_CHIBI
-    mist_msec_ctr=-1;
-#endif
 }
 
 uint8_t App_t::ISetID(uint32_t NewID) {

@@ -46,7 +46,9 @@ enum DeviceType_t {
 #define RLVL_DETECTOR_RX        RLVL_4M // LED on Field will lit if rlevel is higher
 
 // ==== Indication constants ====
+#define BATTERY_FULLY_CHRG_ADC  2000    // 1500 mV
 #define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
+#define BATTERY_10_PERCENT      57      // adc measure
 // ==== mist support ====
 #define MIST_SUPPORT_CHIBI
 #ifdef MIST_SUPPORT_CHIBI
@@ -77,6 +79,12 @@ private:
     Pill_t Pill;
     uint8_t ISetID(uint32_t NewID);
     Eeprom_t EE;
+    void LocationValid() {
+        CurrInfo.Location &= ~LOCATION_VALID;
+    }
+    void LocationInvalid() {
+        CurrInfo.Location |= LOCATION_VALID;
+    }
 public:
     uint32_t SelfID;
     Thread *PThd;
