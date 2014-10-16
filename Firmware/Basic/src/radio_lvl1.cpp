@@ -48,23 +48,21 @@ void rLevel1_t::ITask() {
             if(Mesh.PktRx.SenderInfo.Mesh.SelfID == 1) StartTimeOfRx = chTimeNow();
             RxTimeSlot = (chTimeNow() - StartTimeOfRx)/SLOT_TIME;
 #if 1 // printf pkt
-            Uart.Printf("%u %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u %u} %d, slot %u\r",
+            Uart.Printf("%u %u %u %u %u %u %u {%u %u %u %d %u %u %u } %d, slot %u\r",
                     Mesh.PktRx.SenderInfo.Mesh.SelfID,
                     Mesh.PktRx.SenderInfo.Mesh.CycleN,
                     Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
                     Mesh.PktRx.SenderInfo.Mesh.TimeAge,
-                    Mesh.PktRx.SenderInfo.State.Reason,
                     Mesh.PktRx.SenderInfo.State.Location,
-                    Mesh.PktRx.SenderInfo.State.Emotion,
-                    Mesh.PktRx.SenderInfo.State.Energy,
+                    Mesh.PktRx.SenderInfo.State.Neighbor,
+                    Mesh.PktRx.SenderInfo.State.Battery,
                     Mesh.PktRx.AlienID,
                     Mesh.PktRx.AlienInfo.Mesh.Hops,
                     Mesh.PktRx.AlienInfo.Mesh.Timestamp,
                     Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
-                    Mesh.PktRx.AlienInfo.State.Reason,
                     Mesh.PktRx.AlienInfo.State.Location,
-                    Mesh.PktRx.AlienInfo.State.Emotion,
-                    Mesh.PktRx.AlienInfo.State.Energy,
+                    Mesh.PktRx.AlienInfo.State.Neighbor,
+                    Mesh.PktRx.AlienInfo.State.Battery,
                     RSSI,
                     RxTimeSlot
                     );
