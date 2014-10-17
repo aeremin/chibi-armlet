@@ -83,6 +83,7 @@ private:
     char *PRead, *PWrite;
     bool IDmaIsIdle;
     uint32_t IFullSlotsCount, ITransSize;
+    void ISendViaDMA();
 #if UART_RX_ENABLED
     int32_t SzOld=0, RIndx=0;
     uint8_t IRxBuf[UART_RXBUF_SZ];
@@ -91,6 +92,7 @@ private:
 #endif
 public:
     void Printf(const char *S, ...);
+    void PrintfI(const char *S, ...);
     void FlushTx() { while(!IDmaIsIdle); }  // wait DMA
     void PrintNow(const char *S) {
         while(*S != 0) {
@@ -100,6 +102,7 @@ public:
     }
     void Init(uint32_t ABaudrate);
     // Inner use
+    void IPrintf(const char *format, va_list args);
     void IRQDmaTxHandler();
     void IPutChar(char c);
 #if UART_RX_ENABLED

@@ -11,32 +11,58 @@
 
 CmdUart_t Uart;
 
+extern "C" {
+void PrintfC(const char *format, ...) {
+    chSysLock();
+    va_list args;
+    va_start(args, format);
+    Uart.IPrintf(format, args);
+    va_end(args);
+    chSysUnlock();
+}
+}
+
 static inline void FPutChar(char c) { Uart.IPutChar(c); }
+
+void CmdUart_t::Printf(const char *format, ...) {
+    chSysLock();
+    va_list args;
+    va_start(args, format);
+    IPrintf(format, args);
+    va_end(args);
+    chSysUnlock();
+}
+
+void CmdUart_t::PrintfI(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    IPrintf(format, args);
+    va_end(args);
+}
 
 void CmdUart_t::IPutChar(char c) {
     *PWrite++ = c;
     if(PWrite >= &TXBuf[UART_TXBUF_SIZE]) PWrite = TXBuf;   // Circulate buffer
 }
 
-void CmdUart_t::Printf(const char *format, ...) {
-    uint32_t MaxLength = (PWrite < PRead)? (PRead - PWrite) : ((UART_TXBUF_SIZE + PRead) - PWrite);
-    va_list args;
-    va_start(args, format);
+void CmdUart_t::IPrintf(const char *format, va_list args) {
+    int32_t MaxLength = UART_TXBUF_SIZE - IFullSlotsCount;
     IFullSlotsCount += kl_vsprintf(FPutChar, MaxLength, format, args);
-    va_end(args);
-
     // Start transmission if Idle
-    if(IDmaIsIdle) {
+    if(IDmaIsIdle) ISendViaDMA();
+}
+
+void CmdUart_t::ISendViaDMA() {
+    uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead; // Cnt from PRead to end of buf
+    ITransSize = MIN(IFullSlotsCount, PartSz);
+    if(ITransSize != 0) {
         IDmaIsIdle = false;
         dmaStreamSetMemory0(UART_DMA_TX, PRead);
-        uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;    // Char count from PRead to buffer end
-        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;  // How many to transmit now
         dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
         dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
         dmaStreamEnable(UART_DMA_TX);
     }
 }
-
 #if UART_RX_ENABLED
 void CmdUart_t::PollRx() {
     int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart

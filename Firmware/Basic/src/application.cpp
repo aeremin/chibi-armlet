@@ -169,7 +169,7 @@ void App_t::OnRxTableReady() {
     uint16_t tmpID=0;
     for(uint32_t i=0; i<RxTable.PTable->Size; i++) {
         tmpID = RxTable.PTable->Row[i].ID;
-        if((tmpID >= PLACEHOLDER_ID_START) && (PLACEHOLDER_ID_END >= tmpID))    {
+        if((tmpID >= LOCATION_ID_START) && (LOCATIONS_ID_END >= tmpID))    {
             if(RxTable.PTable->Row[i].Level > LocSignalPwr) {
                 LocSignalPwr = RxTable.PTable->Row[i].Level;
                 LocationID = tmpID;
