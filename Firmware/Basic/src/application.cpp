@@ -172,7 +172,7 @@ void App_t::OnRxTableReady() {
     RxTable.dBm2PercentAll();
     if(ANY_OF_3(Type, dtUmvos, dtDetectorMobile, dtDetectorFixed)) {
         int32_t NaturalDmg = 1, RadioDmg = 0;
-    //    RxTable.Print();
+        RxTable.Print();
         // Iterate received levels
         for(uint32_t i=0; i<PTbl->Size; i++) {
             Row_t *PRow = &PTbl->Row[i];
@@ -225,7 +225,7 @@ void App_t::OnRxTableReady() {
                 Damage = (int32_t)Dmg32;
             }
         } // if(Age > 1024)
-//        Uart.Printf("Dmg=%d\r", Damage);
+        Uart.Printf("Dmg=%d\r", Damage);
         // === React depending on device type and damage level ===
         if(Type == dtUmvos) {
             if(Dose.Drug.IsActive()) Dose.Drug.ModifyDamage(Damage, PTbl->Age());

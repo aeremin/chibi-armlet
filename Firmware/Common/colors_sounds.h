@@ -19,7 +19,7 @@
 // Snd coeffs
 #define DMG_SND_MAX     1000
 #define DMG_SND_BCKGND  40
-#define DMG_MAX         50      // Maximum radiation value
+#define DMG_MAX         1800      // Maximum radiation value: strong lustra
 // Just for example
 #define DMG_SND_MID     220
 #define DMG_SND_HEAVY   700
