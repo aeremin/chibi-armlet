@@ -355,9 +355,9 @@ uint8_t App_t::ISetType(uint8_t AType) {
     chSysUnlock();
 
     // Reinit constants
+    Dose.LoadTop(); // Read dose constants
     switch(Type) {
         case dtUmvos:
-            Dose.LoadTop(); // Read dose constants
 #if DO_DOSE_SAVE
             Dose.LoadValue();
 #endif
