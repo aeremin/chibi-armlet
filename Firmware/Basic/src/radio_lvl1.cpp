@@ -57,20 +57,20 @@ void rLevel1_t::ITask() {
                             Mesh.PktTx.SenderInfo.Mesh.CycleN,
                             Mesh.PktTx.SenderInfo.Mesh.TimeOwnerID,
                             Mesh.PktTx.SenderInfo.Mesh.TimeAge,
-                            Mesh.PktTx.SenderInfo.State.Reason,
                             Mesh.PktTx.SenderInfo.State.Location,
-                            Mesh.PktTx.SenderInfo.State.Emotion,
+                            Mesh.PktTx.SenderInfo.State.Neighbor,
+                            Mesh.PktTx.SenderInfo.State.Battery,
                             Mesh.PktTx.AlienID,
                             Mesh.PktTx.AlienInfo.Mesh.Hops,
                             Mesh.PktTx.AlienInfo.Mesh.Timestamp,
                             Mesh.PktTx.AlienInfo.Mesh.TimeDiff,
-                            Mesh.PktTx.AlienInfo.State.Reason,
                             Mesh.PktTx.AlienInfo.State.Location,
-                            Mesh.PktTx.AlienInfo.State.Emotion
+                            Mesh.PktTx.AlienInfo.State.Neighbor,
+                            Mesh.PktTx.AlienInfo.State.Battery
                             );
 #endif
-                    CC.StartTransmit();
-//                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
+//                    CC.StartTransmit();
+                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                 Mesh.ITxEnd();
 //                Uart.Printf("\r\nTxOut");
             } // Mesh Tx

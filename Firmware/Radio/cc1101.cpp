@@ -52,7 +52,7 @@ void cc1101_t::SetChannel(uint8_t AChannel) {
 //}
 
 void cc1101_t::TransmitSync(void *Ptr) {
-    // WaitUntilChannelIsBusy();   // If this is not done, time after time FIFO is destroyed
+//     WaitUntilChannelIsBusy();   // If this is not done, time after time FIFO is destroyed
     while(IState != CC_STB_IDLE) EnterIdle();
     WriteTX((uint8_t*)Ptr, IPktSz);
     // Enter TX and wait IRQ
