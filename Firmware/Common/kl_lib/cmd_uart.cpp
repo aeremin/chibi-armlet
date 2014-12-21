@@ -19,18 +19,35 @@ void CmdUart_t::IPutChar(char c) {
 }
 
 void CmdUart_t::Printf(const char *format, ...) {
-    uint32_t MaxLength = (PWrite < PRead)? (PRead - PWrite) : ((UART_TXBUF_SIZE + PRead) - PWrite);
+    chSysLock();
     va_list args;
     va_start(args, format);
-    IFullSlotsCount += kl_vsprintf(FPutChar, MaxLength, format, args);
+    IPrintf(format, args);
     va_end(args);
+    chSysUnlock();
+}
 
+void CmdUart_t::PrintfI(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    IPrintf(format, args);
+    va_end(args);
+}
+
+
+void CmdUart_t::IPrintf(const char *format, va_list args) {
+    int32_t MaxLength = UART_TXBUF_SIZE - IFullSlotsCount;
+    IFullSlotsCount += kl_vsprintf(FPutChar, MaxLength, format, args);
     // Start transmission if Idle
-    if(IDmaIsIdle) {
+    if(IDmaIsIdle) ISendViaDMA();
+}
+
+void CmdUart_t::ISendViaDMA() {
+    uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead; // Cnt from PRead to end of buf
+    ITransSize = MIN(IFullSlotsCount, PartSz);
+    if(ITransSize != 0) {
         IDmaIsIdle = false;
         dmaStreamSetMemory0(UART_DMA_TX, PRead);
-        uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;    // Char count from PRead to buffer end
-        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;  // How many to transmit now
         dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
         dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
         dmaStreamEnable(UART_DMA_TX);
@@ -117,12 +134,5 @@ void CmdUart_t::IRQDmaTxHandler() {
     if(PRead >= (TXBuf + UART_TXBUF_SIZE)) PRead = TXBuf; // Circulate pointer
 
     if(IFullSlotsCount == 0) IDmaIsIdle = true; // Nothing left to send
-    else {  // There is something to transmit more
-        dmaStreamSetMemory0(UART_DMA_TX, PRead);
-        uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;
-        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;
-        dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
-        dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
-        dmaStreamEnable(UART_DMA_TX);    // Restart DMA
-    }
+    else ISendViaDMA();
 }

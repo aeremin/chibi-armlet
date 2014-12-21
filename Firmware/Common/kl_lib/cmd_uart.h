@@ -19,7 +19,8 @@
 #define UART_RX_ENABLED     TRUE
 
 // UART
-#define UART_TXBUF_SIZE     1024
+#define UART_TXBUF_SIZE     1500
+
 
 #define UART                USART1
 #define UART_GPIO           GPIOA
@@ -83,6 +84,7 @@ private:
     char *PRead, *PWrite;
     bool IDmaIsIdle;
     uint32_t IFullSlotsCount, ITransSize;
+    void ISendViaDMA();
 #if UART_RX_ENABLED
     int32_t SzOld=0, RIndx=0;
     uint8_t IRxBuf[UART_RXBUF_SZ];
@@ -91,6 +93,7 @@ private:
 #endif
 public:
     void Printf(const char *S, ...);
+    void PrintfI(const char *S, ...);
     void FlushTx() { while(!IDmaIsIdle); }  // wait DMA
     void PrintNow(const char *S) {
         while(*S != 0) {
@@ -102,6 +105,7 @@ public:
     // Inner use
     void IRQDmaTxHandler();
     void IPutChar(char c);
+    void IPrintf(const char *format, va_list args);
 #if UART_RX_ENABLED
     void PollRx();
     // Command and reply
