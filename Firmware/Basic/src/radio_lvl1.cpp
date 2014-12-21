@@ -52,7 +52,7 @@ void rLevel1_t::ITask() {
             if(EvtMsk & EVTMSK_MESH_TX) {
 //                Uart.Printf("\r\nTxIn");
 #if 0 // printf pkt
-                    Uart.Printf("rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} \r",
+                    Uart.Printf("\rTxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u}",
                             Mesh.PktTx.SenderInfo.Mesh.SelfID,
                             Mesh.PktTx.SenderInfo.Mesh.CycleN,
                             Mesh.PktTx.SenderInfo.Mesh.TimeOwnerID,
@@ -69,7 +69,8 @@ void rLevel1_t::ITask() {
                             Mesh.PktTx.AlienInfo.State.Emotion
                             );
 #endif
-                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
+                    CC.StartTransmit();
+//                CC.TransmitSync(&Mesh.PktTx); /* Pkt was prepared in Mesh Thd */
                 Mesh.ITxEnd();
 //                Uart.Printf("\r\nTxOut");
             } // Mesh Tx
@@ -98,24 +99,24 @@ void rLevel1_t::IMeshRx() {
             Mesh.UndispathedPktCnt++;
             Mesh.MsgBox.Post({chTimeNow(), RSSI, &Mesh.PktRx});  /* SendMsg to MeshThd with PktRx structure */
 //            Uart.Printf("\r\nCatched, pkts=%u, t=%u\n", Mesh.UndispathedPktCnt, chTimeNow());
-#if 1 // printf RxPkt
-//            Uart.Printf("\rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d",
-//                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
-//                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
-//                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
-//                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
-//                    Mesh.PktRx.SenderInfo.State.Reason,
-//                    Mesh.PktRx.SenderInfo.State.Location,
-//                    Mesh.PktRx.SenderInfo.State.Emotion,
-//                    Mesh.PktRx.AlienID,
-//                    Mesh.PktRx.AlienInfo.Mesh.Hops,
-//                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
-//                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
-//                    Mesh.PktRx.AlienInfo.State.Reason,
-//                    Mesh.PktRx.AlienInfo.State.Location,
-//                    Mesh.PktRx.AlienInfo.State.Emotion,
-//                    RSSI
-//                    );
+#if 0 // printf RxPkt
+            Uart.Printf("\rRxPkt: %u %u %u %u %u %u %u  {%u %u %u %d %u %u %u} %d",
+                    Mesh.PktRx.SenderInfo.Mesh.SelfID,
+                    Mesh.PktRx.SenderInfo.Mesh.CycleN,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeOwnerID,
+                    Mesh.PktRx.SenderInfo.Mesh.TimeAge,
+                    Mesh.PktRx.SenderInfo.State.Reason,
+                    Mesh.PktRx.SenderInfo.State.Location,
+                    Mesh.PktRx.SenderInfo.State.Emotion,
+                    Mesh.PktRx.AlienID,
+                    Mesh.PktRx.AlienInfo.Mesh.Hops,
+                    Mesh.PktRx.AlienInfo.Mesh.Timestamp,
+                    Mesh.PktRx.AlienInfo.Mesh.TimeDiff,
+                    Mesh.PktRx.AlienInfo.State.Reason,
+                    Mesh.PktRx.AlienInfo.State.Location,
+                    Mesh.PktRx.AlienInfo.State.Emotion,
+                    RSSI
+                    );
 #endif
         } // Pkt Ok
     } while(Radio.Valets.InRx);

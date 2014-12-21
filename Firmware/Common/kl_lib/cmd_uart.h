@@ -103,6 +103,7 @@ public:
     }
     void Init(uint32_t ABaudrate);
     // Inner use
+    void IPrintf(const char *format, va_list args);
     void IRQDmaTxHandler();
     void IPutChar(char c);
     void IPrintf(const char *format, va_list args);

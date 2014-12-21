@@ -11,12 +11,18 @@
 
 CmdUart_t Uart;
 
-static inline void FPutChar(char c) { Uart.IPutChar(c); }
-
-void CmdUart_t::IPutChar(char c) {
-    *PWrite++ = c;
-    if(PWrite >= &TXBuf[UART_TXBUF_SIZE]) PWrite = TXBuf;   // Circulate buffer
+extern "C" {
+void PrintfC(const char *format, ...) {
+    chSysLock();
+    va_list args;
+    va_start(args, format);
+    Uart.IPrintf(format, args);
+    va_end(args);
+    chSysUnlock();
 }
+}
+
+static inline void FPutChar(char c) { Uart.IPutChar(c); }
 
 void CmdUart_t::Printf(const char *format, ...) {
     chSysLock();
@@ -34,6 +40,10 @@ void CmdUart_t::PrintfI(const char *format, ...) {
     va_end(args);
 }
 
+void CmdUart_t::IPutChar(char c) {
+    *PWrite++ = c;
+    if(PWrite >= &TXBuf[UART_TXBUF_SIZE]) PWrite = TXBuf;   // Circulate buffer
+}
 
 void CmdUart_t::IPrintf(const char *format, va_list args) {
     int32_t MaxLength = UART_TXBUF_SIZE - IFullSlotsCount;
@@ -53,7 +63,6 @@ void CmdUart_t::ISendViaDMA() {
         dmaStreamEnable(UART_DMA_TX);
     }
 }
-
 #if UART_RX_ENABLED
 void CmdUart_t::PollRx() {
     int32_t Sz = UART_RXBUF_SZ - UART_DMA_RX->channel->CNDTR;   // Number of bytes copied to buffer since restart
@@ -134,5 +143,12 @@ void CmdUart_t::IRQDmaTxHandler() {
     if(PRead >= (TXBuf + UART_TXBUF_SIZE)) PRead = TXBuf; // Circulate pointer
 
     if(IFullSlotsCount == 0) IDmaIsIdle = true; // Nothing left to send
-    else ISendViaDMA();
+    else {  // There is something to transmit more
+        dmaStreamSetMemory0(UART_DMA_TX, PRead);
+        uint32_t PartSz = (TXBuf + UART_TXBUF_SIZE) - PRead;
+        ITransSize = (IFullSlotsCount > PartSz)? PartSz : IFullSlotsCount;
+        dmaStreamSetTransactionSize(UART_DMA_TX, ITransSize);
+        dmaStreamSetMode(UART_DMA_TX, UART_DMA_TX_MODE);
+        dmaStreamEnable(UART_DMA_TX);    // Restart DMA
+    }
 }

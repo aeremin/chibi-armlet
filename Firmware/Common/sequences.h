@@ -24,6 +24,13 @@ struct LedChunk_t {
 };
 #define LED_CHUNK_SZ   sizeof(LedChunk_t)
 
+const LedChunk_t LedPoweredOn[] = {
+        {csSetColor, 0, clWhite},
+        {csWait, 199},
+        {csSetColor, 0, clBlack},
+        {csEnd}
+};
+
 // Battery
 const LedChunk_t LedBatteryDischarged[] = {
         {csSetColor, 0, clRed}, // Set color immediately
