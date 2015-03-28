@@ -51,15 +51,13 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint8_t LvlMin;
-    uint8_t LvlMax;
-    uint8_t DmgMin;
-    uint8_t DmgMax;
+    uint8_t ID;
+    uint32_t TestWord;
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
-#if 1 // ========================== const Pkt_t ================================
+#if 0 // ========================== const Pkt_t ================================
 // Lustra constants
 const rPkt_t PktLustra[4] = {
         {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0, 0},        // Clean

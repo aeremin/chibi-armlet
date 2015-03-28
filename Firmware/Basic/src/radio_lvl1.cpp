@@ -10,8 +10,9 @@
 #include "application.h"
 #include "cc1101.h"
 #include "cmd_uart.h"
+#include "peripheral.h"
 
-#define DBG_PINS
+//#define DBG_PINS
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOC
@@ -29,21 +30,20 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-#define TX
-//#define LED_RX
+//#define TX
 void rLevel1_t::ITask() {
 #ifdef TX
         // Transmit
-        DBG1_SET();
+        PktTx.ID = 4;
+        PktTx.TestWord = 0xCa115ea1;
         CC.TransmitSync(&PktTx);
-        DBG1_CLR();
-        //chThdSleepMilliseconds(99);
-#elif defined LED_RX
+        chThdSleepMilliseconds(99);
+#else
         Color_t Clr;
         int8_t Rssi;
-//        if(Enabled) {
-            RxRslt = CC.ReceiveSync(306, &PktRx, &Rssi);
-            if(RxRslt == OK) {
+        uint8_t RxRslt = CC.ReceiveSync(306, &PktRx, &Rssi);
+        if(RxRslt == OK) {
+            if(PktRx.TestWord == 0xCa115ea1) {
                 Uart.Printf("%d\r", Rssi);
                 Clr = clWhite;
                 if     (Rssi < -100) Clr = clRed;
@@ -52,13 +52,22 @@ void rLevel1_t::ITask() {
                 else if(Rssi < -70) Clr = clCyan;
                 else if(Rssi < -60) Clr = clBlue;
                 else if(Rssi < -50) Clr = clMagenta;
+                Led.SetColor(Clr);
+
+                // Set 1 at PC15
+                PinSet(GPIOC, 15);
+
+                // Wait 0 at PC13
+                while(PinIsSet(GPIOC, 13)) chThdSleepMilliseconds(99);
+
+                Led.SetColor(clBlack);
+                // Set 0 at PC15
+                PinClear(GPIOC, 15);
             }
-            else {
-                Clr = clBlack;
-    //            Uart.Printf("Halt\r");
-            }
-            Led.SetColor(Clr);
-//        }
+        }
+        else {
+            Led.SetColor(clBlack);
+        }
         chThdSleepMilliseconds(99);
 #endif
 }
@@ -73,6 +82,7 @@ void rLevel1_t::Init() {
     CC.Init();
     CC.SetTxPower(CC_Pwr0dBm);
     CC.SetPktSize(RPKT_LEN);
+    CC.SetChannel(9);
     // Thread
     chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 }

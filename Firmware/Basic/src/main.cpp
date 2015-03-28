@@ -14,6 +14,7 @@
 #include "application.h"
 #include "radio_lvl1.h"
 #include "evt_mask.h"
+#include "peripheral.h"
 
 void TmrUartRxCallback(void *p) {
     chSysLockFromIsr();
@@ -31,10 +32,16 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-//    Led.Init();
+    Led.Init();
 
     App.PThd = chThdSelf();
     Radio.Init();
+
+    // Setup input
+    PinSetupIn(GPIOC, 13, pudPullUp);
+
+    // Setup output
+    PinSetupOut(GPIOC, 15, omPushPull, pudNone);
 
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
