@@ -1,0 +1,1 @@
+Both hardware and firmware here
