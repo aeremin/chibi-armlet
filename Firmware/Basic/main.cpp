@@ -15,9 +15,12 @@
 #include "radio_lvl1.h"
 #include "evt_mask.h"
 #include "vibro.h"
+#include "led.h"
 #include "Sequences.h"
 
 Vibro_t Vibro(GPIOB, 6, TIM4, 1);
+LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
+
 App_t App;
 
 #if 1 // ============================ Timers ===================================
@@ -41,12 +44,12 @@ int main(void) {
     chVTSet(&App.TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
     Uart.Init(115200);
     Uart.Printf("\r%S  AHB freq=%u", VERSION_STRING, Clk.AHBFreqHz);
-//    Led.Init();
 
-//    Radio.Init();
-
+    Led.Init();
     Vibro.Init();
 
+    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
+    else Led.StartSequence(lsqStart);
 
     // Main cycle
     App.ITask();
@@ -56,7 +59,7 @@ int main(void) {
 __attribute__ ((__noreturn__))
 void App_t::ITask() {
     while(true) {
-        Vibro.StartSequence(vsqBrrBrr);
+//        Vibro.StartSequence(vsqBrrBrr);
         chThdSleepMilliseconds(1800);
 //        chThdSleepMilliseconds(999);
 //        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);

@@ -189,7 +189,7 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 };
 #endif
 
-#if 0 // ============================ LED RGB ==================================
+#if 1 // ============================ LED RGB ==================================
 // ==== Door ====
 #define clDoorOpen      ((Color_t){0,   255, 0})
 #define clDoorClosed    ((Color_t){18,  0,   0})

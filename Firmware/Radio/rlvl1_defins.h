@@ -51,47 +51,24 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint8_t LvlMin;
-    uint8_t LvlMax;
-    uint8_t DmgMin;
-    uint8_t DmgMax;
+    uint32_t TestWord;
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
 #if 1 // ========================== const Pkt_t ================================
-// Lustra constants
-const rPkt_t PktLustra[4] = {
-        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0, 0},        // Clean
-        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 30},       // Weak
-        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 1, 60},       // Strong
-        {Lvl1000ToLvl250(650), Lvl1000ToLvl250(1000), 0xFF, 0xFF},  // Lethal
-};
-// Pelengator
-const rPkt_t PktPelengator = {0, 0, 0, 0};
+#define TEST_WORD   0xCa115ea1  // Call Seal
+
 #endif
 
 #if 1 // ======================= Channels & cycles =============================
-#define LUSTRA_CNT      40
-#define LUSTRA_MIN_ID   100
-#define LUSTRA_MAX_ID   140
-
-#define RCHNL_EMP       7
-#define RCHNL_PELENG    9
-#define RCHNL_MIN       10
-#define RCHNL_MAX       (RCHNL_MIN + LUSTRA_CNT - 1)
-
-#define LUSTRA_ID_TO_RCHNL(ID) ((ID - LUSTRA_MIN_ID) + RCHNL_MIN)
-
-#define CYCLE_CNT       4   // Number of cycles in supercycle
-#define PELENG_TX_CNT   4   // Number of pkts to transmit by pelengator
-
+#define RCHNL   9
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define PELENG_RX_T_MS  4   // }
-#define LUSTRA_RX_T_MS  5   // } Experimentally checked
-
+#define TX_PERIOD_MS    45
+#define RX_T_MS         63
+#define RX_SLEEP_T_MS   270
 #endif
 
 
