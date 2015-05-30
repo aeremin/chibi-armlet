@@ -7,7 +7,7 @@
 
 #include "adc15x.h"
 #include "evt_mask.h"
-#include "cmd_uart.h"
+#include "uart.h"
 
 #if 1 // ============================= ADC =====================================
 Adc_t Adc;
@@ -19,7 +19,7 @@ void AdcTxIrq(void *p, uint32_t flags) {
     // Resume thread if any
     if(Adc.PThreadToSignal != nullptr) {
         chSysLockFromIsr();
-        chEvtSignalI(Adc.PThreadToSignal, EVTMSK_MEASUREMENT_DONE);
+//        chEvtSignalI(Adc.PThreadToSignal, EVTMSK_MEASUREMENT_DONE);
         chSysUnlockFromIsr();
     }
 }

@@ -8,7 +8,7 @@
 #ifndef EESTORE_H_
 #define EESTORE_H_
 
-#include "kl_lib_L15x.h"
+#include "kl_lib.h"
 
 /*
  * Data is stored repeatedly, thus EEPROM wearing is distributed.

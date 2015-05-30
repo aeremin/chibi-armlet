@@ -5,11 +5,11 @@
  *      Author: kreyl
  */
 
+#include <main.h>
 #include "radio_lvl1.h"
 #include "evt_mask.h"
-#include "application.h"
 #include "cc1101.h"
-#include "cmd_uart.h"
+#include "uart.h"
 
 #define DBG_PINS
 
