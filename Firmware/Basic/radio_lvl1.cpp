@@ -100,6 +100,7 @@ void rLevel1_t::TryToReceive(uint32_t RxDuration) {
         DBG2_CLR();
         if(RxRslt == OK) {
 //            Uart.Printf("\rRID = %X", PktRx.UID);
+            IdBuf.Put(PktRx.UID);
         }
 //        Uart.Printf("\rNow: %u", chTimeNow());
         if(chTimeNow() < TimeEnd) RxDuration = TimeEnd - chTimeNow();

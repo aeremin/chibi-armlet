@@ -24,10 +24,16 @@ LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 App_t App;
 
 #if 1 // ============================ Timers ===================================
-void TmrSecondCallback(void *p) {
+void TmrCheckCallback(void *p) {
     chSysLockFromIsr();
-    App.SignalEvtI(EVTMSK_EVERY_SECOND);
-    chVTSetI(&App.TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
+    App.SignalEvtI(EVTMSK_RX_BUF_CHECK);
+    chVTSetI(&App.TmrCheck, MS2ST(RXBUF_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
+    chSysUnlockFromIsr();
+}
+void TmrIndicationCallback(void *p) {
+    chSysLockFromIsr();
+    App.SignalEvtI(EVTMSK_INDICATION);
+    chVTSetI(&App.TmrIndication, MS2ST(INDICATION_PERIOD_MS), TmrIndicationCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -39,12 +45,11 @@ int main(void) {
     // ==== Init OS ====
     halInit();
     chSysInit();
+
     // ==== Init Hard & Soft ====
     App.InitThread();
-    chVTSet(&App.TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
     Uart.Init(115200);
-
-    GetMcuUID(nullptr, nullptr, &App.UID);
+    GetMcuUID(&App.UID, nullptr, nullptr);
     Uart.Printf("\r%S  ID=%X", VERSION_STRING, App.UID);
 
     Led.Init();
@@ -52,6 +57,10 @@ int main(void) {
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
+
+    // Timers
+    chVTSet(&App.TmrCheck, MS2ST(RXBUF_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
+    chVTSet(&App.TmrIndication, MS2ST(INDICATION_PERIOD_MS), TmrIndicationCallback, nullptr);
 
     // Main cycle
     App.ITask();
@@ -62,49 +71,30 @@ __attribute__ ((__noreturn__))
 void App_t::ITask() {
     while(true) {
 //        Vibro.StartSequence(vsqBrrBrr);
-        chThdSleepMilliseconds(1800);
-//        chThdSleepMilliseconds(999);
-//        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Uart cmd ====
-//        if(EvtMsk & EVTMSK_UART_NEW_CMD) {
-//            OnUartCmd(&Uart);
-//            Uart.SignalCmdProcessed();
-//        }
-
-        // ==== Every second ====
-//        if(EvtMsk & EVTMSK_EVERY_SECOND) {
-            // Get mode
-//            uint8_t b = GetDipSwitch();
-//            b &= 0b00000111;    // Consider only lower bits
-//            Mode_t NewMode = static_cast<Mode_t>(b);
-//            if(Mode != NewMode) {
-//                if(Mode == mError) Led.StartSequence(lsqFailure);
-//                else {
-//                    Led.StartSequence(lsqStart);
-//                    Mode = NewMode;
-//                }
-//                chThdSleepMilliseconds(540);
-//            }
-//        }
-
-#if 0 // ==== Radio ====
-        if(EvtMsk & EVTMSK_RADIO_RX) {
-            Uart.Printf("\rRadioRx");
-            chVTRestart(&ITmrRadioTimeout, S2ST(RADIO_NOPKT_TIMEOUT_S), EVTMSK_RADIO_ON_TIMEOUT);
-            if(Mode == mRxLight or Mode == mRxVibroLight)
+        if(EvtMsk & EVTMSK_UART_NEW_CMD) {
+            OnUartCmd(&Uart);
+            Uart.SignalCmdProcessed();
         }
-        if(EvtMsk & EVTMSK_RADIO_ON_TIMEOUT) {
-//            Uart.Printf("\rRadioTimeout");
-            RadioIsOn = false;
-            Interface.ShowRadio();
-            IProcessLedLogic();
+
+        // ==== Rx buf check ====
+        if(EvtMsk & EVTMSK_RX_BUF_CHECK) {
+            RxTable.Clear();
+            uint32_t RID=0;
+            while(Radio.IdBuf.Get(&RID) == OK) RxTable.AddID(RID);
+            Uart.Printf("\rCnt = %u", RxTable.Cnt);
+            if     (RxTable.Cnt == 1) VibroChunk = vsqSingle;
+            else if(RxTable.Cnt == 2) VibroChunk = vsqPair;
+            else if(RxTable.Cnt  > 2) VibroChunk = vsqMany;
+            else VibroChunk = nullptr;
         }
-#endif
 
-#if 0 // ==== Saving settings ====
-        if(EvtMsk & EVTMSK_SAVE) { ISaveSettingsReally(); }
-#endif
-
+        // ==== Indication ====
+        if(EvtMsk & EVTMSK_INDICATION) {
+            if(VibroChunk != nullptr) Vibro.StartSequence(VibroChunk);
+//            Uart.Printf("\rInd");
+        }
     } // while true
 }
 

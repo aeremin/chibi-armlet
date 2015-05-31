@@ -48,6 +48,7 @@
 #define CMD_UNKNOWN     9
 #define EMPTY_STRING    10
 #define NOT_A_NUMBER    11
+#define OVERFLOW        12
 
 // Binary semaphores
 #define NOT_TAKEN       false

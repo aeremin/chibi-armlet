@@ -65,6 +65,8 @@ struct rPkt_t {
 #define CYCLE_CNT   4
 #define SLOT_CNT    108
 
+#define ID_BUF_SZ   54
+
 #endif
 
 #if 1 // =========================== Timings ===================================

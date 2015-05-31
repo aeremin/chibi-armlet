@@ -313,6 +313,38 @@ const BaseChunk_t vsqError[] = {
         {csSetup, 0},
         {csEnd}
 };
+
+
+const BaseChunk_t vsqSingle[] = {
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csEnd}
+};
+const BaseChunk_t vsqPair[] = {
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csWait, 99},
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csEnd}
+};
+const BaseChunk_t vsqMany[] = {
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csWait, 99},
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csWait, 99},
+        {csSetup, VIBRO_VOLUME},
+        {csWait, VIBRO_SHORT_MS},
+        {csSetup, 0},
+        {csEnd}
+};
 #endif
 
 #endif /* SEQUENCES_H_ */

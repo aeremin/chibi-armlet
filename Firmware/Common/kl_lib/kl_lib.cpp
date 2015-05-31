@@ -411,7 +411,7 @@ void GetMcuUID(uint32_t *Top, uint32_t *Mid, uint32_t *Bot) {
     // Get parts of ID
     uint32_t BaseAddr = (Cat == 1 or Cat == 2)? 0x1FF80050 : 0x1FF800D0;
     if(Bot != nullptr) *Bot = *reinterpret_cast<uint32_t*>(BaseAddr);
-    if(Mid != nullptr) *Mid = *reinterpret_cast<uint32_t*>(BaseAddr + 4);
-    if(Top != nullptr) *Top = *reinterpret_cast<uint32_t*>(BaseAddr + 14);
+    if(Mid != nullptr) *Mid = *reinterpret_cast<uint32_t*>(BaseAddr + 0x04);
+    if(Top != nullptr) *Top = *reinterpret_cast<uint32_t*>(BaseAddr + 0x14);
 }
 #endif
