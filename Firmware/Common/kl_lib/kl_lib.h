@@ -67,7 +67,6 @@ typedef void (*ftVoidPVoid)(void*p);
 typedef void (*ftVoidPVoidLen)(void*p, uint32_t Len);
 
 // Simple pseudofunctions
-// Simple pseudofunctions
 #define MIN(a, b)   ( ((a)<(b))? (a) : (b) )
 #define MAX(a, b)   ( ((a)>(b))? (a) : (b) )
 #define ABS(a)      ( ((a) < 0)? -(a) : (a) )
@@ -137,7 +136,6 @@ public:
         return (*p == '\0')? OK : NOT_A_NUMBER;
     }
 };
-
 
 // Init, to calm compiler
 extern "C" {
@@ -666,6 +664,11 @@ public:
 };
 
 
+#endif
+
+#if 1 // ====================== MCU unique ID ==================================
+#define __GET_MCU_ID
+void GetMcuUID(uint32_t *Top, uint32_t *Mid, uint32_t *Bot);
 #endif
 
 #endif /* KL_LIB_F100_H_ */

@@ -354,7 +354,6 @@ uint8_t i2c_t::WaitBTF() {
 }
 #endif
 
-#include <uart.h>
 #ifdef FLASH_LIB_KL // ==================== FLASH & EEPROM =====================
 // Here not-fast write is used. I.e. interface will erase the word if it is not the same.
 uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
@@ -398,5 +397,21 @@ uint8_t Eeprom_t::WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr) {
     LockEE();
     return status;
 }
+#endif
 
+#ifdef __GET_MCU_ID
+void GetMcuUID(uint32_t *Top, uint32_t *Mid, uint32_t *Bot) {
+    // Get MCU category
+    uint8_t Cat;
+    uint32_t MCU_ID_Code = *reinterpret_cast<uint32_t*>(0xE0042000);
+//    Uart.Printf("\rMCUID=%X", MCU_ID_Code);
+    MCU_ID_Code &= 0x0FFF;
+    if(MCU_ID_Code == 0x416) Cat = 1;
+    else if(MCU_ID_Code == 0x429) Cat = 2;
+    // Get parts of ID
+    uint32_t BaseAddr = (Cat == 1 or Cat == 2)? 0x1FF80050 : 0x1FF800D0;
+    if(Bot != nullptr) *Bot = *reinterpret_cast<uint32_t*>(BaseAddr);
+    if(Mid != nullptr) *Mid = *reinterpret_cast<uint32_t*>(BaseAddr + 4);
+    if(Top != nullptr) *Top = *reinterpret_cast<uint32_t*>(BaseAddr + 14);
+}
 #endif

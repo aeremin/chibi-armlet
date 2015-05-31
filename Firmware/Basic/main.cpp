@@ -43,7 +43,9 @@ int main(void) {
     App.InitThread();
     chVTSet(&App.TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
     Uart.Init(115200);
-    Uart.Printf("\r%S  AHB freq=%u", VERSION_STRING, Clk.AHBFreqHz);
+
+    GetMcuUID(nullptr, nullptr, &App.UID);
+    Uart.Printf("\r%S  ID=%X", VERSION_STRING, App.UID);
 
     Led.Init();
     Vibro.Init();

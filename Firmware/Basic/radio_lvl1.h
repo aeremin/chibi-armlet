@@ -15,7 +15,9 @@
 
 class rLevel1_t {
 private:
-    rPkt_t Pkt;
+    rPkt_t PktRx, PktTx;
+    void TryToReceive(uint32_t RxDuration);
+    void TryToSleep(uint32_t SleepDuration);
 public:
     uint8_t Init();
     // Inner use

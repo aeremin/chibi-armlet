@@ -20,7 +20,7 @@ private:
     VirtualTimer ITmrRadioTimeout;
     uint8_t ISetID(int32_t NewID);
 public:
-//    int32_t ID;
+    uint32_t UID;
     uint8_t GetDipSwitch();
     VirtualTimer TmrSecond;
     // Eternal methods

@@ -51,24 +51,25 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint32_t TestWord;
+    uint32_t UID;
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
 #if 1 // ========================== const Pkt_t ================================
 #define TEST_WORD   0xCa115ea1  // Call Seal
-
 #endif
 
 #if 1 // ======================= Channels & cycles =============================
-#define RCHNL   9
+#define RCHNL       9
+#define CYCLE_CNT   4
+#define SLOT_CNT    108
+
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define TX_PERIOD_MS    45
-#define RX_T_MS         63
-#define RX_SLEEP_T_MS   270
+#define SLOT_DURATION_MS        3
+#define MIN_SLEEP_DURATION_MS   18
 #endif
 
 
