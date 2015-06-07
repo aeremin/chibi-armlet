@@ -70,7 +70,7 @@ struct rPkt_t {
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define SLOT_DURATION_MS        3
+#define SLOT_DURATION_MS        2
 #define MIN_SLEEP_DURATION_MS   18
 #endif
 

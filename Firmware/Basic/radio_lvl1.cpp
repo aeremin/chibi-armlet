@@ -125,7 +125,7 @@ uint8_t rLevel1_t::Init() {
 #endif
     // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_Pwr0dBm);
+        CC.SetTxPower(CC_PwrMinus10dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(RCHNL);
         PktTx.UID = App.UID;
