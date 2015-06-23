@@ -8,7 +8,7 @@
 #ifndef RLVL1_DEFINS_H_
 #define RLVL1_DEFINS_H_
 
-#if 1 // ========================= Signal levels ===============================
+#if 0 // ========================= Signal levels ===============================
 // pyton translation for db
 #define RX_LVL_TOP      1000
 // Jolaf: str(tuple(1 + int(sqrt(float(i) / 65) * 99) for i in xrange(0, 65 + 1)))
@@ -51,30 +51,34 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint32_t UID;
+    uint32_t DWord;
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
-#if 1 // ========================== const Pkt_t ================================
-#define TEST_WORD   0xCa115ea1  // Call Seal
-#endif
+// ==== Sizes ====
+#define RXTABLE_SZ      54
+#define RXTABLE_MAX_CNT 3   // Do not receive if this count reached. Will not indicate more anyway.
 
 #if 1 // ======================= Channels & cycles =============================
-#define RCHNL       9
-#define CYCLE_CNT   4
-#define SLOT_CNT    108
+#define RCHNL_MIN       5
+#define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 
-#define ID_BUF_SZ   54
+#define RCHNL_RXTX      4
+#define CYCLE_CNT       4
+#define SLOT_CNT        72
 
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define SLOT_DURATION_MS        2
+#define TX_PERIOD_MS            4
+#define RX_T_MS                 7
+#define RX_SLEEP_T_MS           630
+
+#define SLOT_DURATION_MS        3
 #define MIN_SLEEP_DURATION_MS   18
+
 #endif
-
-
 
 
 #endif /* RLVL1_DEFINS_H_ */

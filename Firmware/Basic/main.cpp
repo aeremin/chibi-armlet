@@ -18,7 +18,6 @@
 #include "led.h"
 #include "Sequences.h"
 
-Vibro_t Vibro(GPIOB, 6, TIM4, 1);
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 App_t App;
@@ -50,10 +49,9 @@ int main(void) {
     App.InitThread();
     Uart.Init(115200);
     GetMcuUID(&App.UID, nullptr, nullptr);
-    Uart.Printf("\r%S  ID=%X", VERSION_STRING, App.UID);
+    Uart.Printf("\r%S_%S", APP_NAME, APP_VERSION);
 
     Led.Init();
-    Vibro.Init();
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
@@ -70,7 +68,6 @@ int main(void) {
 __attribute__ ((__noreturn__))
 void App_t::ITask() {
     while(true) {
-//        Vibro.StartSequence(vsqBrrBrr);
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
         // ==== Uart cmd ====
         if(EvtMsk & EVTMSK_UART_NEW_CMD) {
@@ -81,9 +78,9 @@ void App_t::ITask() {
         // ==== Rx buf check ====
         if(EvtMsk & EVTMSK_RX_BUF_CHECK) {
             RxTable.Clear();
-            uint32_t RID=0;
-            while(Radio.IdBuf.Get(&RID) == OK) RxTable.AddID(RID);
-            Uart.Printf("\rCnt = %u", RxTable.Cnt);
+//            uint32_t RID=0;
+//            while(Radio.IdBuf.Get(&RID) == OK) RxTable.AddID(RID);
+//            Uart.Printf("\rCnt = %u", RxTable.Cnt);
             if     (RxTable.Cnt == 1) VibroChunk = vsqSingle;
             else if(RxTable.Cnt == 2) VibroChunk = vsqPair;
             else if(RxTable.Cnt  > 2) VibroChunk = vsqMany;
@@ -92,7 +89,7 @@ void App_t::ITask() {
 
         // ==== Indication ====
         if(EvtMsk & EVTMSK_INDICATION) {
-            if(VibroChunk != nullptr) Vibro.StartSequence(VibroChunk);
+//            if(VibroChunk != nullptr) Vibro.StartSequence(VibroChunk);
 //            Uart.Printf("\rInd");
         }
     } // while true

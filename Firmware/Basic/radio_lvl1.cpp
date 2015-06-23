@@ -12,7 +12,7 @@
 #include "uart.h"
 // For test purposes
 #include "led.h"
-//extern LedRGB_t Led;
+extern LedRGB_t Led;
 
 #define DBG_PINS
 
@@ -37,7 +37,7 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TEST_TX
-//#define TEST_RX
+#define TEST_RX
 void rLevel1_t::ITask() {
 #ifdef TEST_TX
     // Transmit
@@ -96,11 +96,11 @@ void rLevel1_t::TryToReceive(uint32_t RxDuration) {
 //    Uart.Printf("\r***End: %u", TimeEnd);
     while(true) {
         DBG2_SET();
-        uint8_t RxRslt = CC.ReceiveSync(RxDuration, &PktRx, &Rssi);
+        uint8_t RxRslt = CC.ReceiveSync(RxDuration, &Pkt, &Rssi);
         DBG2_CLR();
         if(RxRslt == OK) {
 //            Uart.Printf("\rRID = %X", PktRx.UID);
-            IdBuf.Put(PktRx.UID);
+//            IdBuf.Put(Pkt.UID);
         }
 //        Uart.Printf("\rNow: %u", chTimeNow());
         if(chTimeNow() < TimeEnd) RxDuration = TimeEnd - chTimeNow();
@@ -127,8 +127,7 @@ uint8_t rLevel1_t::Init() {
     if(CC.Init() == OK) {
         CC.SetTxPower(CC_PwrMinus10dBm);
         CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(RCHNL);
-        PktTx.UID = App.UID;
+        CC.SetChannel(6);
         // Thread
         chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 //        Uart.Printf("\rCC init OK");

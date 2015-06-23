@@ -13,7 +13,8 @@
 #include "evt_mask.h"
 #include "ChunkTypes.h"
 
-#define VERSION_STRING  "Ragnarok v1.0"
+#define APP_NAME        "LettersOfEast_RX"
+#define APP_VERSION     _TIMENOW_
 
 #define RXBUF_CHECK_PERIOD_MS   3600
 #define INDICATION_PERIOD_MS    1800
