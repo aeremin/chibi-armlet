@@ -191,18 +191,13 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 
 #if 1 // ============================ LED RGB ==================================
 // ==== Door ====
-#define clDoorOpen      ((Color_t){0,   255, 0})
-#define clDoorClosed    ((Color_t){18,  0,   0})
-#define clWrongKey      ((Color_t){255, 0,   0})
-#define clSecretKey     ((Color_t){0,   0,   255})
+#define clOneOrTwo      clBlue
+#define clMany          clRed
+#define SWITCH_TIME     630
 
 const LedRGBChunk_t lsqStart[] = {
-//        {csSetup, 360, clRed},
-//        {csSetup, 360, clBlack},
         {csSetup, 360, clGreen},
         {csSetup, 360, clBlack},
-//        {csSetup, 360, clBlue},
-//        {csSetup, 360, clBlack},
         {csEnd}
 };
 
@@ -221,25 +216,19 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
-/*
-const LedRGBChunk_t lsqDoorClose[] = {
-        {csSetup, 630, clDoorClosed},
+const LedRGBChunk_t lsqOneOrTwo[] = {
+        {csSetup, SWITCH_TIME, clOneOrTwo},
         {csEnd}
 };
-const LedRGBChunk_t lsqDoorWrongKey[] = {
-        {csSetup, 0, clWrongKey},
-        {csWait, 99},
-        {csSetup, 360, clDoorClosed},
+const LedRGBChunk_t lsqMany[] = {
+        {csSetup, SWITCH_TIME, clMany},
+        {csEnd}
+};
+const LedRGBChunk_t lsqNone[] = {
+        {csSetup, SWITCH_TIME, clBlack},
         {csEnd}
 };
 
-const LedRGBChunk_t lsqDoorSecretKey[] = {
-        {csSetup, 0, clSecretKey},
-        {csWait, 99},
-        {csSetup, 360, clDoorClosed},
-        {csEnd}
-};
-*/
 #endif
 
 #if 0 // =========================== LED Smooth ================================

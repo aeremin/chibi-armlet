@@ -11,8 +11,8 @@
 #include "cc1101.h"
 #include "uart.h"
 // For test purposes
-#include "led.h"
-extern LedRGB_t Led;
+//#include "led.h"
+//extern LedRGB_t Led;
 
 #define DBG_PINS
 
@@ -37,7 +37,7 @@ static void rLvl1Thread(void *arg) {
 }
 
 //#define TEST_TX
-#define TEST_RX
+//#define TEST_RX
 void rLevel1_t::ITask() {
 #ifdef TEST_TX
     // Transmit
@@ -63,29 +63,19 @@ void rLevel1_t::ITask() {
     Led.SetColor(Clr);
     chThdSleepMilliseconds(99);
 #else
-    // Iterate cycles
-    for(uint32_t CycleN=0; CycleN < CYCLE_CNT; CycleN++) {
-        // ==== New cycle begins ====
-        // Decide when to transmit
-        uint32_t TxSlot = rand() % SLOT_CNT;
-//        Uart.Printf("\rTxSlot: %u", TxSlot);
-        // If TX slot is not zero, receive at zero cycle or sleep otherwise
-        uint32_t TimeBefore = TxSlot * SLOT_DURATION_MS;
-        if(TimeBefore != 0) {
-            if(CycleN == 0) TryToReceive(TimeBefore);
-            else TryToSleep(TimeBefore);
-        }
-        // TX
-        DBG1_SET();
-        CC.TransmitSync(&PktTx);
-        DBG1_CLR();
-        // If TX slot is not last, receive at zero cycle or sleep otherwise
-        TimeBefore = (SLOT_CNT - TxSlot - 1) * SLOT_DURATION_MS;
-        if(TimeBefore != 0) {
-            if(CycleN == 0) TryToReceive(TimeBefore);
-            else TryToSleep(TimeBefore);
-        }
-    }
+    if(RxTable.GetCount() < RXTABLE_MAX_CNT) { // Do not receive if this count reached. Will not indicate more anyway.
+        int8_t Rssi;
+        // Iterate channels
+        for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
+            CC.SetChannel(ID2RCHNL(i));
+            uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
+            if(RxRslt == OK) {
+                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
+                RxTable.Add(Pkt.DWord);
+            }
+        } // for
+    } // if there is croud
+    TryToSleep(RX_SLEEP_T_MS);
 #endif
 }
 #endif // task

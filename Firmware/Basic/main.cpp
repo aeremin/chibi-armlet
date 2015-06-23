@@ -23,16 +23,17 @@ LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 App_t App;
 
 #if 1 // ============================ Timers ===================================
-void TmrCheckCallback(void *p) {
+// Universal VirtualTimer callback
+void TmrGeneralCallback(void *p) {
     chSysLockFromIsr();
-    App.SignalEvtI(EVTMSK_RX_BUF_CHECK);
-    chVTSetI(&App.TmrCheck, MS2ST(RXBUF_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
+    App.SignalEvtI((eventmask_t)p);
     chSysUnlockFromIsr();
 }
-void TmrIndicationCallback(void *p) {
+// Check radio buffer
+void TmrCheckCallback(void *p) {
     chSysLockFromIsr();
-    App.SignalEvtI(EVTMSK_INDICATION);
-    chVTSetI(&App.TmrIndication, MS2ST(INDICATION_PERIOD_MS), TmrIndicationCallback, nullptr);
+    App.SignalEvtI(EVTMSK_CHECK);
+    chVTSetI(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -48,7 +49,6 @@ int main(void) {
     // ==== Init Hard & Soft ====
     App.InitThread();
     Uart.Init(115200);
-    GetMcuUID(&App.UID, nullptr, nullptr);
     Uart.Printf("\r%S_%S", APP_NAME, APP_VERSION);
 
     Led.Init();
@@ -57,8 +57,7 @@ int main(void) {
     else Led.StartSequence(lsqStart);
 
     // Timers
-    chVTSet(&App.TmrCheck, MS2ST(RXBUF_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
-    chVTSet(&App.TmrIndication, MS2ST(INDICATION_PERIOD_MS), TmrIndicationCallback, nullptr);
+    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
 
     // Main cycle
     App.ITask();
@@ -69,29 +68,32 @@ __attribute__ ((__noreturn__))
 void App_t::ITask() {
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-        // ==== Uart cmd ====
+#if 1   // ==== Uart cmd ====
         if(EvtMsk & EVTMSK_UART_NEW_CMD) {
             OnUartCmd(&Uart);
             Uart.SignalCmdProcessed();
         }
+#endif
 
-        // ==== Rx buf check ====
-        if(EvtMsk & EVTMSK_RX_BUF_CHECK) {
-            RxTable.Clear();
-//            uint32_t RID=0;
-//            while(Radio.IdBuf.Get(&RID) == OK) RxTable.AddID(RID);
-//            Uart.Printf("\rCnt = %u", RxTable.Cnt);
-            if     (RxTable.Cnt == 1) VibroChunk = vsqSingle;
-            else if(RxTable.Cnt == 2) VibroChunk = vsqPair;
-            else if(RxTable.Cnt  > 2) VibroChunk = vsqMany;
-            else VibroChunk = nullptr;
-        }
+#if 1   // ==== Rx buf check ====
+        if(EvtMsk & EVTMSK_CHECK) {
+            // Get number of distinct received IDs and clear table
+            chSysLock();
+            uint32_t Cnt = Radio.RxTable.GetCount();
+            Radio.RxTable.Clear();
+            chSysUnlock();
+//    Uart.Printf("\rCnt = %u", Cnt);
+            // ==== Select indication depending on Cnt ====
+            const LedRGBChunk_t *lsq = lsqNone;
+            if(Cnt == 1 or Cnt == 2) lsq = lsqOneOrTwo;
+            else if(Cnt > 2) lsq = lsqMany;
 
-        // ==== Indication ====
-        if(EvtMsk & EVTMSK_INDICATION) {
-//            if(VibroChunk != nullptr) Vibro.StartSequence(VibroChunk);
-//            Uart.Printf("\rInd");
+            if(lsq != lsqSaved) {
+                lsqSaved = lsq;
+                Led.StartSequence(lsq);
+            }
         }
+#endif
     } // while true
 }
 

@@ -13,38 +13,23 @@
 #include "evt_mask.h"
 #include "ChunkTypes.h"
 
-#define APP_NAME        "LettersOfEast_RX"
-#define APP_VERSION     _TIMENOW_
+#define APP_NAME            "LettersOfEast_RX"
+#define APP_VERSION         _TIMENOW_
 
-#define RXBUF_CHECK_PERIOD_MS   3600
-#define INDICATION_PERIOD_MS    1800
+// ==== Constants and default values ====
+#define ID_MIN                  1
+#define ID_MAX                  10
 
-// ==== RX table ====
-#define RX_TABLE_SZ     54
-class RxTable_t {
-private:
-    uint32_t IBuf[RX_TABLE_SZ];
-public:
-    uint32_t Cnt;
-    void AddID(uint32_t ID) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i] == ID) return;   // do not add what exists
-        }
-        IBuf[Cnt] = ID;
-        Cnt++;
-    }
-    void Clear() { Cnt = 0; }
-};
+// Timings
+#define RX_CHECK_PERIOD_MS  3600
 
 class App_t {
 private:
     Thread *PThread;
-    uint8_t ISetID(int32_t NewID);
-    RxTable_t RxTable;
-    const BaseChunk_t *VibroChunk = nullptr;
+//    uint32_t SavedCnt;
+    const LedRGBChunk_t *lsqSaved = nullptr;
 public:
-    uint32_t UID;
-    VirtualTimer TmrCheck, TmrIndication;
+    VirtualTimer TmrCheck;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {

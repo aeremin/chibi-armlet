@@ -57,7 +57,7 @@ struct rPkt_t {
 #endif
 
 // ==== Sizes ====
-#define RXTABLE_SZ      54
+#define RXTABLE_SZ      11
 #define RXTABLE_MAX_CNT 3   // Do not receive if this count reached. Will not indicate more anyway.
 
 #if 1 // ======================= Channels & cycles =============================
@@ -71,11 +71,9 @@ struct rPkt_t {
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define TX_PERIOD_MS            4
-#define RX_T_MS                 7
+#define RX_T_MS                 18
 #define RX_SLEEP_T_MS           630
 
-#define SLOT_DURATION_MS        3
 #define MIN_SLEEP_DURATION_MS   18
 
 #endif
