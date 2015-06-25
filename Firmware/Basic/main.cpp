@@ -58,11 +58,11 @@ int main(void) {
     LedWs.Init();
     LedWs.StartSequence(wsqPwrOn);
 
-//    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-//    else Led.StartSequence(lsqStart);
-//
-//    // Timers
-//    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
+    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
+    else Led.StartSequence(lsqStart);
+
+    // Timers
+    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
 
     // Main cycle
     App.ITask();
@@ -89,6 +89,7 @@ void App_t::ITask() {
             chSysUnlock();
 //    Uart.Printf("\rCnt = %u", Cnt);
             // ==== Select indication depending on Cnt ====
+#if 0   // Inner LED
             const LedRGBChunk_t *lsq = lsqNone;
             if(Cnt == 1 or Cnt == 2) lsq = lsqOneOrTwo;
             else if(Cnt > 2) lsq = lsqMany;
@@ -96,6 +97,15 @@ void App_t::ITask() {
             if(lsq != lsqSaved) {
                 lsqSaved = lsq;
                 Led.StartSequence(lsq);
+            }
+#endif
+            const LedWsChunk_t *wsq = wsqNone;
+            if(Cnt == 1 or Cnt == 2) wsq = wsqOneOrTwo;
+            else if(Cnt > 2) wsq = wsqMany;
+
+            if(wsq != wsqSaved) {
+                wsqSaved = wsq;
+                LedWs.StartSequence(wsq);
             }
         }
 #endif

@@ -28,6 +28,7 @@ private:
     Thread *PThread;
 //    uint32_t SavedCnt;
     const LedRGBChunk_t *lsqSaved = nullptr;
+    const LedWsChunk_t  *wsqSaved = nullptr;
 public:
     VirtualTimer TmrCheck;
     // Eternal methods

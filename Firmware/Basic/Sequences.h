@@ -237,6 +237,20 @@ const LedWsChunk_t wsqPwrOn[] = {
         {csEnd}
 };
 
+#define SWITCH_MODE     wstOneByOne
+const LedWsChunk_t wsqOneOrTwo[] = {
+        {csSetup, SWITCH_TIME, clOneOrTwo, SWITCH_MODE},
+        {csEnd}
+};
+const LedWsChunk_t wsqMany[] = {
+        {csSetup, SWITCH_TIME, clMany, SWITCH_MODE},
+        {csEnd}
+};
+const LedWsChunk_t wsqNone[] = {
+        {csSetup, SWITCH_TIME, clBlack, SWITCH_MODE},
+        {csEnd}
+};
+
 #endif
 
 #if 0 // =========================== LED Smooth ================================
