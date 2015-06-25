@@ -56,21 +56,13 @@ int main(void) {
 
     Led.Init();
     LedWs.Init();
-    while(true) {
-        LedWs.SetCommonColor(clRed);
-        chThdSleepMilliseconds(450);
-        LedWs.SetCommonColor(clGreen);
-        chThdSleepMilliseconds(450);
-        LedWs.SetCommonColor(clBlue);
-        chThdSleepMilliseconds(450);
-    }
-//    LedWs.StartSequence(wsqPwrOn);
+    LedWs.StartSequence(wsqPwrOn);
 
-    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-    else Led.StartSequence(lsqStart);
-
-    // Timers
-    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
+//    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
+//    else Led.StartSequence(lsqStart);
+//
+//    // Timers
+//    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
 
     // Main cycle
     App.ITask();

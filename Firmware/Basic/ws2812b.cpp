@@ -70,3 +70,51 @@ void LedWs_t::ISetCurrentColors() {
 //    IStopTx();
 //    chSysUnlockFromIsr();
 }
+
+SequencerLoopTask_t LedWs_t::ISetup() {
+    int N = -1;
+    // Search LED with other color
+    for(int i=0; i<LED_CNT; i++) {
+        if(IClr[i] != IPCurrentChunk->Color) {
+            N = i;
+            break;
+        }
+    }
+    if(N == -1) IPCurrentChunk++;   // All are equal
+    else {
+        if(IPCurrentChunk->Value == 0) {     // If smooth time is zero,
+            SetCommonColor(IPCurrentChunk->Color); // set all colors now
+            IPCurrentChunk++;                // and goto next chunk
+        }
+        else { // Smooth
+            uint32_t Delay = 0, tmp;
+            if(IPCurrentChunk->SwType == wstAtOnce) {
+                // Adjust all colors, calculating max delay
+                for(int i=N; i<LED_CNT; i++) {
+                    IClr[i].Adjust(&IPCurrentChunk->Color);
+                    tmp = IClr[i].SmoothDelay(IPCurrentChunk->Color, IPCurrentChunk->Value);
+                    if(tmp > Delay) Delay = tmp;
+                }
+                ISetCurrentColors();
+                if(Delay == 0) IPCurrentChunk++;    // All done
+                else {                              // Not completed
+                    SetupDelay(Delay);
+                    return sltBreak;
+                } // Done or not
+            }
+            else { // One by one
+                // Adjust current color
+                IClr[N].Adjust(&IPCurrentChunk->Color);
+                ISetCurrentColors();
+                Delay = IClr[N].SmoothDelay(IPCurrentChunk->Color, IPCurrentChunk->Value);
+                if(Delay == 0) {
+                    if(N == LED_CNT-1) { IPCurrentChunk++; return sltProceed; } // Last LED
+                    else SetupDelay(7);   // Current LED completed, wait a little and proceed with next
+                }
+                else SetupDelay(Delay);   // Wait as needed and proceed
+                return sltBreak;
+            } // One by one
+        } // if smooth
+    } // If there is someone other
+    return sltProceed;
+}

@@ -12,7 +12,7 @@
 #include "Sequences.h"
 
 // Constants
-#define LED_CNT         1
+#define LED_CNT         3
 #define LED_TMR         TIM4
 #define LED_TMR_CHNL    1
 #define LED_GPIO        GPIOB
@@ -46,9 +46,7 @@ private:
     void ISetCurrentColors();
     uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
     void ISwitchOff() { SetCommonColor(clBlack); }
-    SequencerLoopTask_t ISetup() {
-        return sltBreak;
-    }
+    SequencerLoopTask_t ISetup();
 public:
     LedWs_t() : BaseSequencer_t(), TxTmr({LED_GPIO, LED_PIN, LED_TMR, LED_TMR_CHNL}), PBit(BitBuf), Indx(0) {
         for(uint32_t i=0; i<TOTAL_BIT_CNT; i++) BitBuf[i] = 0;

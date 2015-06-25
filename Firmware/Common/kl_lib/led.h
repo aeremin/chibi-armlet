@@ -19,11 +19,6 @@
 #include <kl_lib.h>
 #endif
 
-#if 1 // =========================== Common auxilary ===========================
-// TimeToWaitBeforeNextAdjustment = SmoothVar / (N+4) + 1, where N - current LED brightness.
-static inline uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
-#endif
-
 #if 0 // ========================= Single LED blinker ==========================
 #define LED_RGB_BLINKER
 

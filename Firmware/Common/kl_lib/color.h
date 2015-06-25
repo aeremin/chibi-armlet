@@ -12,6 +12,8 @@
 
 // Mixing two colors
 #define ClrMix(C, B, L)     ((C * L + B * (255 - L)) / 255)
+// TimeToWaitBeforeNextAdjustment = SmoothVar / (N+4) + 1, where N - current LED brightness.
+static inline uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
 
 struct Color_t {
     uint8_t R, G, B;
@@ -42,6 +44,13 @@ struct Color_t {
         R = ClrMix(Fore.R, Back.R, Brt);
         G = ClrMix(Fore.G, Back.G, Brt);
         B = ClrMix(Fore.B, Back.B, Brt);
+    }
+    uint32_t SmoothDelay(const Color_t &AColor, uint32_t SmoothVar) const {
+        uint32_t Delay1 = (R == AColor.R)? 0 : ICalcDelay(R, SmoothVar);
+        uint32_t Delay2 = (G == AColor.G)? 0 : ICalcDelay(G, SmoothVar);
+        if(Delay2 > Delay1) Delay1 = Delay2;
+        Delay2 = (B == AColor.B)? 0 : ICalcDelay(B, SmoothVar);
+        return (Delay2 > Delay1)? Delay2 : Delay1;
     }
 } __attribute__((packed));
 
