@@ -17,8 +17,10 @@
 #include "vibro.h"
 #include "led.h"
 #include "Sequences.h"
+#include "ws2812b.h"
 
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
+LedWs_t LedWs;
 
 App_t App;
 
@@ -40,7 +42,8 @@ void TmrCheckCallback(void *p) {
 
 int main(void) {
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V2);
+    SetupVCore(vcore1V5);
+    Clk.SetMSIRange(msr4MHz);
     Clk.UpdateFreqValues();
     // ==== Init OS ====
     halInit();
@@ -49,9 +52,19 @@ int main(void) {
     // ==== Init Hard & Soft ====
     App.InitThread();
     Uart.Init(115200);
-    Uart.Printf("\r%S_%S", APP_NAME, APP_VERSION);
+    Uart.Printf("\r%S_%S; AHB=%u", APP_NAME, APP_VERSION, Clk.AHBFreqHz);
 
     Led.Init();
+    LedWs.Init();
+    while(true) {
+        LedWs.SetCommonColor(clRed);
+        chThdSleepMilliseconds(450);
+        LedWs.SetCommonColor(clGreen);
+        chThdSleepMilliseconds(450);
+        LedWs.SetCommonColor(clBlue);
+        chThdSleepMilliseconds(450);
+    }
+//    LedWs.StartSequence(wsqPwrOn);
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);

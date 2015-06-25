@@ -228,6 +228,14 @@ const LedRGBChunk_t lsqNone[] = {
         {csSetup, SWITCH_TIME, clBlack},
         {csEnd}
 };
+#endif
+
+#if 1 // ============================ WS2812 ===================================
+const LedWsChunk_t wsqPwrOn[] = {
+        {csSetup, 90, clGreen, wstOneByOne},
+        {csSetup, 90, clBlack, wstOneByOne},
+        {csEnd}
+};
 
 #endif
 
@@ -275,7 +283,7 @@ const BeepChunk_t bsqBeepBeep[] = {
 };
 #endif
 
-#if 1 // ============================== Vibro ==================================
+#if 0 // ============================== Vibro ==================================
 #define VIBRO_VOLUME    22  // 1 to 22
 
 #define VIBRO_SHORT_MS  270

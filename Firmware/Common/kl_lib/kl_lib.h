@@ -218,22 +218,23 @@ public:
         tmp |= (uint16_t)TrgInput;
         ITmr->SMCR = tmp;
     }
-    void MasterModeSelect(TmrMasterMode_t MasterMode) {
+    void SelectMasterMode(TmrMasterMode_t MasterMode) {
         uint16_t tmp = ITmr->CR2;
         tmp &= ~TIM_CR2_MMS;
         tmp |= (uint16_t)MasterMode;
         ITmr->CR2 = tmp;
     }
-    void SlaveModeSelect(TmrSlaveMode_t SlaveMode) {
+    void SelectSlaveMode(TmrSlaveMode_t SlaveMode) {
         uint16_t tmp = ITmr->SMCR;
         tmp &= ~TIM_SMCR_SMS;
         tmp |= (uint16_t)SlaveMode;
         ITmr->SMCR = tmp;
     }
     // DMA, Irq, Evt
-    void DmaOnTriggerEnable() { ITmr->DIER |= TIM_DIER_TDE; }
+    void EnableDmaOnTrigger() { ITmr->DIER |= TIM_DIER_TDE; }
+    void EnableDmaOnUpdate()  { ITmr->DIER |= TIM_DIER_UDE; }
     void GenerateUpdateEvt()  { ITmr->EGR = TIM_EGR_UG; }
-    void IrqOnTriggerEnable() { ITmr->DIER |= TIM_DIER_UIE; }
+    void EnableIrqOnTrigger() { ITmr->DIER |= TIM_DIER_UIE; }
     void ClearIrqPendingBit() { ITmr->SR &= ~TIM_SR_UIF;    }
     // PWM
     void InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, uint32_t ATopValue, Inverted_t Inverted, PinOutMode_t OutputType);
@@ -365,7 +366,7 @@ public:
 
 // Example: PinOutputPWM_t<LED_TOP_VALUE, LED_INVERTED_PWM> IChnl({GPIOB, 15, TIM11, 1});
 template <uint32_t TopValue, Inverted_t Inverted, PinOutMode_t OutputType>
-class PinOutputPWM_t : private Timer_t {
+class PinOutputPWM_t : public Timer_t {
 private:
     GPIO_TypeDef *PGpio;
     uint16_t Pin;

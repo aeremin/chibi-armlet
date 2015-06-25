@@ -46,6 +46,13 @@ struct BeepChunk_t {   // Value == Volume
     uint16_t Freq_Hz;
 } __attribute__((packed));
 
+// WS2812
+enum WsSwType_t {wstAtOnce, wstOneByOne};
+struct LedWsChunk_t {
+    BaseChunk_Vars;
+    Color_t Color;
+    WsSwType_t SwType;
+} __attribute__((packed));
 
 #if 1 // ====================== Base sequencer class ===========================
 enum SequencerLoopTask_t {sltProceed, sltBreak};

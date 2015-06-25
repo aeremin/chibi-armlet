@@ -57,6 +57,8 @@ enum AHBDiv_t {
 };
 enum APBDiv_t {apbDiv1=0b000, apbDiv2=0b100, apbDiv4=0b101, apbDiv8=0b110, apbDiv16=0b111};
 
+enum MSIRange_t {msr65kHz=0b000, msr131kHz=0b001, msr262kHz=0b010, msr524kHz=0b011, msr1MHz=0b100, msr2Mhz=0b101, msr4MHz=0b110};
+
 class Clk_t {
 private:
     uint8_t EnableHSE();
@@ -77,6 +79,12 @@ public:
     void DisableHSI() { RCC->CR &= ~RCC_CR_HSION; }
     void DisablePLL() { RCC->CR &= ~RCC_CR_PLLON; }
     void DisableMSI() { RCC->CR &= ~RCC_CR_MSION; }
+    void SetMSIRange(MSIRange_t Range) {
+        uint32_t tmp = RCC->ICSCR;
+        tmp &= ~(0b111 << 13);
+        tmp |= ((uint32_t)Range << 13);
+        RCC->ICSCR = tmp;
+    }
     void SetupBusDividers(AHBDiv_t AHBDiv, APBDiv_t APB1Div, APBDiv_t APB2Div);
     uint8_t SetupPLLMulDiv(PllMul_t PllMul, PllDiv_t PllDiv);
     void UpdateFreqValues();
