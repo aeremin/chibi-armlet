@@ -70,7 +70,7 @@ void rLevel1_t::ITask() {
             CC.SetChannel(ID2RCHNL(i));
             uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
             if(RxRslt == OK) {
-//                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
+                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
                 RxTable.Add(Pkt.DWord);
             }
         } // for
