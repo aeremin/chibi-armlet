@@ -237,7 +237,7 @@ const LedWsChunk_t wsqPwrOn[] = {
         {csEnd}
 };
 
-#define SWITCH_MODE     wstOneByOne
+#define SWITCH_MODE     wstAtOnce
 const LedWsChunk_t wsqOneOrTwo[] = {
         {csSetup, SWITCH_TIME, clOneOrTwo, SWITCH_MODE},
         {csEnd}

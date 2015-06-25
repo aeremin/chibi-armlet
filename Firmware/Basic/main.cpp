@@ -16,7 +16,6 @@
 #include "evt_mask.h"
 #include "vibro.h"
 #include "led.h"
-#include "Sequences.h"
 #include "ws2812b.h"
 
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
@@ -87,7 +86,8 @@ void App_t::ITask() {
             uint32_t Cnt = Radio.RxTable.GetCount();
             Radio.RxTable.Clear();
             chSysUnlock();
-//    Uart.Printf("\rCnt = %u", Cnt);
+//            if(Cnt != 0)
+//                Uart.Printf("\rCnt = %u  %u", Cnt, chTimeNow());
             // ==== Select indication depending on Cnt ====
 #if 0   // Inner LED
             const LedRGBChunk_t *lsq = lsqNone;
@@ -99,14 +99,27 @@ void App_t::ITask() {
                 Led.StartSequence(lsq);
             }
 #endif
-            const LedWsChunk_t *wsq = wsqNone;
-            if(Cnt == 1 or Cnt == 2) wsq = wsqOneOrTwo;
-            else if(Cnt > 2) wsq = wsqMany;
-
-            if(wsq != wsqSaved) {
-                wsqSaved = wsq;
-                LedWs.StartSequence(wsq);
+            // Restart TmrOff if someone is near
+            if(Cnt != 0) chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
+            // Setup indication
+            if((Cnt == 1 or Cnt == 2) and (wsqSaved == wsqNone)) {
+                Uart.Printf("\rOneTwo %u", chTimeNow());
+                wsqSaved = wsqOneOrTwo;
+                LedWs.StartSequence(wsqSaved);
             }
+            else if((Cnt > 2) and (wsqSaved == wsqNone or wsqSaved == wsqOneOrTwo)) {
+                Uart.Printf("\rMany %u", chTimeNow());
+                wsqSaved = wsqMany;
+                LedWs.StartSequence(wsqSaved);
+            }
+        }
+#endif
+
+#if 1 // ==== Off ====
+        if(EvtMsk & EVTMSK_OFF) {
+            Uart.Printf("\rOff %u", chTimeNow());
+            wsqSaved = wsqNone;
+            LedWs.StartSequence(wsqSaved);
         }
 #endif
     } // while true

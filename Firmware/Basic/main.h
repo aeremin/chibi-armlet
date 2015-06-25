@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "evt_mask.h"
 #include "ChunkTypes.h"
+#include "Sequences.h"
 
 #define APP_NAME            "LettersOfEast_RX"
 #define APP_VERSION         _TIMENOW_
@@ -21,16 +22,17 @@
 #define ID_MAX                  10
 
 // Timings
-#define RX_CHECK_PERIOD_MS  3600
+#define RX_CHECK_PERIOD_MS      2700
+#define INDICATION_TIME_MS      9999
 
 class App_t {
 private:
     Thread *PThread;
 //    uint32_t SavedCnt;
-    const LedRGBChunk_t *lsqSaved = nullptr;
-    const LedWsChunk_t  *wsqSaved = nullptr;
+//    const LedRGBChunk_t *lsqSaved = nullptr;
+    const LedWsChunk_t  *wsqSaved = wsqNone;
 public:
-    VirtualTimer TmrCheck;
+    VirtualTimer TmrCheck, TmrOff;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {
