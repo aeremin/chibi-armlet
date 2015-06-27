@@ -23,7 +23,7 @@
 
 // Timings
 #define RX_CHECK_PERIOD_MS      2700
-#define INDICATION_TIME_MS      9999
+#define INDICATION_TIME_MS      18000
 
 class App_t {
 private:
