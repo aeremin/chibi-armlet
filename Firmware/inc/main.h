@@ -1,19 +1,20 @@
 /*
- * application.h
+ * main.h
  *
- *  Created on: Nov 9, 2013
- *      Author: kreyl
+ *  Created on: 05 рту. 2015 у.
+ *      Author: Kreyl
  */
 
-#ifndef APPLICATION_H_
-#define APPLICATION_H_
+#ifndef INC_MAIN_H_
+#define INC_MAIN_H_
 
-#include "kl_lib_L15x.h"
+#include "kl_lib.h"
 #include "Dose.h"
 #include "RxTable.h"
 #include "pill.h"
 #include "ee.h"
 #include "pill_mgr.h"
+#include "evt_mask.h"
 
 #if 1 // ==== Timings ====
 #define T_DOSE_INCREASE_MS      999
@@ -116,20 +117,29 @@ private:
 public:
     uint32_t ID;
     DeviceType_t Type;
-    Thread *PThd;
     Grenade_t Grenade;
     EmpMech_t Mech;
     bool AutodocActive;
     // Timers
-    VirtualTimer TmrUartRx, TmrPillCheck, TmrDoseSave, TmrMeasure, TmrProlongedPill;
+    VirtualTimer TmrProlongedPill;
     // Radio & damage
     RxTable_t RxTable;
     int32_t Damage;
     void SaveDose() { if(Dose.SaveValue() != OK) Uart.Printf("Dose Store Fail\r"); }
+
     void Init();
+    void ITask();
+    Thread *PThread;
+    void InitThread() { PThread = chThdSelf(); }
+    void SignalEvt(eventmask_t Evt) {
+        chSysLock();
+        chEvtSignalI(PThread, Evt);
+        chSysUnlock();
+    }
+    void SignalEvtI(eventmask_t Evt) { chEvtSignalI(PThread, Evt); }
+    void OnUartCmd(Uart_t *PUart);
     // Events
     void OnPillConnect();
-    void OnUartCmd(Cmd_t *PCmd);
     void OnBatteryMeasured();
     void OnRxTableReady();
     void OnProlongedPill();
@@ -138,4 +148,4 @@ public:
 
 extern App_t App;
 
-#endif /* APPLICATION_H_ */
+#endif /* INC_MAIN_H_ */

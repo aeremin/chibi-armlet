@@ -5,14 +5,16 @@
  *      Author: kreyl
  */
 
-#include "kl_lib_L15x.h"
+#include <kl_lib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "cmd_uart.h"
+#include <uart.h>
 
 #if 1 // ============================= Timer ===================================
-void Timer_t::Init(TIM_TypeDef* Tmr) {
-    ITmr = Tmr;
+void Timer_t::Init() {
+#if defined STM32L1XX_MD
+    if(ANY_OF_3(ITmr, TIM9, TIM10, TIM11)) PClk = &Clk.APB2FreqHz;
+    else PClk = &Clk.APB1FreqHz;
     if     (ITmr == TIM2)  { rccEnableTIM2(FALSE); }
     else if(ITmr == TIM3)  { rccEnableTIM3(FALSE); }
     else if(ITmr == TIM4)  { rccEnableTIM4(FALSE); }
@@ -21,135 +23,129 @@ void Timer_t::Init(TIM_TypeDef* Tmr) {
     else if(ITmr == TIM9)  { rccEnableAPB2(RCC_APB2ENR_TIM9EN,  FALSE); }
     else if(ITmr == TIM10) { rccEnableAPB2(RCC_APB2ENR_TIM10EN, FALSE); }
     else if(ITmr == TIM11) { rccEnableAPB2(RCC_APB2ENR_TIM11EN, FALSE); }
+#elif defined STM32F030
+    if     (ITmr == TIM1)  { rccEnableTIM1(FALSE); }
+    else if(ITmr == TIM2)  { rccEnableTIM2(FALSE); }
+    else if(ITmr == TIM3)  { rccEnableTIM3(FALSE); }
+    else if(ITmr == TIM6)  { rccEnableAPB1(RCC_APB1ENR_TIM6EN,  FALSE); }
+    else if(ITmr == TIM14) { RCC->APB1ENR |= RCC_APB1ENR_TIM14EN; }
+    else if(ITmr == TIM15) { RCC->APB2ENR |= RCC_APB2ENR_TIM15EN; }
+    else if(ITmr == TIM16) { RCC->APB2ENR |= RCC_APB2ENR_TIM16EN; }
+    else if(ITmr == TIM17) { RCC->APB2ENR |= RCC_APB2ENR_TIM17EN; }
     // Clock src
-    if(ANY_OF_3(ITmr, TIM9, TIM10, TIM11)) PClk = &Clk.APB2FreqHz;
+    PClk = &Clk.APBFreqHz;
+#elif defined STM32F2XX
+    if(ANY_OF_5(ITmr, TIM1, TIM8, TIM9, TIM10, TIM11)) PClk = &Clk.APB2FreqHz;
     else PClk = &Clk.APB1FreqHz;
+    if     (ITmr == TIM1)  { rccEnableTIM1(FALSE); }
+    else if(ITmr == TIM2)  { rccEnableTIM2(FALSE); }
+    else if(ITmr == TIM3)  { rccEnableTIM3(FALSE); }
+    else if(ITmr == TIM4)  { rccEnableTIM4(FALSE); }
+    else if(ITmr == TIM5)  { rccEnableTIM5(FALSE); }
+    else if(ITmr == TIM6)  { rccEnableTIM6(FALSE); }
+    else if(ITmr == TIM7)  { rccEnableTIM7(FALSE); }
+    else if(ITmr == TIM8)  { rccEnableTIM8(FALSE); }
+    else if(ITmr == TIM9)  { rccEnableTIM9(FALSE); }
+    else if(ITmr == TIM10)  { RCC->APB2ENR |= RCC_APB2ENR_TIM10EN; }
+    else if(ITmr == TIM11)  { rccEnableTIM11(FALSE); }
+    else if(ITmr == TIM12)  { rccEnableTIM12(FALSE); }
+    else if(ITmr == TIM13)  { RCC->APB1ENR |= RCC_APB1ENR_TIM13EN; }
+    else if(ITmr == TIM14)  { rccEnableTIM14(FALSE); }
+#endif
 }
 
-void Timer_t::InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, Inverted_t Inverted, const PinSpeed_t ASpeed) {
+void Timer_t::InitPwm(GPIO_TypeDef *GPIO, uint16_t N, uint8_t Chnl, uint32_t ATopValue, Inverted_t Inverted, PinOutMode_t OutputType) {
     // GPIO
-    if              (ITmr == TIM2)              PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF1, ASpeed);
-    else if(ANY_OF_2(ITmr, TIM3, TIM4))         PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2, ASpeed);
-    else if(ANY_OF_3(ITmr, TIM9, TIM10, TIM11)) PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3, ASpeed);
+#if defined STM32L1XX_MD
+    if              (ITmr == TIM2)              PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF1);
+    else if(ANY_OF_2(ITmr, TIM3, TIM4))         PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF2);
+    else if(ANY_OF_3(ITmr, TIM9, TIM10, TIM11)) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF3);
+#elif defined STM32F030
+    if     (ITmr == TIM1)  PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF2);
+    else if(ITmr == TIM3)  PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF1);
+    else if(ITmr == TIM14) {
+        if(GPIO == GPIOA) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF4);
+        else PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF0);
+    }
+    else if(ITmr == TIM15) {
+        if(GPIO == GPIOA) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF0);
+        else PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF1);
+    }
+    else if(ITmr == TIM16 or ITmr == TIM17) {
+        if(GPIO == GPIOA) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF5);
+        else PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF2);
+    }
+#elif defined STM32F2XX
+    if(ANY_OF_2(ITmr, TIM1, TIM2)) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF1);
+    else if(ANY_OF_3(ITmr, TIM3, TIM4, TIM5)) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF2);
+    else if(ANY_OF_4(ITmr, TIM8, TIM9, TIM10, TIM11)) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF3);
+    else if(ANY_OF_3(ITmr, TIM12, TIM13, TIM14)) PinSetupAlterFunc(GPIO, N, OutputType, pudNone, AF9);
+#endif
+
+    ITmr->ARR = ATopValue;
     // Output
     uint16_t tmp = (Inverted == invInverted)? 0b111 : 0b110; // PWM mode 1 or 2
     switch(Chnl) {
         case 1:
-            PCCR = &ITmr->CCR1;
             ITmr->CCMR1 |= (tmp << 4);
             ITmr->CCER  |= TIM_CCER_CC1E;
             break;
-
         case 2:
-            PCCR = &ITmr->CCR2;
             ITmr->CCMR1 |= (tmp << 12);
             ITmr->CCER  |= TIM_CCER_CC2E;
             break;
-
         case 3:
-            PCCR = &ITmr->CCR3;
             ITmr->CCMR2 |= (tmp << 4);
             ITmr->CCER  |= TIM_CCER_CC3E;
             break;
-
         case 4:
-            PCCR = &ITmr->CCR4;
             ITmr->CCMR2 |= (tmp << 12);
             ITmr->CCER  |= TIM_CCER_CC4E;
             break;
-
         default: break;
     }
 }
+
+void Timer_t::SetUpdateFrequency(uint32_t FreqHz) {
+#if defined STM32F2XX
+    uint32_t UpdFreqMax;
+    if(ANY_OF_5(ITmr, TIM1, TIM8, TIM9, TIM10, TIM11))  // APB2 is clock src
+        UpdFreqMax = (*PClk) * Clk.TimerAPB2ClkMulti / (ITmr->ARR + 1);
+    else // APB1 is clock src
+        UpdFreqMax = (*PClk) * Clk.TimerAPB1ClkMulti / (ITmr->ARR + 1);
+#else
+    uint32_t UpdFreqMax = *PClk / (ITmr->ARR + 1);
 #endif
-
-#if 1 // ============================= PWM pin =================================
-void PwmPin_t::Init(GPIO_TypeDef *GPIO, uint16_t N, TIM_TypeDef* PTim, uint8_t Chnl, uint16_t TopValue, Inverted_t Inverted) {
-    Tim = PTim;
-    if     (Tim == TIM2)  { rccEnableTIM2(FALSE); }
-    else if(Tim == TIM3)  { rccEnableTIM3(FALSE); }
-    else if(Tim == TIM4)  { rccEnableTIM4(FALSE); }
-    else if(Tim == TIM9)  { rccEnableTIM9(FALSE); }
-    else if(Tim == TIM10) { rccEnableAPB2(RCC_APB2ENR_TIM10EN, FALSE); }
-    else if(Tim == TIM11) { rccEnableAPB2(RCC_APB2ENR_TIM11EN, FALSE); }
-    // Clock src
-    if(ANY_OF_3(Tim, TIM2, TIM3, TIM4)) PClk = &Clk.APB1FreqHz;
-    else PClk = &Clk.APB2FreqHz;
-
-    // Common
-    Tim->CNT = 0;
-    Tim->CR2 = 0;
-    Tim->ARR = TopValue;
-    // Output
-    SetupChannel(Chnl, Inverted);
-    // Pin
-    if     (Tim == TIM2)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF1);
-    else if(Tim == TIM3)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
-    else if(Tim == TIM4)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF2);
-    else if(Tim == TIM9)  PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    else if(Tim == TIM10) PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    else if(Tim == TIM11) PinSetupAlterFunc(GPIO, N, omPushPull, pudNone, AF3);
-    Tim->CR1 = TIM_CR1_CEN; // Enable timer, set clk division to 0, AutoReload not buffered
-}
-
-void PwmPin_t::SetupChannel(uint8_t Chnl, Inverted_t Inverted) {
-    uint16_t tmp = (Inverted == invInverted)? 0b111 : 0b110; // PWM mode 1 or 2
-    switch(Chnl) {
-        case 1:
-            PCCR = &Tim->CCR1;
-            Tim->CCMR1 &= ~TIM_CCMR1_OC1M;
-            Tim->CCMR1 |= (tmp << 4);
-            Tim->CCER  |= TIM_CCER_CC1E;
-            break;
-
-        case 2:
-            PCCR = &Tim->CCR2;
-            Tim->CCMR1 &= ~TIM_CCMR1_OC2M;
-            Tim->CCMR1 |= (tmp << 12);
-            Tim->CCER  |= TIM_CCER_CC2E;
-            break;
-
-        case 3:
-            PCCR = &Tim->CCR3;
-            Tim->CCMR2 &= ~TIM_CCMR2_OC3M;
-            Tim->CCMR2 |= (tmp << 4);
-            Tim->CCER  |= TIM_CCER_CC3E;
-            break;
-
-        case 4:
-            PCCR = &Tim->CCR4;
-            Tim->CCMR2 &= ~TIM_CCMR2_OC4M;
-            Tim->CCMR2 |= (tmp << 12);
-            Tim->CCER  |= TIM_CCER_CC4E;
-            break;
-
-        default: return; break;
-    }
-    *PCCR = 0;
-}
-
-void PwmPin_t::SetFreqHz(uint32_t FreqHz) {
-    uint32_t divider = Tim->ARR * FreqHz;
-    if(divider == 0) return;
-    uint32_t FPrescaler = *PClk / divider;
-    if(FPrescaler != 0) FPrescaler--;   // do not decrease in case of high freq
-    Tim->PSC = (uint16_t)FPrescaler;
+    uint32_t div = UpdFreqMax / FreqHz;
+    if(div != 0) div--;
+    ITmr->PSC = div;
+//    Uart.Printf("\r  FMax=%u; div=%u", UpdFreqMax, div);
 }
 #endif
 
-#if CH_DBG_ENABLED // =================== Print Dbg messages ===================
+#if 1 // ========================== Virtual Timers =============================
+void chVTRestart(VirtualTimer *vtp, systime_t time, eventmask_t Evt) {
+    chSysLock();
+//    Uart.PrintfI("\r Restart t=%u msk=%X Armed=%u", time, Evt, chVTIsArmedI(vtp));
+    if(chVTIsArmedI(vtp)) chVTResetI(vtp);
+    chVTSetI(vtp, time, TmrOneShotCallback, (void*)Evt);
+    chSysUnlock();
+}
+#endif
+
+#if CH_DBG_ENABLED // ========================= DEBUG ==========================
 void chDbgPanic(const char *msg1) {
-    Uart.PrintNow(msg1);
+    Uart.PrintfNow("\r%S @ %S\r", msg1, chThdSelf()->p_name);
 }
 #endif
 
-#if 1 // ============================= I2C =====================================
+#if I2C_KL // ============================= I2C =====================================
 void i2cDmaIrqHandler(void *p, uint32_t flags) {
     chSysLockFromIsr();
     //Uart.Printf("===T===");
-    Thread *PThd = ((i2c_t*)p)->PRequestingThread;
+    Thread *PThd = reinterpret_cast<i2c_t*>(p)->PRequestingThread;
     if (PThd != NULL) {
-        ((i2c_t*)p)->PRequestingThread = NULL;
+        reinterpret_cast<i2c_t*>(p)->PRequestingThread = NULL;
         chSchReadyI(PThd);
     }
     chSysUnlockFromIsr();
@@ -388,13 +384,11 @@ uint8_t i2c_t::WaitBTF() {
 }
 #endif
 
-#include "cmd_uart.h"
 #ifdef FLASH_LIB_KL // ==================== FLASH & EEPROM =====================
 // Here not-fast write is used. I.e. interface will erase the word if it is not the same.
 uint8_t Eeprom_t::Write32(uint32_t Addr, uint32_t W) {
     Addr += EEPROM_BASE_ADDR;
-    // Do not write if same as previous
-    if(*((uint32_t*)Addr) == W) return OK;
+//    Uart.Printf("EAdr=%u\r", Addr);
     UnlockEE();
     // Wait for last operation to be completed
     uint8_t status = WaitForLastOperation();
@@ -435,3 +429,67 @@ uint8_t Eeprom_t::WriteBuf(void *PSrc, uint32_t Sz, uint32_t Addr) {
 }
 
 #endif
+
+namespace Convert { // ============== Conversion operations ====================
+void U16ToArrAsBE(uint8_t *PArr, uint16_t N) {
+    uint8_t *p8 = (uint8_t*)&N;
+    *PArr++ = *(p8 + 1);
+    *PArr   = *p8;
+}
+void U32ToArrAsBE(uint8_t *PArr, uint32_t N) {
+    uint8_t *p8 = (uint8_t*)&N;
+    *PArr++ = *(p8 + 3);
+    *PArr++ = *(p8 + 2);
+    *PArr++ = *(p8 + 1);
+    *PArr   = *p8;
+}
+uint16_t ArrToU16AsBE(uint8_t *PArr) {
+    uint16_t N;
+    uint8_t *p8 = (uint8_t*)&N;
+    *p8++ = *(PArr + 1);
+    *p8 = *PArr;
+    return N;
+}
+uint32_t ArrToU32AsBE(uint8_t *PArr) {
+    uint32_t N;
+    uint8_t *p8 = (uint8_t*)&N;
+    *p8++ = *(PArr + 3);
+    *p8++ = *(PArr + 2);
+    *p8++ = *(PArr + 1);
+    *p8 = *PArr;
+    return N;
+}
+void U16ChangeEndianness(uint16_t *p) { *p = __REV16(*p); }
+void U32ChangeEndianness(uint32_t *p) { *p = __REV(*p); }
+inline uint8_t TryStrToUInt32(char* S, uint32_t *POutput) {
+    if(*S == '\0') return EMPTY_STRING;
+    char *p;
+    *POutput = strtoul(S, &p, 0);
+    return (*p == 0)? OK : NOT_A_NUMBER;
+}
+inline uint8_t TryStrToInt32(char* S, int32_t *POutput) {
+    if(*S == '\0') return EMPTY_STRING;
+    char *p;
+    *POutput = strtol(S, &p, 0);
+    return (*p == '\0')? OK : NOT_A_NUMBER;
+}
+
+inline uint16_t BuildUint16(uint8_t Lo, uint8_t Hi) {
+    uint16_t r = Hi;
+    r <<= 8;
+    r |= Lo;
+    return r;
+}
+
+inline uint32_t BuildUint32(uint8_t Lo, uint8_t MidLo, uint8_t MidHi, uint8_t Hi) {
+    uint32_t r = Hi;
+    r <<= 8;
+    r |= MidHi;
+    r <<= 8;
+    r |= MidLo;
+    r <<= 8;
+    r |= Lo;
+    return r;
+}
+
+}; // namespace

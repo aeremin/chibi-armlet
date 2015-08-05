@@ -18,7 +18,7 @@ struct mVPercent_t {
     uint8_t Percent;
 };
 
-#if 1 // ========================= Alkaline 1.5V ===============================
+#if 0 // ========================= Alkaline 1.5V ===============================
 static const mVPercent_t mVPercentTableAlkaline[] = {
         {1440, 100},
         {1370, 80},
