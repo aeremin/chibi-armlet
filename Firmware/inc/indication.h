@@ -8,10 +8,9 @@
 #ifndef INDICATION_H_
 #define INDICATION_H_
 
-#include "peripheral.h"
 #include "evt_mask.h"
 #include "colors_sounds.h"
-#include "application.h"
+#include "led.h"
 
 #if 1 // ==== Timings ====
 #define TM_CLICK_MS          18      // for Detector
@@ -23,6 +22,7 @@ enum BatteryState_t {bsGood, bsBad};
 class Indication_t {
 private:
     LedRGB_t Led;
+    Beeper_t Beeper;
     PillState_t PillState;
     bool IPelengReceived;
     DeviceType_t MaxSignalLvlDevType;

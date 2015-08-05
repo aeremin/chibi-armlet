@@ -6,7 +6,7 @@
  */
 
 #include "indication.h"
-#include "application.h"
+#include "main.h"
 
 Indication_t Indication;
 

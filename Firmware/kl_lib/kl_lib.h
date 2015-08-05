@@ -38,6 +38,10 @@
 #define FALSE   0
 #endif
 
+#define MAX_INT32       0x7FFFFFFF
+#define MIN_INT32       (-2147483647)
+#define MAX_UINT32      0xFFFFFFFF
+
 // Return values
 #define OK              0
 #define FAILURE         1

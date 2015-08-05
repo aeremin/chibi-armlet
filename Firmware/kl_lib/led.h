@@ -21,7 +21,7 @@
 static inline uint32_t ICalcDelay(uint32_t CurrentBrightness, uint32_t SmoothVar) { return (uint32_t)((SmoothVar / (CurrentBrightness+4)) + 1); }
 #endif
 
-#if 1 // ========================= Single LED On/Off ===========================
+#if 0 // ========================= Single LED On/Off ===========================
 class LedOnOff_t {
 public:
     GPIO_TypeDef *PGpio;
@@ -129,7 +129,7 @@ public:
 };
 #endif
 
-#if 0 // ============================== LedRGB =================================
+#if 1 // ============================== LedRGB =================================
 #define LED_RGB
 #define LED_RGB_TOP_VALUE   255 // Intencity 0...255
 #define LED_RGB_INVERTED    invNotInverted
