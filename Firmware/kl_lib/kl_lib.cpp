@@ -131,6 +131,10 @@ void chVTRestart(VirtualTimer *vtp, systime_t time, eventmask_t Evt) {
     chVTSetI(vtp, time, TmrOneShotCallback, (void*)Evt);
     chSysUnlock();
 }
+
+void TmrPeriodicCallback(void *p) {
+    reinterpret_cast<PeriodicTmr_t*>(p)->CallbackHandler();
+}
 #endif
 
 #if CH_DBG_ENABLED // ========================= DEBUG ==========================

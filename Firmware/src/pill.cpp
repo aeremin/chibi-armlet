@@ -5,7 +5,7 @@
  *      Author: g.kruglov
  */
 
-#include "application.h"
+#include "main.h"
 #include "pill_mgr.h"
 #include "indication.h"
 

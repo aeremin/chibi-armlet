@@ -8,8 +8,8 @@
 #ifndef ADC15x_H_
 #define ADC15x_H_
 
-#include "kl_lib_L15x.h"
-#include "application.h"
+#include "kl_lib.h"
+#include "main.h"
 
 #if 1 // ============================= ADC =====================================
 enum AdcSampleTime_t {

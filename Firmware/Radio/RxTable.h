@@ -8,8 +8,8 @@
 #ifndef SENSORTABLE_H_
 #define SENSORTABLE_H_
 
-#include "kl_lib_L15x.h"
-#include "cmd_uart.h"
+#include "kl_lib.h"
+#include "uart.h"
 #include "ch.h"
 #include "evt_mask.h"
 #include "rlvl1_defins.h"

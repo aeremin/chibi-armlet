@@ -8,7 +8,7 @@
 #ifndef PILL_MGR_H_
 #define PILL_MGR_H_
 
-#include "cmd_uart.h"
+#include "uart.h"
 #include "ch.h"
 
 #define PILL_I2C_STD_ADDR   0x50    // Standard address start of EEPROM - 0x01010aaa

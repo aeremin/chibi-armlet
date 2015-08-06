@@ -24,7 +24,7 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "clocking_L1xx.h"
+#include "clocking.h"
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */

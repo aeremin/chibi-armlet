@@ -10,7 +10,7 @@
 
 #include "ch.h"
 #include "rlvl1_defins.h"
-#include "kl_lib_L15x.h"
+#include "kl_lib.h"
 #include "cc1101.h"
 
 class rLevel1_t {

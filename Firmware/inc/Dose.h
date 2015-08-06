@@ -12,7 +12,7 @@
 #include "rlvl1_defins.h"
 #include "peripheral.h"
 #include "colors_sounds.h"
-#include "cmd_uart.h"
+#include "uart.h"
 #include "ee.h"
 
 struct DoseConsts_t {

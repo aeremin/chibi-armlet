@@ -10,7 +10,8 @@
 
 #include "evt_mask.h"
 #include "colors_sounds.h"
-#include "led.h"
+#include "peripheral.h"
+#include "main.h"
 
 #if 1 // ==== Timings ====
 #define TM_CLICK_MS          18      // for Detector

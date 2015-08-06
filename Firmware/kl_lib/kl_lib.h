@@ -144,6 +144,7 @@ void TmrGeneralCallback(void *p) {
 }
  */
 
+
 class PeriodicTmr_t {
 private:
     void StartI() { chVTSetI(&Tmr, Period, TmrPeriodicCallback, this); }
@@ -170,6 +171,8 @@ public:
         StartI();
         chSysUnlockFromIsr();
     }
+    PeriodicTmr_t(systime_t Period_ms, eventmask_t EventMask) :
+        PThread(nullptr), Period(Period_ms), EvtMsk(EventMask) {}
 };
 
 static inline void chVTStart(VirtualTimer *vtp, systime_t time, eventmask_t Evt) {
@@ -473,8 +476,11 @@ public:
         Enable();
     }
     void SetFrequencyHz(uint32_t FreqHz) { Timer_t::SetUpdateFrequency(FreqHz); }
+    void Enable() { Timer_t::Enable(); }
+    void Disable() { Timer_t::Disable(); }
     PinOutputPWM_t(GPIO_TypeDef *APGpio, uint16_t APin, TIM_TypeDef *APTimer, uint32_t ATmrChnl) :
         PGpio(APGpio), Pin(APin), TmrChnl(ATmrChnl) { ITmr = APTimer; }
+//    PinOutputPWM_t() : PGpio(GPIOA), Pin(0), TmrChnl(1) { ITmr = TIM2; }
 };
 #endif
 
@@ -644,7 +650,7 @@ public:
 };
 #endif
 
-#if 0 // ============================== I2C ====================================
+#if 1 // ============================== I2C ====================================
 #define I2C_KL  TRUE
 #define I2C_DMATX_MODE  DMA_PRIORITY_LOW | \
                         STM32_DMA_CR_MSIZE_BYTE | \

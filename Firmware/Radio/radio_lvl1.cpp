@@ -7,9 +7,9 @@
 
 #include "radio_lvl1.h"
 #include "evt_mask.h"
-#include "application.h"
+#include "main.h"
 #include "cc1101.h"
-#include "cmd_uart.h"
+#include "uart.h"
 #include "indication.h"
 
 #define DBG_PINS
@@ -114,7 +114,7 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                 // ...and inform application
                 chSysLock();
                 App.RxTable.SwitchTableI();
-                chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+                App.SignalEvtI(EVTMSK_RX_TABLE_READY);
                 chSysUnlock();
                 break;
 
@@ -127,7 +127,7 @@ __attribute__((__noreturn__)) void rLevel1_t::ITask() {
                     ChnlN = RCHNL_MIN;
                     chSysLock();
                     App.RxTable.SwitchTableI();
-                    chEvtSignalI(App.PThd, EVTMSK_RX_TABLE_READY);
+                    App.SignalEvtI(EVTMSK_RX_TABLE_READY);
                     chSysUnlock();
                 }
                 break;

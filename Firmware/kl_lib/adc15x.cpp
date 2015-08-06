@@ -7,7 +7,7 @@
 
 #include "adc15x.h"
 #include "evt_mask.h"
-#include "cmd_uart.h"
+#include "uart.h"
 
 #if 1 // ============================= ADC =====================================
 Adc_t Adc;
