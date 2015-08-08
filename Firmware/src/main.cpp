@@ -66,8 +66,7 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Uart.Printf("\rRst\r\n");
-
+    Uart.Printf("\rRst %u\r\n", ADC_VREFINT_CAL);
     Indication.Init();
     PillMgr.Init();
 
@@ -84,7 +83,7 @@ int main(void) {
     chSysLock();
     chVTSetI(&App.TmrUartRx,    MS2ST(UART_RX_POLLING_MS), TmrUartRxCallback, nullptr);
     chVTSetI(&App.TmrPillCheck, MS2ST(T_PILL_CHECK_MS),    TmrPillCheckCallback, nullptr);
-    chVTSetI(&App.TmrMeasure,   MS2ST(99),                 TmrMeasureCallback, nullptr); // Start soon
+    chVTSetI(&App.TmrMeasure,   MS2ST(999),                 TmrMeasureCallback, nullptr); // Start soon
     chSysUnlock();
 
     // Event-generating framework
@@ -109,11 +108,18 @@ int main(void) {
         if(EvtMsk & EVTMSK_DOSE_STORE) App.SaveDose();
 
         // ==== Measure battery ====
-        if(EvtMsk & EVTMSK_MEASURE_TIME) Adc.StartMeasurement();
+        if(EvtMsk & EVTMSK_MEASURE_TIME) {
+            Adc.EnableVref();
+            Adc.StartMeasurement();
+        }
         if(EvtMsk & EVTMSK_MEASUREMENT_DONE) {
-            uint32_t AdcRslt = Adc.GetResult(0);
-//            Uart.Printf("Adc=%u\r", AdcRslt);
-            Indication.BatteryState = (AdcRslt >= BATTERY_DISCHARGED_ADC)? bsGood : bsBad;
+            Adc.DisableVref();
+            uint32_t AdcRslt = Adc.GetResult(BATTERY_CHNL);     // Battery measurement
+            uint32_t AdcRef = Adc.GetResult(ADC_VREFINT_CHNL);  // Ref voltage measurement
+            // Scaled result. Ref man page 290 (Converting a supply-relative ADC measurement to an absolute voltage value)
+            uint32_t BatVoltage = (((3000 * ADC_VREFINT_CAL) / AdcRef) * AdcRslt) / 4095;
+//            Uart.Printf("Adc=%u %u; %u\r", AdcRslt, AdcRef, BatVoltage);
+            Indication.BatteryState = (BatVoltage >= BATTERY_DISCHARGED_mV)? bsGood : bsBad;
         }
 
         // ==== EMP ====

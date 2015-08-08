@@ -87,7 +87,7 @@ public:
 };
 
 // ==== Misc ====
-#define BATTERY_DISCHARGED_ADC  1485    // 1200 mV
+#define BATTERY_DISCHARGED_mV   1100
 #define DO_DOSE_SAVE            TRUE    // ForTest
 
 // ==== Application class ====

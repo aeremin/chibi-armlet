@@ -42,12 +42,14 @@ enum ADCDiv_t {
 // ==== Config this ====
 // ADC channels
 #define BATTERY_CHNL        0
-const uint32_t AdcChannels[] = { BATTERY_CHNL };
-#define ADC_CHANNEL_CNT     1   // Do not use countof(AdcChannels) as preprocessor does not know what is countof => cannot check
+#define ADC_VREFINT_CHNL    17  //
+const uint8_t AdcChannels[] = { BATTERY_CHNL, ADC_VREFINT_CHNL };
+#define ADC_CHANNEL_CNT     2   // Do not use countof(AdcChannels) as preprocessor does not know what is countof => cannot check
 #define ADC_SAMPLE_TIME     ast96Cycles
 #define ADC_SAMPLE_CNT      8   // How many times to measure every channel
 
 // Defines, do not touch
+#define ADC_VREFINT_CAL     (*(uint16_t*)0x1FF80078)
 #define ADC_MAX_SEQ_LEN     27  // 1...27 in low density devices
 #define ADC_SEQ_LEN         (ADC_SAMPLE_CNT * ADC_CHANNEL_CNT)
 #if (ADC_SEQ_LEN > ADC_MAX_SEQ_LEN) || (ADC_SEQ_LEN == 0)
@@ -64,6 +66,8 @@ private:
     void StartConversion() { ADC1->CR2 |= ADC_CR2_SWSTART; }
 public:
     Thread *PThreadToSignal;
+    void EnableVref()  { ADC->CCR |= (uint32_t)ADC_CCR_TSVREFE; }
+    void DisableVref() { ADC->CCR &= (uint32_t)(~ADC_CCR_TSVREFE); }
     void InitHardware();
     void StartMeasurement();
     void Disable() { ADC1->CR2 = 0; }
