@@ -57,8 +57,6 @@ void TmrGeneralCallback(void *p) {
 }
 #endif
 
-EEStore_t ee;
-
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V2);
@@ -69,42 +67,6 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     Uart.Printf("\rRst\r\n");
-
-    // EEStore test
-    ee.Init();
-    uint8_t r1, r2;
-    uint32_t N=0, out=0;
-
-    r2 = ee.Get(&out);
-    Uart.Printf("\rr2=%u; out=%u", r2, out);
-
-//    for(uint32_t i=0; i<253; i++) {
-//        N++;
-//        r1 = ee.Put(N);
-//        r2 = ee.Get(&out);
-//        Uart.Printf("\rN=%u; r1=%u; r2=%u; out=%u", N, r1, r2, out);
-//        chThdSleepMilliseconds(45);
-//    }
-
-    uint32_t *p = (uint32_t*)EE_PTR_FIRST, cnt=0;
-    while(cnt < 600) {
-        Uart.Printf("\r %04u  ", cnt);
-        for(uint32_t i=0; i<10; i++) {
-            Uart.Printf("%08X %08X  ", *p, *(p+1));
-            cnt += 2;
-            p += 2;
-        }
-        chThdSleepMilliseconds(45);
-    }
-
-    ee.Init();
-    r2 = ee.Get(&out);
-    Uart.Printf("\rAfter: r2=%u; out=%u", r2, out);
-
-    while(true) {
-        chThdSleepMilliseconds(999);
-    }
-
 
     Indication.Init();
     PillMgr.Init();

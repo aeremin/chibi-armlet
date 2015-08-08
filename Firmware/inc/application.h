@@ -17,7 +17,7 @@
 
 #if 1 // ==== Timings ====
 #define T_DOSE_INCREASE_MS      999
-#define T_DOSE_SAVE_MS          2007
+#define T_DOSE_SAVE_MS          4005
 #define T_PILL_CHECK_MS         360  // Check if pill connected every TM_PILL_CHECK
 #define T_PROLONGED_PILL_MS     999
 #define T_MEASUREMENT_MS        5004 // Battery measurement

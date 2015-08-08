@@ -30,7 +30,7 @@ struct DoseConsts_t {
 };
 
 // Default Dose constants
-#define DOSE_DEFAULT_TOP    216000
+#define DOSE_DEFAULT_TOP    144000 // Original: 216000
 
 enum HealthState_t {hsGreen=0, hsYellow=1, hsRedSlow=2, hsRedFast=3, hsDeath=4};
 enum DamageLevel_t {dlClear=0, dlFon=1, dlDirty=2};
@@ -75,7 +75,6 @@ public:
 #if 1 // ==== Dose ====
 class Dose_t {
 private:
-    EEStore_t EEStore;   // EEPROM storage for dose
     void ConvertDoseToState() {
         if     (Value >= Consts.Top)     State = hsDeath;
         else if(Value >= Consts.RedFast) State = hsRedFast;
@@ -84,6 +83,7 @@ private:
         else                             State = hsGreen;
     }
 public:
+    EEStore_t EEStore;   // EEPROM storage for dose
     int32_t Value;
     DoseConsts_t Consts;
     HealthState_t State;

@@ -26,7 +26,6 @@ struct EEUnit32_t {
         };
     };
     uint32_t Data;
-    void Print() { Uart.Printf("\rcnt=%u; s=%X; d=%u", Counter, Sign, Data); }
 } __attribute__ ((__packed__));
 #define EE_UNIT_SZ     sizeof(EEUnit32_t)
 

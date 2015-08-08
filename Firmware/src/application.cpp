@@ -321,6 +321,7 @@ void EmpMech_t::Init() {
 
 #if 1 // ========================= Application =================================
 void App_t::Init() {
+    Dose.EEStore.Init();
     ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     ISetType(EE.Read32(EE_DEVICE_TYPE_ADDR));
     Uart.Printf("ID=%u\r\n", ID);
@@ -342,8 +343,7 @@ uint8_t App_t::ISetID(uint32_t NewID) {
 }
 
 uint8_t App_t::ISetType(uint8_t AType) {
-    if(AType > dtPillFlasher) return FAILURE;
-    if(AType == dtNothing) Type = dtUmvos;
+    if(AType == dtNothing or AType > dtPillFlasher) Type = dtUmvos;
     else Type = (DeviceType_t)AType;
     // Reinit timers
     chSysLock();

@@ -22,9 +22,6 @@ uint8_t EEStore_t::GetLastValuedPtr(EEUnit32_t** PPtr) {
     // Iterate through array
     for(uint32_t i=1; i < EE_CNT; i++) {
         // Check if nothing or data tail
-        Arr[i].Print();
-        Arr[i-1].Print();
-        Uart.Printf("\r dif=%u", (uint16_t)(Arr[i].Counter - Arr[i-1].Counter));
         if((Arr[i].Sign != EE_STORE_SIGN) or (uint8_t)(Arr[i].Counter - Arr[i-1].Counter) != 1) {
             *PPtr = &Arr[i-1];
             return OK;
