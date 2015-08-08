@@ -20,6 +20,8 @@
 #include "evt_mask.h"
 #include "adc15x.h"
 
+#define VERSION_STRING  "Fallout " __DATE__ " " __TIME__
+
 #if 1 // ============================ Timers ===================================
 void TmrUartRxCallback(void *p) {
     chSysLockFromIsr();
@@ -66,7 +68,7 @@ int main(void) {
     chSysInit();
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-    Uart.Printf("\rRst %u\r\n", ADC_VREFINT_CAL);
+    Uart.Printf("\r\n%S\r\n", VERSION_STRING);
     Indication.Init();
     PillMgr.Init();
 
