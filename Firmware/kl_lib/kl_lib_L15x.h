@@ -83,6 +83,22 @@ typedef void (*ftVoidVoid)(void);
 #define DMA_PRIORITY_VERYHIGH   STM32_DMA_CR_PL(0b11)
 
 // Different conversions
+
+union DWordBytes_t {
+    uint32_t DWord;
+    uint8_t b[4];
+};
+union WordBytes_t {
+    uint16_t Word;
+    uint8_t b[2];
+} __attribute__((packed));
+union DWordWords_t {
+    uint32_t DWord;
+    uint16_t w[2];
+} __attribute__((packed));
+
+
+
 class Convert {
 public:
     static void U16ToArrAsBE(uint8_t *PArr, uint16_t N) {
@@ -592,9 +608,9 @@ protected:
             chSysLock();
             FLASH->PEKEYR = FLASH_PEKEY1;
             FLASH->PEKEYR = FLASH_PEKEY2;
-            chSysUnlock();
             FLASH->SR = FLASH_SR_WRPERR;        // Clear WriteProtectErr
             FLASH->PECR &= ~FLASH_PECR_FTDW;    // Disable fixed time programming
+            chSysUnlock();
         }
     }
     static void LockEE() { FLASH->PECR |= FLASH_PECR_PELOCK; }

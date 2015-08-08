@@ -125,7 +125,7 @@ public:
         if(EEStore.Get((uint32_t*)&OldValue) == OK) {
             if(OldValue == Value) return OK;
         }
-        return EEStore.Put((uint32_t*)&Value);
+        return EEStore.Put((uint32_t)Value);
     }
     // Try load from EEPROM, set 0 if failed
     void LoadValue() {

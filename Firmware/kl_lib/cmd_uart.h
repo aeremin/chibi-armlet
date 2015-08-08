@@ -19,7 +19,7 @@
 #define UART_RX_ENABLED     TRUE
 
 // UART
-#define UART_TXBUF_SIZE     504
+#define UART_TXBUF_SIZE     720
 
 #define UART                USART1
 #define UART_GPIO           GPIOA
