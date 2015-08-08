@@ -1,49 +1,49 @@
 # Terminal macro file v2
 Ping
-##Ping#010#013
+Ping#010#013
 RepWr
-##PillRepeatWrite32 0#010#013
+PillRepeatWrite32 0#010#013
 Read
-##PillRead32 0 3#010#013
+PillRead32 0 3#010#013
 
-##GetType#010#013
+GetType#010#013
 
 
 GetDse
-##GetDose#010#013
+GetDose#010#013
 GreenDse
-##SetDose 0#010#013
+SetDose 0#010#013
 YellwDse
-##SetDose 100#010#013
+SetDose 100#010#013
 RedDse
-##SetDose 200#010#013
+SetDose 200#010#013
 
 
 GetTop
-##GetDoseTop#010#013
+GetDoseTop#010#013
 SetTop
-##SetDoseTop 216000#010#013
+SetDoseTop 216000#010#013
 
 
 Breaker
-##PillWrite32 0,31,0#010#013
+PillWrite32 0,31,0#010#013
 Repair
-##PillWrite32 0,32,0,1800#010#013
+PillWrite32 0,32,0,1800#010#013
 Cure
-##PillWrite32 0,9,0,1,-21600#010#013
+PillWrite32 0,9,0,1,-21600#010#013
 Panacea
-##PillWrite32 0,11,0#010#013
+PillWrite32 0,11,0#010#013
 Empty
-##PillWrite32 0,9,0,0,0#010#013
+PillWrite32 0,9,0,0,0#010#013
 Drug
-##PillWrite32 0,10,0,1,100,60#010#013
+PillWrite32 0,10,0,1,100,60#010#013
 AutoD
-##PillWrite32 0,12,0,20,-10#010#013
+PillWrite32 0,12,0,20,-10#010#013
 Electrost
-##PillWrite32 0,33,0,20#010#013
+PillWrite32 0,33,0,20#010#013
 
 
 SetID
-##SetID 137#010#013
+SetID 137#010#013
 GetID
-##GetID#010#013
+GetID#010#013

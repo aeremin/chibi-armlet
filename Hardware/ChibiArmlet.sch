@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:ChibiArmlet-rescue
 LIBS:Antennas_kl
 LIBS:Connectors_kl
 LIBS:pcb_details
@@ -10,7 +11,7 @@ LIBS:Transistors_kl
 LIBS:RF ICs
 LIBS:memory
 LIBS:ChibiArmlet-cache
-EELAYER 27 0
+EELAYER 25 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
@@ -796,7 +797,7 @@ F 3 "" H 9500 10850 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L D_SHOTTKY D2
+L D_Shottky D2
 U 1 1 526647AB
 P 8550 10300
 F 0 "D2" H 8400 10400 40  0000 C CNN
@@ -873,7 +874,7 @@ F 3 "" H 7200 10550 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L NCP1400 DA1
+L NCP1400-RESCUE-ChibiArmlet DA1
 U 1 1 526647D5
 P 8600 10650
 F 0 "DA1" H 8400 10900 60  0000 C CNN
@@ -1541,7 +1542,7 @@ F 3 "~" H 14800 1900 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L STM32L151CXTX DD1
+L STM32L151CxTx DD1
 U 1 1 52A19E0D
 P 5100 2500
 F 0 "DD1" H 4600 3850 60  0000 C CNN
@@ -1652,7 +1653,7 @@ Vibro
 Text Label 13600 5850 0    60   ~ 0
 VibroOut
 $Comp
-L D_SHOTTKY D1
+L D_Shottky D1
 U 1 1 52A1C457
 P 14550 5400
 F 0 "D1" H 14400 5500 40  0000 C CNN

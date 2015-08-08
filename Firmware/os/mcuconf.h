@@ -30,6 +30,9 @@
 
 #define STM32L1xx_MCUCONF
 
+// @KL
+#define STM32L1XX_MD
+
 /*
  * ADC driver system settings.
  */

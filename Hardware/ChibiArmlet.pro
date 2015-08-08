@@ -1,4 +1,4 @@
-update=04/05/2014 23:29:43
+update=05.08.2015 23:31:33
 version=1
 last_client=eeschema
 [cvpcb]
@@ -39,19 +39,15 @@ LibName7=Antennas_kl
 [eeschema]
 version=1
 LibDir=D:/libs/Kicad
-NetFmtName=PcbnewAdvanced
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
 [eeschema/libraries]
-LibName1=Antennas_kl
-LibName2=Connectors_kl
-LibName3=pcb_details
-LibName4=power
-LibName5=Power_kl
-LibName6=st_kl
-LibName7=Tittar_kl
-LibName8=Transistors_kl
-LibName9=RF ICs
-LibName10=memory
+LibName1=ChibiArmlet-rescue
+LibName2=Antennas_kl
+LibName3=Connectors_kl
+LibName4=pcb_details
+LibName5=power
+LibName6=Power_kl
+LibName7=st_kl
+LibName8=Tittar_kl
+LibName9=Transistors_kl
+LibName10=RF ICs
+LibName11=memory
