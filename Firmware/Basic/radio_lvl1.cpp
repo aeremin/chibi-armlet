@@ -117,7 +117,7 @@ uint8_t rLevel1_t::Init() {
     if(CC.Init() == OK) {
         CC.SetTxPower(CC_PwrMinus10dBm);
         CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(6);
+        CC.SetChannel(9);
         // Thread
         chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 //        Uart.Printf("\rCC init OK");

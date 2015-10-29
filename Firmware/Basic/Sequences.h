@@ -191,9 +191,9 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 
 #if 1 // ============================ LED RGB ==================================
 // ==== Door ====
-#define clOneOrTwo      clBlue
-#define clMany          clRed
-#define SWITCH_TIME     630
+#define clOne           clBlue
+#define clMany          clCyan
+#define SWITCH_TIME     720
 
 const LedRGBChunk_t lsqStart[] = {
         {csSetup, 360, clGreen},
@@ -216,8 +216,8 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
-const LedRGBChunk_t lsqOneOrTwo[] = {
-        {csSetup, SWITCH_TIME, clOneOrTwo},
+const LedRGBChunk_t lsqOne[] = {
+        {csSetup, SWITCH_TIME, clOne},
         {csEnd}
 };
 const LedRGBChunk_t lsqMany[] = {
@@ -230,28 +230,6 @@ const LedRGBChunk_t lsqNone[] = {
 };
 #endif
 
-#if 1 // ============================ WS2812 ===================================
-const LedWsChunk_t wsqPwrOn[] = {
-        {csSetup, 90, clGreen, wstOneByOne},
-        {csSetup, 90, clBlack, wstOneByOne},
-        {csEnd}
-};
-
-#define SWITCH_MODE     wstAtOnce
-const LedWsChunk_t wsqOneOrTwo[] = {
-        {csSetup, SWITCH_TIME, clOneOrTwo, SWITCH_MODE},
-        {csEnd}
-};
-const LedWsChunk_t wsqMany[] = {
-        {csSetup, SWITCH_TIME, clMany, SWITCH_MODE},
-        {csEnd}
-};
-const LedWsChunk_t wsqNone[] = {
-        {csSetup, SWITCH_TIME, clBlack, SWITCH_MODE},
-        {csEnd}
-};
-
-#endif
 
 #if 0 // =========================== LED Smooth ================================
 #define LED_TOP_BRIGHTNESS  255

@@ -14,7 +14,7 @@
 #include "ChunkTypes.h"
 #include "Sequences.h"
 
-#define APP_NAME            "LettersOfEast_RX"
+#define APP_NAME            "FireflyRX"
 #define APP_VERSION         _TIMENOW_
 
 // ==== Constants and default values ====
@@ -23,14 +23,13 @@
 
 // Timings
 #define RX_CHECK_PERIOD_MS      2700
-#define INDICATION_TIME_MS      18000
+#define INDICATION_TIME_MS      9000
 
 class App_t {
 private:
     Thread *PThread;
 //    uint32_t SavedCnt;
-//    const LedRGBChunk_t *lsqSaved = nullptr;
-    const LedWsChunk_t  *wsqSaved = wsqNone;
+    const LedRGBChunk_t *lsqSaved = lsqNone;
 public:
     VirtualTimer TmrCheck, TmrOff;
     // Eternal methods
