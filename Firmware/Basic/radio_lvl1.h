@@ -16,6 +16,7 @@
 class rLevel1_t {
 private:
     rPkt_t Pkt;
+    uint8_t Chnl = 0;
 public:
     uint8_t Init();
     // Inner use

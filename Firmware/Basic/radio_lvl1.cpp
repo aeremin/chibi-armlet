@@ -32,33 +32,16 @@ static void rLvl1Thread(void *arg) {
     while(true) Radio.ITask();
 }
 
-//#define TEST_TX
-#define TEST_RX
 void rLevel1_t::ITask() {
-#ifdef TEST_TX
-        // Transmit
-        DBG1_SET();
-        CC.TransmitSync(&Pkt);
-        DBG1_CLR();
-//        chThdSleepMilliseconds(99);
-#elif defined TEST_RX
-        Color_t Clr;
-        int8_t Rssi;
-        uint8_t RxRslt = CC.ReceiveSync(306, &Pkt, &Rssi);
-        if(RxRslt == OK) {
-            Uart.Printf("%d\r", Rssi);
-            Clr = clWhite;
-            if     (Rssi < -100) Clr = clRed;
-            else if(Rssi < -90) Clr = clYellow;
-            else if(Rssi < -80) Clr = clGreen;
-            else if(Rssi < -70) Clr = clCyan;
-            else if(Rssi < -60) Clr = clBlue;
-            else if(Rssi < -50) Clr = clMagenta;
-        }
-        else Clr = clBlack;
-        Led.SetColor(Clr);
-        chThdSleepMilliseconds(99);
-#endif
+    // Check if ID changed
+    if((uint8_t)App.ID != Chnl) {
+        Chnl = (uint8_t)App.ID;
+        CC.SetChannel(Chnl);
+    }
+    // Transmit
+    DBG1_SET();
+    CC.TransmitSync(&Pkt);
+    DBG1_CLR();
 }
 #endif // task
 
@@ -69,9 +52,10 @@ uint8_t rLevel1_t::Init() {
 #endif
     // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_Pwr0dBm);
+        CC.SetTxPower(CC_PwrMinus6dBm);
         CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(RCHNL);
+        CC.SetChannel(Chnl);
+        Pkt.TestWord = TEST_WORD;
         // Thread
         chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 //        Uart.Printf("\rCC init OK");

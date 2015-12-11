@@ -21,6 +21,8 @@
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 App_t App;
+Eeprom_t EE;
+
 
 #if 1 // ============================ Timers ===================================
 void TmrSecondCallback(void *p) {
@@ -45,13 +47,12 @@ int main(void) {
     Uart.Printf("\r%S  AHB freq=%u", VERSION_STRING, Clk.AHBFreqHz);
 
     Led.Init();
-
-
+    App.ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
+    if(App.ID > MAX_ID or App.ID < MIN_ID) App.ID = MIN_ID;
+    Uart.Printf("\rID=%u\r", App.ID);
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
-
-
 
     // Main cycle
     App.ITask();
@@ -107,3 +108,18 @@ void App_t::OnUartCmd(Uart_t *PUart) {
 
     else PUart->Ack(CMD_UNKNOWN);
 }
+
+uint8_t App_t::ISetID(int32_t NewID) {
+    if(NewID > MAX_ID or NewID < MIN_ID) return FAILURE;
+    uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
+    if(rslt == OK) {
+        ID = NewID;
+        Uart.Printf("New ID: %u\r", ID);
+        return OK;
+    }
+    else {
+        Uart.Printf("EE error: %u\r", rslt);
+        return FAILURE;
+    }
+}
+

@@ -12,7 +12,11 @@
 #include "uart.h"
 #include "evt_mask.h"
 
-#define VERSION_STRING  "Lustra " __TIMENOW__
+#define VERSION_STRING  "LustraSimple"
+
+#define EE_DEVICE_ID_ADDR   0x04
+#define MIN_ID              1
+#define MAX_ID              11
 
 class App_t {
 private:

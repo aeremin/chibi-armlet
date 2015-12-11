@@ -56,22 +56,6 @@ struct rPkt_t {
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
 
-#if 1 // ========================== const Pkt_t ================================
 #define TEST_WORD   0xCa115ea1  // Call Seal
-
-#endif
-
-#if 1 // ======================= Channels & cycles =============================
-#define RCHNL   9
-#endif
-
-#if 1 // =========================== Timings ===================================
-#define TX_PERIOD_MS    45
-#define RX_T_MS         63
-#define RX_SLEEP_T_MS   270
-#endif
-
-
-
 
 #endif /* RLVL1_DEFINS_H_ */
