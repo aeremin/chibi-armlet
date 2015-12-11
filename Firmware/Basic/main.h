@@ -12,7 +12,7 @@
 #include "uart.h"
 #include "evt_mask.h"
 
-#define VERSION_STRING  "Ragnarok v1.0"
+#define VERSION_STRING  "Lustra " __TIMENOW__
 
 class App_t {
 private:
@@ -20,8 +20,7 @@ private:
     VirtualTimer ITmrRadioTimeout;
     uint8_t ISetID(int32_t NewID);
 public:
-//    int32_t ID;
-    uint8_t GetDipSwitch();
+    int32_t ID;
     VirtualTimer TmrSecond;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
@@ -34,7 +33,6 @@ public:
     void OnUartCmd(Uart_t *PUart);
     // Inner use
     void ITask();
-//    App_t(): PThread(nullptr), ID(ID_DEFAULT), Mode(mRxVibro) {}
 };
 
 extern App_t App;
