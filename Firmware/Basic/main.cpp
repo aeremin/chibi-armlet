@@ -51,8 +51,8 @@ int main(void) {
     if(App.ID > MAX_ID or App.ID < MIN_ID) App.ID = MIN_ID;
     Uart.Printf("\rID=%u\r", App.ID);
 
-    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-    else Led.StartSequence(lsqStart);
+    if(Radio.Init() == OK) Led.StartSequence(lsqStart);
+    else Led.StartSequence(lsqFailure);
 
     // Main cycle
     App.ITask();
