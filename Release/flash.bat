@@ -1,10 +1,10 @@
 :start
 
 @REM Erase EE
-"C:\ST-LINK\ST-LINK Utility\ST-LINK_CLI.exe" -SE ed1
+"C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe" -SE ed1
 
 IF %ERRORLEVEL% EQU 0 (
-    "C:\ST-LINK\ST-LINK Utility\ST-LINK_CLI.exe" -c SWD -P ChArmletBasic.hex 0x08000000 -Run
+    "C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility\ST-LINK_CLI.exe" -c SWD -P ChArmletBasic.hex 0x08000000 -Run
 )
 
 @echo Insert Connector
