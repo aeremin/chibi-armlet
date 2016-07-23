@@ -63,18 +63,17 @@ void rLevel1_t::ITask() {
     Led.SetColor(Clr);
     chThdSleepMilliseconds(99);
 #else
-    if(RxTable.GetCount() < RXTABLE_MAX_CNT) { // Do not receive if this count reached. Will not indicate more anyway.
-        int8_t Rssi;
-        // Iterate channels
-        for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
-            CC.SetChannel(ID2RCHNL(i));
-            uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
-            if(RxRslt == OK) {
+    int8_t Rssi;
+    // Iterate channels
+    for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
+        CC.SetChannel(ID2RCHNL(i));
+        uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
+        if(RxRslt == OK) {
 //                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
-                RxTable.Add(Pkt.DWord);
-            }
-        } // for
-    } // if there is croud
+            App.RcvdClr.Set(Pkt.R, Pkt.G, Pkt.B);
+            App.SignalEvt(EVTMSK_RADIO);
+        }
+    } // for
     TryToSleep(RX_SLEEP_T_MS);
 #endif
 }

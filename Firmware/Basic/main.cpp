@@ -19,6 +19,15 @@
 
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
+LedRGBChunk_t lsqFadeIn[] = {
+        {csSetup, 810, clGreen},
+        {csEnd}
+};
+const LedRGBChunk_t lsqFadeOut[] = {
+        {csSetup, 810, clBlack},
+        {csEnd}
+};
+
 App_t App;
 
 #if 1 // ============================ Timers ===================================
@@ -26,13 +35,6 @@ App_t App;
 void TmrGeneralCallback(void *p) {
     chSysLockFromIsr();
     App.SignalEvtI((eventmask_t)p);
-    chSysUnlockFromIsr();
-}
-// Check radio buffer
-void TmrCheckCallback(void *p) {
-    chSysLockFromIsr();
-    App.SignalEvtI(EVTMSK_CHECK);
-    chVTSetI(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -55,9 +57,6 @@ int main(void) {
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
 
-    // Timers
-    chVTSet(&App.TmrCheck, MS2ST(RX_CHECK_PERIOD_MS), TmrCheckCallback, nullptr);
-
     // Main cycle
     App.ITask();
 }
@@ -74,36 +73,23 @@ void App_t::ITask() {
         }
 #endif
 
-#if 1   // ==== Rx buf check ====
-        if(EvtMsk & EVTMSK_CHECK) {
-            // Get number of distinct received IDs and clear table
-            chSysLock();
-            uint32_t Cnt = Radio.RxTable.GetCount();
-            Radio.RxTable.Clear();
-            chSysUnlock();
-//            if(Cnt != 0)
-//                Uart.Printf("\rCnt = %u  %u", Cnt, chTimeNow());
-            // ==== Select indication depending on Cnt ====
-            if(Cnt != 0) chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
-            // Setup indication
-            if((Cnt == 1) and (lsqSaved == lsqNone)) {
-				Uart.Printf("\rOne %u", chTimeNow());
-				lsqSaved = lsqOne;
-				Led.StartSequence(lsqSaved);
-			}
-			else if((Cnt > 1) and (lsqSaved == lsqNone or lsqSaved == lsqOne)) {
-				Uart.Printf("\rMany %u", chTimeNow());
-				lsqSaved = lsqMany;
-				Led.StartSequence(lsqSaved);
-			}
+#if 1   // ==== Radio ====
+        if(EvtMsk & EVTMSK_RADIO) {
+            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
+            if(!IsFadingIn or (OldClr != RcvdClr)) {
+                lsqFadeIn[0].Color = RcvdClr;
+                OldClr = RcvdClr;
+                IsFadingIn = true;
+                Led.StartSequence(lsqFadeIn);
+            }
         }
 #endif
 
 #if 1 // ==== Off ====
         if(EvtMsk & EVTMSK_OFF) {
             Uart.Printf("\rOff %u", chTimeNow());
-            lsqSaved = lsqNone;
-            Led.StartSequence(lsqSaved);
+            IsFadingIn = false;
+            Led.StartSequence(lsqFadeOut);
         }
 #endif
     } // while true

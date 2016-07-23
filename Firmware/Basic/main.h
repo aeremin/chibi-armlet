@@ -28,10 +28,10 @@
 class App_t {
 private:
     Thread *PThread;
-//    uint32_t SavedCnt;
-    const LedRGBChunk_t *lsqSaved = lsqNone;
 public:
-    VirtualTimer TmrCheck, TmrOff;
+    Color_t RcvdClr, OldClr = clBlack;
+    bool IsFadingIn = false;
+    VirtualTimer TmrOff;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {
