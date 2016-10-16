@@ -75,20 +75,18 @@ void App_t::ITask() {
 
 #if 1   // ==== Radio ====
         if(EvtMsk & EVTMSK_RADIO) {
-            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
-            if(!IsFadingIn or (OldClr != RcvdClr)) {
+//            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
+            if(OldClr != RcvdClr) {
                 lsqFadeIn[0].Color = RcvdClr;
                 OldClr = RcvdClr;
-                IsFadingIn = true;
                 Led.StartSequence(lsqFadeIn);
             }
         }
 #endif
 
-#if 1 // ==== Off ====
+#if 0 // ==== Off ====
         if(EvtMsk & EVTMSK_OFF) {
             Uart.Printf("\rOff %u", chTimeNow());
-            IsFadingIn = false;
             Led.StartSequence(lsqFadeOut);
         }
 #endif
