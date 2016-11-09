@@ -53,6 +53,10 @@ int main(void) {
     Uart.Printf("\r%S; AHB=%u", APP_NAME, Clk.AHBFreqHz);
 
     Led.Init();
+    App.ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
+    if(App.ID > MAX_ID or App.ID < MIN_ID) App.ID = MIN_ID;
+    Uart.Printf("\rID=%u\r", App.ID);
+
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);

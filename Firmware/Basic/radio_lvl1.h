@@ -21,7 +21,7 @@ private:
     void TryToSleep(uint32_t SleepDuration);
 public:
     uint8_t Init();
-    CountingBuf_t<uint32_t, RXTABLE_SZ> RxTable;
+//    CountingBuf_t<uint32_t, RXTABLE_SZ> RxTable;
     // Inner use
     void ITask();
 };
