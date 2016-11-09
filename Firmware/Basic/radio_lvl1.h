@@ -16,11 +16,13 @@
 
 class rLevel1_t {
 private:
-    rPkt_t Pkt;
+    uint8_t Chnl = 0;
     void TryToReceive(uint32_t RxDuration);
     void TryToSleep(uint32_t SleepDuration);
 public:
+    rPkt_t Pkt;
     uint8_t Init();
+    bool MustTX = true;
 //    CountingBuf_t<uint32_t, RXTABLE_SZ> RxTable;
     // Inner use
     void ITask();

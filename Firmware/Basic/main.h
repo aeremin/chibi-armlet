@@ -17,8 +17,10 @@
 #define APP_NAME            "FirstDaysOfEmpire TX"
 
 // ==== Constants and default values ====
-#define ID_MIN                  0
-#define ID_MAX                  4
+#define EE_DEVICE_ID_ADDR   0x04
+#define MIN_ID              1
+#define MAX_ID              30
+
 
 // Timings
 #define RX_CHECK_PERIOD_MS      2700
@@ -30,6 +32,7 @@ private:
 public:
     uint8_t ID;
     uint32_t TimeS = 0;
+    uint8_t ISetID(int32_t NewID);
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {

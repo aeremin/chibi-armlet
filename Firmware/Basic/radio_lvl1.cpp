@@ -39,6 +39,20 @@ static void rLvl1Thread(void *arg) {
 //#define TEST_TX
 //#define TEST_RX
 void rLevel1_t::ITask() {
+    if(MustTX) {
+        // Check if ID changed
+        if((uint8_t)App.ID != Chnl) {
+            Chnl = (uint8_t)App.ID;
+            CC.SetChannel(Chnl);
+        }
+        // Transmit
+        DBG1_SET();
+        CC.TransmitSync(&Pkt);
+        DBG1_CLR();
+    }
+    else chThdSleepMilliseconds(999);
+
+
 #ifdef TEST_TX
     // Transmit
     DBG1_SET();
@@ -63,18 +77,18 @@ void rLevel1_t::ITask() {
     Led.SetColor(Clr);
     chThdSleepMilliseconds(99);
 #else
-    int8_t Rssi;
-    // Iterate channels
-    for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
-        CC.SetChannel(ID2RCHNL(i));
-        uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
-        if(RxRslt == OK) {
-//                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
-            App.RcvdClr.Set(Pkt.R, Pkt.G, Pkt.B);
-            App.SignalEvt(EVTMSK_RADIO);
-        }
-    } // for
-    TryToSleep(RX_SLEEP_T_MS);
+//    int8_t Rssi;
+//    // Iterate channels
+//    for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
+//        CC.SetChannel(ID2RCHNL(i));
+//        uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
+//        if(RxRslt == OK) {
+////                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
+//            App.RcvdClr.Set(Pkt.R, Pkt.G, Pkt.B);
+//            App.SignalEvt(EVTMSK_RADIO);
+//        }
+//    } // for
+//    TryToSleep(RX_SLEEP_T_MS);
 #endif
 }
 #endif // task
@@ -114,7 +128,7 @@ uint8_t rLevel1_t::Init() {
 #endif
     // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_Pwr0dBm);
+        CC.SetTxPower(CC_PwrPlus12dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(0);
         // Thread

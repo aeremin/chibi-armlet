@@ -20,6 +20,7 @@
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 App_t App;
+Eeprom_t EE;
 
 #if 1 // ============================ Timers ===================================
 // Universal VirtualTimer callback
@@ -53,10 +54,10 @@ int main(void) {
     Uart.Printf("\r%S; AHB=%u", APP_NAME, Clk.AHBFreqHz);
 
     Led.Init();
+
     App.ID = EE.Read32(EE_DEVICE_ID_ADDR);  // Read device ID
     if(App.ID > MAX_ID or App.ID < MIN_ID) App.ID = MIN_ID;
     Uart.Printf("\rID=%u\r", App.ID);
-
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
@@ -74,7 +75,14 @@ void App_t::ITask() {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
 
         if(EvtMsk & EVTMSK_EVERY_SECOND) {
-            TimeS++;
+            if(TimeS < 360) {
+                TimeS++;
+                Radio.Pkt.DWord32 = TimeS;
+            }
+            else {
+                Radio.MustTX = false;
+                Led.StartSequence(lsqEnd);
+            }
             Uart.Printf("%u\r", TimeS);
         }
 
