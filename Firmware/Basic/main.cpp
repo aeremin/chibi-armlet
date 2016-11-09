@@ -73,7 +73,7 @@ void App_t::ITask() {
         }
 #endif
 
-#if 1   // ==== Radio ====
+#if 0   // ==== Radio ====
         if(EvtMsk & EVTMSK_RADIO) {
 //            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
             if(OldClr != RcvdClr) {
