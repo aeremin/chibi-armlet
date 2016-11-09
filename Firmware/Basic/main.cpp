@@ -19,15 +19,6 @@
 
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
-LedRGBChunk_t lsqFadeIn[] = {
-        {csSetup, 810, clGreen},
-        {csEnd}
-};
-const LedRGBChunk_t lsqFadeOut[] = {
-        {csSetup, 810, clBlack},
-        {csEnd}
-};
-
 App_t App;
 
 #if 1 // ============================ Timers ===================================
@@ -35,6 +26,15 @@ App_t App;
 void TmrGeneralCallback(void *p) {
     chSysLockFromIsr();
     App.SignalEvtI((eventmask_t)p);
+    chSysUnlockFromIsr();
+}
+
+VirtualTimer TmrSecond;
+
+void TmrSecondCallback(void *p) {
+    chSysLockFromIsr();
+    App.SignalEvtI(EVTMSK_EVERY_SECOND);
+    chVTSetI(&TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
     chSysUnlockFromIsr();
 }
 #endif
@@ -50,12 +50,14 @@ int main(void) {
     // ==== Init Hard & Soft ====
     App.InitThread();
     Uart.Init(115200);
-    Uart.Printf("\r%S_%S; AHB=%u", APP_NAME, APP_VERSION, Clk.AHBFreqHz);
+    Uart.Printf("\r%S; AHB=%u", APP_NAME, Clk.AHBFreqHz);
 
     Led.Init();
 
     if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
     else Led.StartSequence(lsqStart);
+
+    chVTSet(&TmrSecond, MS2ST(1000), TmrSecondCallback, nullptr);
 
     // Main cycle
     App.ITask();
@@ -66,6 +68,12 @@ __attribute__ ((__noreturn__))
 void App_t::ITask() {
     while(true) {
         uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
+
+        if(EvtMsk & EVTMSK_EVERY_SECOND) {
+            TimeS++;
+            Uart.Printf("%u\r", TimeS);
+        }
+
 #if 1   // ==== Uart cmd ====
         if(EvtMsk & EVTMSK_UART_NEW_CMD) {
             OnUartCmd(&Uart);
@@ -100,14 +108,14 @@ void App_t::OnUartCmd(Uart_t *PUart) {
     // Handle command
     if(PCmd->NameIs("Ping")) PUart->Ack(OK);
 
-//    else if(PCmd->NameIs("GetID")) Uart.Reply("ID", ID);
+    else if(PCmd->NameIs("GetID")) Uart.Reply("ID", ID);
 
-//    else if(PCmd->NameIs("SetID")) {
-//        if(PCmd->GetNextToken() != OK) { PUart->Ack(CMD_ERROR); return; }
-//        if(PCmd->TryConvertTokenToNumber(&dw32) != OK) { PUart->Ack(CMD_ERROR); return; }
-//        uint8_t r = ISetID(dw32);
-//        PUart->Ack(r);
-//    }
+    else if(PCmd->NameIs("SetID")) {
+        if(PCmd->GetNextToken() != OK) { PUart->Ack(CMD_ERROR); return; }
+        if(PCmd->TryConvertTokenToNumber(&dw32) != OK) { PUart->Ack(CMD_ERROR); return; }
+        uint8_t r = ISetID(dw32);
+        PUart->Ack(r);
+    }
 
     else PUart->Ack(CMD_UNKNOWN);
 }

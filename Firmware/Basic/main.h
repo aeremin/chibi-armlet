@@ -14,8 +14,7 @@
 #include "ChunkTypes.h"
 #include "Sequences.h"
 
-#define APP_NAME            "FireflyRX"
-#define APP_VERSION         _TIMENOW_
+#define APP_NAME            "FirstDaysOfEmpire TX"
 
 // ==== Constants and default values ====
 #define ID_MIN                  0
@@ -29,7 +28,7 @@ class App_t {
 private:
     Thread *PThread;
 public:
-    Color_t RcvdClr, OldClr = clBlack;
+    uint32_t TimeS = 0;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }
     void SignalEvt(eventmask_t Evt) {
