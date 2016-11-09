@@ -28,6 +28,7 @@ class App_t {
 private:
     Thread *PThread;
 public:
+    uint8_t ID;
     uint32_t TimeS = 0;
     // Eternal methods
     void InitThread() { PThread = chThdSelf(); }

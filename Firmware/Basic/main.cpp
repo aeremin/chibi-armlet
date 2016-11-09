@@ -119,3 +119,17 @@ void App_t::OnUartCmd(Uart_t *PUart) {
 
     else PUart->Ack(CMD_UNKNOWN);
 }
+
+uint8_t App_t::ISetID(int32_t NewID) {
+    if(NewID > MAX_ID or NewID < MIN_ID) return FAILURE;
+    uint8_t rslt = EE.Write32(EE_DEVICE_ID_ADDR, NewID);
+    if(rslt == OK) {
+        ID = NewID;
+        Uart.Printf("New ID: %u\r", ID);
+        return OK;
+    }
+    else {
+        Uart.Printf("EE error: %u\r", rslt);
+        return FAILURE;
+    }
+}
