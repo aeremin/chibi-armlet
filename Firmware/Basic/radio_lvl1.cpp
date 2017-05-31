@@ -30,11 +30,11 @@
 rLevel1_t Radio;
 
 #if 1 // ================================ Task =================================
-static WORKING_AREA(warLvl1Thread, 256);
-static void rLvl1Thread(void *arg) {
-    chRegSetThreadName("rLvl1");
-    while(true) Radio.ITask();
-}
+//static WORKING_AREA(warLvl1Thread, 256);
+//static void rLvl1Thread(void *arg) {
+//    chRegSetThreadName("rLvl1");
+//    while(true) Radio.ITask();
+//}
 
 //#define TEST_TX
 //#define TEST_RX
@@ -67,7 +67,7 @@ void rLevel1_t::ITask() {
     // Iterate channels
     for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
         CC.SetChannel(ID2RCHNL(i));
-        uint8_t RxRslt = CC.ReceiveSync(RX_T_MS, &Pkt, &Rssi);
+        uint8_t RxRslt = CC.ReceiveSync(63, &Pkt, &Rssi);
         if(RxRslt == OK) {
 //                Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
             App.RcvdClr.Set(Pkt.R, Pkt.G, Pkt.B);
@@ -114,11 +114,12 @@ uint8_t rLevel1_t::Init() {
 #endif
     // Init radioIC
     if(CC.Init() == OK) {
-        CC.SetTxPower(CC_PwrMinus10dBm);
-        CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(9);
+//        CC.SetTxPower(CC_PwrMinus10dBm);
+//        CC.SetPktSize(RPKT_LEN);
+//        CC.SetChannel(9);
+        CC.EnterPwrDown();
         // Thread
-        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+//        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
 //        Uart.Printf("\rCC init OK");
         return OK;
     }

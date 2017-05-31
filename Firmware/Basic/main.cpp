@@ -24,7 +24,7 @@ LedRGBChunk_t lsqFadeIn[] = {
         {csEnd}
 };
 const LedRGBChunk_t lsqFadeOut[] = {
-        {csSetup, 810, clBlack},
+        {csSetup, 810, clBlue},
         {csEnd}
 };
 
@@ -37,6 +37,8 @@ void TmrGeneralCallback(void *p) {
     App.SignalEvtI((eventmask_t)p);
     chSysUnlockFromIsr();
 }
+
+VirtualTimer TmrOff;
 #endif
 
 int main(void) {
@@ -75,19 +77,20 @@ void App_t::ITask() {
 
 #if 1   // ==== Radio ====
         if(EvtMsk & EVTMSK_RADIO) {
-//            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
+            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
             if(OldClr != RcvdClr) {
-                lsqFadeIn[0].Color = RcvdClr;
+                lsqFadeIn[0].Color = clGreen;//RcvdClr;
                 OldClr = RcvdClr;
                 Led.StartSequence(lsqFadeIn);
             }
         }
 #endif
 
-#if 0 // ==== Off ====
+#if 1 // ==== Off ====
         if(EvtMsk & EVTMSK_OFF) {
             Uart.Printf("\rOff %u", chTimeNow());
             Led.StartSequence(lsqFadeOut);
+            OldClr = lsqFadeOut[0].Color;
         }
 #endif
     } // while true

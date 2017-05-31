@@ -50,9 +50,13 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 #endif
 
 #if 1 // =========================== Pkt_t =====================================
-struct rPkt_t {
-    uint8_t ID;
-    uint8_t R, G, B;
+union rPkt_t {
+    uint32_t DWord32;
+    struct {
+        uint8_t R, G, B;
+    };
+    bool operator == (const rPkt_t &APkt) { return (DWord32 == APkt.DWord32); }
+    rPkt_t& operator = (const rPkt_t &Right) { DWord32 = Right.DWord32; return *this; }
 } __attribute__ ((__packed__));
 #define RPKT_LEN    sizeof(rPkt_t)
 #endif
@@ -62,7 +66,7 @@ struct rPkt_t {
 #define RXTABLE_MAX_CNT 3   // Do not receive if this count reached. Will not indicate more anyway.
 
 #if 1 // ======================= Channels & cycles =============================
-#define RCHNL_MIN       9
+#define RCHNL_MIN       0
 #define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 
 #define RCHNL_RXTX      4
