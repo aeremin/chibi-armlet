@@ -24,7 +24,7 @@ LedRGBChunk_t lsqFadeIn[] = {
         {csEnd}
 };
 const LedRGBChunk_t lsqFadeOut[] = {
-        {csSetup, 810, clBlue},
+        {csSetup, 810, clBlack},
         {csEnd}
 };
 
@@ -79,7 +79,7 @@ void App_t::ITask() {
         if(EvtMsk & EVTMSK_RADIO) {
             chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
             if(OldClr != RcvdClr) {
-                lsqFadeIn[0].Color = clGreen;//RcvdClr;
+                lsqFadeIn[0].Color = RcvdClr;
                 OldClr = RcvdClr;
                 Led.StartSequence(lsqFadeIn);
             }
