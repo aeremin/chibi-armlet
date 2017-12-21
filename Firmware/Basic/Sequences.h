@@ -196,8 +196,9 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #define SWITCH_TIME     720
 
 const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 360, clBlue},
-        {csSetup, 360, clBlack},
+        {csSetup, 99, clRed},
+        {csSetup, 99, clGreen},
+        {csSetup, 99, clBlue},
         {csEnd}
 };
 
