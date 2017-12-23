@@ -20,11 +20,11 @@
 LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 LedRGBChunk_t lsqFadeIn[] = {
-        {csSetup, 810, clGreen}, // No matter which color
+        {csSetup, 810, clWhite}, // No matter which color
         {csEnd}
 };
 const LedRGBChunk_t lsqFadeOut[] = {
-        {csSetup, 810, clBlue},
+        {csSetup, 810, clBlack},
         {csEnd}
 };
 

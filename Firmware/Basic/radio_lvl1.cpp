@@ -69,7 +69,7 @@ void rLevel1_t::ITask() {
         CC.SetChannel(ID2RCHNL(i));
         uint8_t RxRslt = CC.ReceiveSync(63, &Pkt, &Rssi);
         if(RxRslt == OK) {
-//            Uart.Printf("\rCh=%d; Rssi=%d", i, Rssi);
+            Uart.Printf("\rID=%d; Rssi=%d", i, Rssi);
             if(Rssi > Pkt.MinPwrToReact) {
                 App.RcvdClr.Set(Pkt.R, Pkt.G, Pkt.B);
                 App.SignalEvt(EVTMSK_RADIO);

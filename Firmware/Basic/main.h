@@ -18,7 +18,7 @@
 #define APP_VERSION         _TIMENOW_
 
 // ==== Constants and default values ====
-#define ID_MIN                  0
+#define ID_MIN                  1
 #define ID_MAX                  4
 
 // Timings
