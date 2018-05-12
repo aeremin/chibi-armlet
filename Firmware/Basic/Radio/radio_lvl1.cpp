@@ -20,7 +20,7 @@ extern uint8_t Influence;
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOC
-#define DBG_PIN1    15
+#define DBG_PIN1    13
 #define DBG1_SET()  PinSetHi(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinSetLo(DBG_GPIO1, DBG_PIN1)
 //#define DBG_GPIO2   GPIOB
@@ -120,6 +120,7 @@ void rLevel1_t::ITask() {
                 PktTx.Cycle = RadioTime.CycleN;
                 PktTx.TimeSrcID = RadioTime.TimeSrcId;
                 PktTx.Influence = Influence;
+//                Printf("ST: %u;  ", chVTGetSystemTimeX());
 //                PktTx.Print();
                 DBG1_SET();
                 CC.Recalibrate(); // Recalibrate before every TX, do not calibrate before RX
@@ -140,8 +141,8 @@ void rLevel1_t::ITask() {
             case rmsgPktRx:
                 CCState = ccstIdle;
                 if(CC.ReadFIFO(&PktRx, &Rssi, RPKT_LEN) == retvOk) {  // if pkt successfully received
-//                    Printf("Rssi %d; ", Rssi);
-//                    PktRx.Print();
+                    Printf("Rssi %d; ", Rssi);
+                    PktRx.Print();
                     RadioTime.Adjust();
                     EvtMsg_t Msg(evtIdNewRPkt);
                     Msg.b[0] = PktRx.Influence;

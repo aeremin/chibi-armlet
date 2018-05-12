@@ -40,16 +40,12 @@ static uint8_t ISetInfluence(uint8_t NewInf);
 static void ReadInfFromEE();
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
-
-// ==== Timers ====
-//static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
-//static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-//static int32_t TimeS;
 #endif
 
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
+    Clk.SetMSI4MHz();
     Clk.UpdateFreqValues();
     // ==== Init OS ====
     halInit();
