@@ -10,7 +10,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "uart.h"
-//#include "radio_lvl1.h"
+#include "radio_lvl1.h"
 //#include "vibro.h"
 #include "led.h"
 #include "Sequences.h"
@@ -24,17 +24,20 @@ static void OnCmd(Shell_t *PShell);
 
 //static void ReadAndSetupMode();
 
-#define ID_MIN      0
-#define ID_MAX      200
-#define ID_DEFAULT  1
+#define ID_MIN      82
+#define ID_MAX      (RSLOT_CNT - 1)
+#define ID_DEFAULT  82
 
 // EEAddresses
 #define EE_ADDR_DEVICE_ID       0
-//#define EE_ADDR_HEALTH_STATE    8
+#define EE_ADDR_INFLUENCE       8
 
-int32_t ID;
+uint16_t ID;
+uint8_t Influence;
 static uint8_t ISetID(int32_t NewID);
-void ReadIDfromEE();
+static void ReadIDfromEE();
+static uint8_t ISetInfluence(uint8_t NewInf);
+static void ReadInfFromEE();
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
@@ -43,7 +46,6 @@ LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
 //static int32_t TimeS;
 #endif
-
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -57,14 +59,14 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
     ReadIDfromEE();
-    Printf("\r%S %S; ID=%u\r", APP_NAME, BUILD_TIME, ID);
+    ReadInfFromEE();
+    Printf("\r%S %S\rID=%u; Influence=%u\r", APP_NAME, BUILD_TIME, ID, Influence);
     Clk.PrintFreqs();
 
     Led.Init();
 
-//    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-//    else
-    Led.StartOrRestart(lsqStart);
+    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
+    else Led.StartOrRestart(lsqFailure);
 
     // Main cycle
     ITask();
@@ -84,6 +86,10 @@ void ITask() {
                 OnCmd((Shell_t*)Msg.Ptr);
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
+
+            case evtIdNewRPkt:
+                break;
+
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
@@ -100,21 +106,24 @@ void OnCmd(Shell_t *PShell) {
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, BUILD_TIME);
 
     else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
-
     else if(PCmd->NameIs("SetID")) {
-        if(PCmd->GetNext<int32_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
+        if(PCmd->GetNext<uint16_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
         uint8_t r = ISetID(ID);
-//        RMsg_t msg;
-//        msg.Cmd = R_MSG_SET_CHNL;
-//        msg.Value = ID2RCHNL(ID);
-//        Radio.RMsgQ.SendNowOrExit(msg);
+        PShell->Ack(r);
+    }
+
+    else if(PCmd->NameIs("GetInf")) PShell->Reply("Inf", Influence);
+    else if(PCmd->NameIs("SetInf")) {
+        uint8_t NewInf;
+        if(PCmd->GetNext<uint8_t>(&NewInf) != retvOk) { PShell->Ack(retvCmdError); return; }
+        uint8_t r = ISetInfluence(NewInf);
         PShell->Ack(r);
     }
 
     else PShell->Ack(retvCmdUnknown);
 }
 
-#if 1 // =========================== ID management =============================
+#if 1 // =========================== EE management =============================
 void ReadIDfromEE() {
     ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
     if(ID < ID_MIN or ID > ID_MAX) {
@@ -136,4 +145,22 @@ uint8_t ISetID(int32_t NewID) {
         return retvFail;
     }
 }
+
+void ReadInfFromEE() {
+    Influence = EE::Read32(EE_ADDR_INFLUENCE);
+}
+
+uint8_t ISetInfluence(uint8_t NewInf) {
+    uint8_t rslt = EE::Write32(EE_ADDR_INFLUENCE, NewInf);
+    if(rslt == retvOk) {
+        Influence = NewInf;
+        Printf("New Inf: %u\r", Influence);
+        return retvOk;
+    }
+    else {
+        Printf("EE error: %u\r", rslt);
+        return retvFail;
+    }
+}
+
 #endif
