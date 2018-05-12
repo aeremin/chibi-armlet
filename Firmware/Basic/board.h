@@ -16,9 +16,6 @@
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE
 #define BEEPER_ENABLED      FALSE
-#define BTN_ENABLED         FALSE
-
-#define SIMPLESENSORS_ENABLED   BTN_ENABLED
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
@@ -39,29 +36,16 @@
 #define UART_RX_PIN     10
 
 // LED
-#define LED_EN_PIN      { GPIOB, 2, omPushPull }
-#define LED_R_PIN       { GPIOB, 1, TIM3, 4, invInverted, omOpenDrain, 255 }
-#define LED_G_PIN       { GPIOB, 0, TIM3, 3, invInverted, omOpenDrain, 255 }
-#define LED_B_PIN       { GPIOB, 5, TIM3, 2, invInverted, omOpenDrain, 255 }
-
-// Button
-#define BTN_PIN         { GPIOA, 0, pudPullDown }
+#define LED_R_PIN       { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
+#define LED_G_PIN       { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
+#define LED_B_PIN       { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
 
 // Vibro
-#define VIBRO_SETUP     { GPIOB, 12, TIM10, 1, invNotInverted, omPushPull, 99 }
+#define VIBRO_SETUP     { GPIOB, 6, TIM4, 1, invNotInverted, omPushPull, 99 }
 
 // Beeper
 #define BEEPER_TOP      22
-#define BEEPER_PIN      { GPIOB, 15, TIM11, 1, invNotInverted, omPushPull, BEEPER_TOP }
-
-// DIP switch
-#define DIP_SW_CNT      6
-#define DIP_SW1         { GPIOA, 15, pudPullUp }
-#define DIP_SW2         { GPIOC, 13, pudPullUp }
-#define DIP_SW3         { GPIOC, 14, pudPullUp }
-#define DIP_SW4         { GPIOA, 12, pudPullUp }
-#define DIP_SW5         { GPIOA, 11, pudPullUp }
-#define DIP_SW6         { GPIOA, 8,  pudPullUp }
+#define BEEPER_PIN      { GPIOB, 3, TIM2, 2, invNotInverted, omPushPull, BEEPER_TOP }
 
 // I2C
 #if I2C1_ENABLED
@@ -71,7 +55,7 @@
 #endif
 
 // Pill power
-#define PILL_PWR_PIN    { GPIOB, 3, omPushPull }
+#define PILL_PWR_PIN    { GPIOB, 7, omPushPull }
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3

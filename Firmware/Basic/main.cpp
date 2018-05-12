@@ -13,6 +13,7 @@
 //#include "radio_lvl1.h"
 //#include "vibro.h"
 #include "led.h"
+#include "Sequences.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -23,15 +24,19 @@ static void OnCmd(Shell_t *PShell);
 
 //static void ReadAndSetupMode();
 
+#define ID_MIN      0
+#define ID_MAX      200
+#define ID_DEFAULT  1
+
 // EEAddresses
 #define EE_ADDR_DEVICE_ID       0
 //#define EE_ADDR_HEALTH_STATE    8
 
 int32_t ID;
-//static uint8_t ISetID(int32_t NewID);
-//void ReadIDfromEE();
+static uint8_t ISetID(int32_t NewID);
+void ReadIDfromEE();
 
-//LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
+LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 // ==== Timers ====
 //static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
@@ -39,8 +44,6 @@ int32_t ID;
 //static int32_t TimeS;
 #endif
 
-
-//LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -53,19 +56,19 @@ int main(void) {
 
     // ==== Init Hard & Soft ====
     Uart.Init(115200);
-//    ReadIDfromEE();
+    ReadIDfromEE();
     Printf("\r%S %S; ID=%u\r", APP_NAME, BUILD_TIME, ID);
     Clk.PrintFreqs();
 
-//    Led.Init();
+    Led.Init();
 
 //    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-//    else Led.StartSequence(lsqStart);
+//    else
+    Led.StartOrRestart(lsqStart);
 
     // Main cycle
     ITask();
 }
-
 
 __noreturn
 void ITask() {
@@ -98,15 +101,39 @@ void OnCmd(Shell_t *PShell) {
 
     else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
 
-//    else if(PCmd->NameIs("SetID")) {
-//        if(PCmd->GetNext<int32_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
-////        uint8_t r = ISetID(ID);
+    else if(PCmd->NameIs("SetID")) {
+        if(PCmd->GetNext<int32_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
+        uint8_t r = ISetID(ID);
 //        RMsg_t msg;
 //        msg.Cmd = R_MSG_SET_CHNL;
 //        msg.Value = ID2RCHNL(ID);
 //        Radio.RMsgQ.SendNowOrExit(msg);
-//        PShell->Ack(r);
-//    }
+        PShell->Ack(r);
+    }
 
     else PShell->Ack(retvCmdUnknown);
 }
+
+#if 1 // =========================== ID management =============================
+void ReadIDfromEE() {
+    ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
+    if(ID < ID_MIN or ID > ID_MAX) {
+        Printf("\rUsing default ID\r");
+        ID = ID_DEFAULT;
+    }
+}
+
+uint8_t ISetID(int32_t NewID) {
+    if(NewID < ID_MIN or NewID > ID_MAX) return retvFail;
+    uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
+    if(rslt == retvOk) {
+        ID = NewID;
+        Printf("New ID: %u\r", ID);
+        return retvOk;
+    }
+    else {
+        Printf("EE error: %u\r", rslt);
+        return retvFail;
+    }
+}
+#endif
