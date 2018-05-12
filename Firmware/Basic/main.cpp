@@ -6,40 +6,41 @@
  * Created on Feb 05, 2013, 20:27
  */
 
-#include <main.h>
 #include "kl_lib.h"
 #include "ch.h"
 #include "hal.h"
-#include "clocking_L1xx.h"
 #include "uart.h"
-#include "radio_lvl1.h"
-#include "evt_mask.h"
-#include "vibro.h"
+//#include "radio_lvl1.h"
+//#include "vibro.h"
 #include "led.h"
 
-LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
+#if 1 // ======================== Variables and defines ========================
+// Forever
+EvtMsgQ_t<EvtMsg_t, MAIN_EVT_Q_LEN> EvtQMain;
+extern CmdUart_t Uart;
+static void ITask();
+static void OnCmd(Shell_t *PShell);
 
-LedRGBChunk_t lsqFadeIn[] = {
-        {csSetup, 810, clWhite}, // No matter which color
-        {csEnd}
-};
-const LedRGBChunk_t lsqFadeOut[] = {
-        {csSetup, 810, clBlack},
-        {csEnd}
-};
+//static void ReadAndSetupMode();
 
-App_t App;
+// EEAddresses
+#define EE_ADDR_DEVICE_ID       0
+//#define EE_ADDR_HEALTH_STATE    8
 
-#if 1 // ============================ Timers ===================================
-// Universal VirtualTimer callback
-void TmrGeneralCallback(void *p) {
-    chSysLockFromIsr();
-    App.SignalEvtI((eventmask_t)p);
-    chSysUnlockFromIsr();
-}
+int32_t ID;
+//static uint8_t ISetID(int32_t NewID);
+//void ReadIDfromEE();
 
-VirtualTimer TmrOff;
+//LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
+
+// ==== Timers ====
+//static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
+//static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
+//static int32_t TimeS;
 #endif
+
+
+//LedRGB_t Led({GPIOB, 1, TIM3, 4}, {GPIOB, 0, TIM3, 3}, {GPIOB, 5, TIM3, 2});
 
 int main(void) {
     // ==== Init Vcore & clock system ====
@@ -48,69 +49,64 @@ int main(void) {
     // ==== Init OS ====
     halInit();
     chSysInit();
+    EvtQMain.Init();
 
     // ==== Init Hard & Soft ====
-    App.InitThread();
     Uart.Init(115200);
-    Uart.Printf("\r%S_%S; AHB=%u", APP_NAME, APP_VERSION, Clk.AHBFreqHz);
+//    ReadIDfromEE();
+    Printf("\r%S %S; ID=%u\r", APP_NAME, BUILD_TIME, ID);
+    Clk.PrintFreqs();
 
-    Led.Init();
+//    Led.Init();
 
-    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
-    else Led.StartSequence(lsqStart);
+//    if(Radio.Init() != OK) Led.StartSequence(lsqFailure);
+//    else Led.StartSequence(lsqStart);
 
     // Main cycle
-    App.ITask();
+    ITask();
 }
 
 
-__attribute__ ((__noreturn__))
-void App_t::ITask() {
+__noreturn
+void ITask() {
     while(true) {
-        uint32_t EvtMsk = chEvtWaitAny(ALL_EVENTS);
-#if 1   // ==== Uart cmd ====
-        if(EvtMsk & EVTMSK_UART_NEW_CMD) {
-            OnUartCmd(&Uart);
-            Uart.SignalCmdProcessed();
-        }
-#endif
+        EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
+        switch(Msg.ID) {
+            case evtIdEverySecond:
+//                TimeS++;
+//                ReadAndSetupMode();
+                break;
 
-#if 1   // ==== Radio ====
-        if(EvtMsk & EVTMSK_RADIO) {
-            chVTRestart(&TmrOff, INDICATION_TIME_MS, EVTMSK_OFF);
-            if(OldClr != RcvdClr) {
-                lsqFadeIn[0].Color = RcvdClr;
-                OldClr = RcvdClr;
-                Led.StartSequence(lsqFadeIn);
-            }
-        }
-#endif
-
-#if 1 // ==== Off ====
-        if(EvtMsk & EVTMSK_OFF) {
-            Uart.Printf("\rOff %u", chTimeNow());
-            Led.StartSequence(lsqFadeOut);
-            OldClr = lsqFadeOut[0].Color;
-        }
-#endif
+            case evtIdShellCmd:
+                OnCmd((Shell_t*)Msg.Ptr);
+                ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
+                break;
+            default: Printf("Unhandled Msg %u\r", Msg.ID); break;
+        } // switch
     } // while true
 }
 
-void App_t::OnUartCmd(Uart_t *PUart) {
-    UartCmd_t *PCmd = &PUart->Cmd;
+void OnCmd(Shell_t *PShell) {
+    Cmd_t *PCmd = &PShell->Cmd;
     __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
-    Uart.Printf("\r%S\r", PCmd->Name);
+//    Uart.Printf("%S\r", PCmd->Name);
     // Handle command
-    if(PCmd->NameIs("Ping")) PUart->Ack(OK);
+    if(PCmd->NameIs("Ping")) {
+        PShell->Ack(retvOk);
+    }
+    else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, BUILD_TIME);
 
-//    else if(PCmd->NameIs("GetID")) Uart.Reply("ID", ID);
+    else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
 
 //    else if(PCmd->NameIs("SetID")) {
-//        if(PCmd->GetNextToken() != OK) { PUart->Ack(CMD_ERROR); return; }
-//        if(PCmd->TryConvertTokenToNumber(&dw32) != OK) { PUart->Ack(CMD_ERROR); return; }
-//        uint8_t r = ISetID(dw32);
-//        PUart->Ack(r);
+//        if(PCmd->GetNext<int32_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
+////        uint8_t r = ISetID(ID);
+//        RMsg_t msg;
+//        msg.Cmd = R_MSG_SET_CHNL;
+//        msg.Value = ID2RCHNL(ID);
+//        Radio.RMsgQ.SendNowOrExit(msg);
+//        PShell->Ack(r);
 //    }
 
-    else PUart->Ack(CMD_UNKNOWN);
+    else PShell->Ack(retvCmdUnknown);
 }
