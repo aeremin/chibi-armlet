@@ -1,4 +1,4 @@
-update=04/05/2014 23:29:43
+update=26.02.2018 19:18:43
 version=1
 last_client=eeschema
 [cvpcb]
@@ -38,20 +38,4 @@ LibName6=Special
 LibName7=Antennas_kl
 [eeschema]
 version=1
-LibDir=D:/libs/Kicad
-NetFmtName=PcbnewAdvanced
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
-[eeschema/libraries]
-LibName1=Antennas_kl
-LibName2=Connectors_kl
-LibName3=pcb_details
-LibName4=power
-LibName5=Power_kl
-LibName6=st_kl
-LibName7=Tittar_kl
-LibName8=Transistors_kl
-LibName9=RF ICs
-LibName10=memory
+LibDir=
