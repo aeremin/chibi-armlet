@@ -22,8 +22,6 @@ extern CmdUart_t Uart;
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-//static void ReadAndSetupMode();
-
 #define ID_MIN      82
 #define ID_MAX      (RSLOT_CNT - 1)
 #define ID_DEFAULT  82
@@ -40,6 +38,9 @@ static uint8_t ISetInfluence(uint8_t NewInf);
 static void ReadInfFromEE();
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
+
+TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
+uint32_t ArmletAppearTimeout = 0;
 #endif
 
 int main(void) {
@@ -60,6 +61,7 @@ int main(void) {
     Clk.PrintFreqs();
 
     Led.Init();
+    TmrEverySecond.StartOrRestart();
 
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
@@ -74,8 +76,12 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-//                TimeS++;
-//                ReadAndSetupMode();
+//                Printf("Second\r");
+                if(ArmletAppearTimeout > 0) {
+                    ArmletAppearTimeout--;
+                    if(ArmletAppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
+                }
+//                Printf("ArmletAppearTimeout: %u\r", ArmletAppearTimeout);
                 break;
 
             case evtIdShellCmd:
@@ -83,8 +89,16 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
-            case evtIdNewRPkt:
-                break;
+            case evtIdNewRPkt: {
+                Param_t *PPar;
+                PPar = (Param_t*)&Msg.b[1];
+                bool IsInTodash = PPar->IsInTodash;
+                Printf("Rssi: %d; IsInTodash: %u\r", (int8_t)Msg.b[2], IsInTodash);
+                if(IsInTodash) {
+                    if(ArmletAppearTimeout == 0) Led.StartOrRestart(lsqAppear);
+                    ArmletAppearTimeout = 18;
+                } // in Todash
+            } break;
 
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
@@ -122,14 +136,14 @@ void OnCmd(Shell_t *PShell) {
 #if 1 // =========================== EE management =============================
 void ReadIDfromEE() {
     ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
-    if(ID < ID_MIN or ID > ID_MAX) {
+    if((ID < ID_MIN or ID > ID_MAX) and (ID != ID_FIREFLY)) {
         Printf("\rUsing default ID\r");
         ID = ID_DEFAULT;
     }
 }
 
 uint8_t ISetID(int32_t NewID) {
-    if(NewID < ID_MIN or NewID > ID_MAX) return retvFail;
+    if((NewID < ID_MIN or NewID > ID_MAX) and (ID != ID_FIREFLY)) return retvFail;
     uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
     if(rslt == retvOk) {
         ID = NewID;

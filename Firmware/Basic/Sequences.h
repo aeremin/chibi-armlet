@@ -218,16 +218,12 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
-const LedRGBChunk_t lsqOne[] = {
-        {csSetup, SWITCH_TIME, clOne},
+const LedRGBChunk_t lsqAppear[] = {
+        {csSetup, 720, clBlue},
         {csEnd}
 };
-const LedRGBChunk_t lsqMany[] = {
-        {csSetup, SWITCH_TIME, clMany},
-        {csEnd}
-};
-const LedRGBChunk_t lsqNone[] = {
-        {csSetup, SWITCH_TIME, clBlack},
+const LedRGBChunk_t lsqDisappear[] = {
+        {csSetup, 720, clBlack},
         {csEnd}
 };
 #endif

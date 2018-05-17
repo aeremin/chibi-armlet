@@ -58,6 +58,13 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 #define CC_TX_PWR   CC_Pwr0dBm
 
 #if 1 // =========================== Pkt_t =====================================
+struct Param_t {
+    int Dogan : 4;
+    bool Dead: 1;
+    bool Corrupted: 1;
+    bool IsInTodash: 1;
+} __packed;
+
 union rPkt_t  {
     uint32_t DWord;
     uint16_t Word;
@@ -72,6 +79,7 @@ union rPkt_t  {
                 int Dogan : 4;
                 bool Dead: 1;
                 bool Corrupted: 1;
+                bool IsInTodash: 1;
             } __packed;
         } __packed;
     } __packed;
@@ -89,6 +97,7 @@ union rPkt_t  {
 #define RSSI_MIN            -75
 
 #if 1 // ======================= Channels & cycles =============================
+#define ID_FIREFLY          400
 #define RCHNL               7
 #define RCYCLE_CNT          4
 #define ARMLET_CNT          82

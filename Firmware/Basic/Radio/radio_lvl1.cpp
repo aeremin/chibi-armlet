@@ -114,7 +114,8 @@ void rLevel1_t::ITask() {
     while(true) {
         RMsg_t msg = RMsgQ.Fetch(TIME_INFINITE);
         switch(msg.Cmd) {
-            case rmsgTimeToTx:
+            case rmsgTimeToTx:  // will never be here if firefly
+//                Printf("Tttx\r");
                 CCState = ccstTx;
                 PktTx.ID = ID;
                 PktTx.Cycle = RadioTime.CycleN;
@@ -129,6 +130,8 @@ void rLevel1_t::ITask() {
                 break;
 
             case rmsgTimeToRx:
+//                Printf("Ttrx\r");
+                if(ID == ID_FIREFLY) CC.Recalibrate();
                 CCState = ccstRx;
                 CC.ReceiveAsync(RxCallback);
                 break;
@@ -141,8 +144,8 @@ void rLevel1_t::ITask() {
             case rmsgPktRx:
                 CCState = ccstIdle;
                 if(CC.ReadFIFO(&PktRx, &Rssi, RPKT_LEN) == retvOk) {  // if pkt successfully received
-                    Printf("Rssi %d; ", Rssi);
-                    PktRx.Print();
+//                    Printf("Rssi %d; ", Rssi);
+//                    PktRx.Print();
                     RadioTime.Adjust();
                     EvtMsg_t Msg(evtIdNewRPkt);
                     Msg.b[0] = PktRx.Influence;
@@ -179,6 +182,7 @@ uint8_t rLevel1_t::Init() {
 //        Printf("Timeslot duration, systime: %u\r", TimeslotDuration);
         chSysLock();
         RadioTime.StartTimerI();
+        RadioTime.TimeSrcId = ID;
         chSysUnlock();
 
         // Thread
