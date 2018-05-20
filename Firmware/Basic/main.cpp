@@ -63,7 +63,10 @@ int main(void) {
     Led.Init();
     TmrEverySecond.StartOrRestart();
 
-    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
+    if(Radio.Init() == retvOk) {
+        if(ID == ID_FIREFLY) Led.StartOrRestart(lsqFirefly);
+        else Led.StartOrRestart(lsqStart);
+    }
     else Led.StartOrRestart(lsqFailure);
 
     // Main cycle
@@ -93,8 +96,9 @@ void ITask() {
                 Param_t *PPar;
                 PPar = (Param_t*)&Msg.b[1];
                 bool IsInTodash = PPar->IsInTodash;
-                Printf("Rssi: %d; IsInTodash: %u\r", (int8_t)Msg.b[2], IsInTodash);
-                if(IsInTodash) {
+                int8_t Rssi = (int8_t)Msg.b[2];
+//                Printf("Rssi: %d; IsInTodash: %u\r", (int8_t)Msg.b[2], IsInTodash);
+                if(IsInTodash and ID == ID_FIREFLY and Rssi > -75) {
                     if(ArmletAppearTimeout == 0) Led.StartOrRestart(lsqAppear);
                     ArmletAppearTimeout = 18;
                 } // in Todash

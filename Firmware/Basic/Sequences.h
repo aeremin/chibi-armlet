@@ -203,6 +203,12 @@ const LedRGBChunk_t lsqStart[] = {
         {csEnd}
 };
 
+const LedRGBChunk_t lsqFirefly[] = {
+        {csSetup, 99, clBlue},
+        {csSetup, 99, clBlack},
+        {csEnd}
+};
+
 const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clRed},
         {csWait, 99},
