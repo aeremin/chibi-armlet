@@ -30,6 +30,8 @@ static LedRGBChunk_t lsqIdle[] = {
 
 static uint32_t AppearTimeout = 0;
 static uint32_t SaveColorTimeout = 0;
+static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
+bool IsIdle = true;
 #endif
 
 int main(void) {
@@ -67,11 +69,29 @@ void ITask() {
 //                Printf("Second\r");
                 if(AppearTimeout > 0) {
                     AppearTimeout--;
-                    if(AppearTimeout == 0) Led.StartOrRestart(lsqIdle);
+                    if(AppearTimeout == 0) {
+                        Led.StartOrRestart(lsqIdle);
+                        IsIdle = true;
+                    }
                 }
+
                 if(SaveColorTimeout > 0) {
                     SaveColorTimeout--;
                     if(SaveColorTimeout == 0) WriteColorToEE(lsqIdle[0].Color);
+                }
+
+                if(TableCheckTimeout > 0) {
+                    TableCheckTimeout--;
+                    if(TableCheckTimeout == 0) {
+                        TableCheckTimeout = CHECK_PERIOD_S;
+                        // Check table
+                        if(Radio.RxTable.GetCount() == 7) {
+                            AppearTimeout = APPEAR_DURATION;
+                            Led.StartOrContinue(lsqAppear);
+                            IsIdle = false;
+                        }
+                        Radio.RxTable.Clear();
+                    }
                 }
                 break;
 
@@ -80,16 +100,15 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
-            case evtIdNewRPkt: {
-                Param_t *PPar;
-                PPar = (Param_t*)&Msg.b[1];
-                bool IsInTodash = PPar->IsInTodash;
-                int8_t Rssi = (int8_t)Msg.b[2];
-//                Printf("Rssi: %d; IsInTodash: %u\r", (int8_t)Msg.b[2], IsInTodash);
-                if(Rssi > -75) {
-                    if(AppearTimeout == 0) Led.StartOrRestart(lsqAppear);
-                    AppearTimeout = 18;
-                } // in Todash
+            case evtIdNewRadioCmd: {
+                Color_t Clr;
+                Clr.DWord32 = (uint32_t)Msg.Value;
+                Clr.Print();
+                if(lsqIdle[0].Color != Clr) {
+                    lsqIdle[0].Color = Clr;
+                    SaveColorTimeout = 11;
+                    if(IsIdle) Led.StartOrRestart(lsqIdle);
+                }
             } break;
 
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;

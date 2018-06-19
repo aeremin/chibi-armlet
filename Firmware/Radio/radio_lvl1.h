@@ -74,14 +74,17 @@ struct rPkt_t  {
 #define RSSI_MIN            -75
 
 #if 1 // ======================= Channels & cycles =============================
+#define RCHNL_MIN       10
+#define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 #endif
 
 #if 1 // =========================== Timings ===================================
+#define MIN_SLEEP_DURATION_MS   18
 #endif
 
 #if 1 // ============================= RX Table ================================
 #define RXTABLE_SZ              8
-#define RXT_PKT_REQUIRED        TRUE
+#define RXT_PKT_REQUIRED        FALSE
 class RxTable_t {
 private:
 #if RXT_PKT_REQUIRED
@@ -163,9 +166,11 @@ class rLevel1_t {
 public:
     int8_t Rssi;
     rPkt_t PktTx, PktRx;
+    RxTable_t RxTable;
 //    EvtMsgQ_t<RMsg_t, R_MSGQ_LEN> RMsgQ;
     uint8_t Init();
     // Inner use
+    void TryToSleep(uint32_t SleepDuration);
     void ITask();
 };
 

@@ -11,7 +11,7 @@
 #include "ch.h"
 #include "kl_lib.h"
 #include "EvtMsgIDs.h"
-//#include "board.h"
+#include "color.h"
 #if BUTTONS_ENABLED
 #include "buttons.h"
 #endif

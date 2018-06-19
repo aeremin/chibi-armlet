@@ -16,5 +16,5 @@ enum EvtMsgId_t {
     evtIdAdcRslt,
 
     // Not eternal
-    evtIdNewRPkt,
+    evtIdNewRadioCmd,
 };
