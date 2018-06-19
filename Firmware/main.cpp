@@ -6,6 +6,7 @@
 //#include "vibro.h"
 #include "led.h"
 #include "Sequences.h"
+#include "main.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -15,31 +16,25 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-#define ID_MIN      82
-#define ID_MAX      (RSLOT_CNT - 1)
-#define ID_DEFAULT  82
-
-// EEAddresses
-#define EE_ADDR_DEVICE_ID       0
-#define EE_ADDR_INFLUENCE       8
-
-uint16_t ID;
-uint8_t Influence;
-static uint8_t ISetID(int32_t NewID);
-static void ReadIDfromEE();
-static uint8_t ISetInfluence(uint8_t NewInf);
-static void ReadInfFromEE();
+static Color_t ReadColorFromEE();
+static void WriteColorToEE(Color_t AColor);
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
-uint32_t ArmletAppearTimeout = 0;
+
+static LedRGBChunk_t lsqIdle[] = {
+        {csSetup, 360, clBlue},
+        {csEnd}
+};
+
+static uint32_t AppearTimeout = 0;
+static uint32_t SaveColorTimeout = 0;
 #endif
 
 int main(void) {
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
-    Clk.SetMSI4MHz();
     Clk.UpdateFreqValues();
     // ==== Init OS ====
     halInit();
@@ -49,18 +44,14 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init();
     Uart.StartRx();
-    ReadIDfromEE();
-    ReadInfFromEE();
-    Printf("\r%S %S\rID=%u; Influence=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID, Influence);
+    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
     Clk.PrintFreqs();
 
+    lsqIdle[0].Color = ReadColorFromEE();
     Led.Init();
     TmrEverySecond.StartOrRestart();
 
-    if(Radio.Init() == retvOk) {
-        if(ID == ID_FIREFLY) Led.StartOrRestart(lsqFirefly);
-        else Led.StartOrRestart(lsqStart);
-    }
+    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqIdle);
     else Led.StartOrRestart(lsqFailure);
 
     // Main cycle
@@ -74,11 +65,14 @@ void ITask() {
         switch(Msg.ID) {
             case evtIdEverySecond:
 //                Printf("Second\r");
-                if(ArmletAppearTimeout > 0) {
-                    ArmletAppearTimeout--;
-                    if(ArmletAppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
+                if(AppearTimeout > 0) {
+                    AppearTimeout--;
+                    if(AppearTimeout == 0) Led.StartOrRestart(lsqIdle);
                 }
-//                Printf("ArmletAppearTimeout: %u\r", ArmletAppearTimeout);
+                if(SaveColorTimeout > 0) {
+                    SaveColorTimeout--;
+                    if(SaveColorTimeout == 0) WriteColorToEE(lsqIdle[0].Color);
+                }
                 break;
 
             case evtIdShellCmd:
@@ -92,9 +86,9 @@ void ITask() {
                 bool IsInTodash = PPar->IsInTodash;
                 int8_t Rssi = (int8_t)Msg.b[2];
 //                Printf("Rssi: %d; IsInTodash: %u\r", (int8_t)Msg.b[2], IsInTodash);
-                if(IsInTodash and ID == ID_FIREFLY and Rssi > -75) {
-                    if(ArmletAppearTimeout == 0) Led.StartOrRestart(lsqAppear);
-                    ArmletAppearTimeout = 18;
+                if(Rssi > -75) {
+                    if(AppearTimeout == 0) Led.StartOrRestart(lsqAppear);
+                    AppearTimeout = 18;
                 } // in Todash
             } break;
 
@@ -113,62 +107,17 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
-    else if(PCmd->NameIs("SetID")) {
-        if(PCmd->GetNext<uint16_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
-        uint8_t r = ISetID(ID);
-        PShell->Ack(r);
-    }
-
-    else if(PCmd->NameIs("GetInf")) PShell->Reply("Inf", Influence);
-    else if(PCmd->NameIs("SetInf")) {
-        uint8_t NewInf;
-        if(PCmd->GetNext<uint8_t>(&NewInf) != retvOk) { PShell->Ack(retvCmdError); return; }
-        uint8_t r = ISetInfluence(NewInf);
-        PShell->Ack(r);
-    }
-
     else PShell->Ack(retvCmdUnknown);
 }
 
 #if 1 // =========================== EE management =============================
-void ReadIDfromEE() {
-    ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
-    if((ID < ID_MIN or ID > ID_MAX) and (ID != ID_FIREFLY)) {
-        Printf("\rUsing default ID\r");
-        ID = ID_DEFAULT;
-    }
+Color_t ReadColorFromEE() {
+    Color_t Rslt;
+    Rslt.DWord32 = EE::Read32(EE_ADDR_COLOR);
+    return Rslt;
 }
 
-uint8_t ISetID(int32_t NewID) {
-    if((NewID < ID_MIN or NewID > ID_MAX) and (ID != ID_FIREFLY)) return retvFail;
-    uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
-    if(rslt == retvOk) {
-        ID = NewID;
-        Printf("New ID: %u\r", ID);
-        return retvOk;
-    }
-    else {
-        Printf("EE error: %u\r", rslt);
-        return retvFail;
-    }
+void WriteColorToEE(Color_t AColor) {
+    EE::Write32(EE_ADDR_COLOR, AColor.DWord32);
 }
-
-void ReadInfFromEE() {
-    Influence = EE::Read32(EE_ADDR_INFLUENCE);
-}
-
-uint8_t ISetInfluence(uint8_t NewInf) {
-    uint8_t rslt = EE::Write32(EE_ADDR_INFLUENCE, NewInf);
-    if(rslt == retvOk) {
-        Influence = NewInf;
-        Printf("New Inf: %u\r", Influence);
-        return retvOk;
-    }
-    else {
-        Printf("EE error: %u\r", rslt);
-        return retvFail;
-    }
-}
-
 #endif

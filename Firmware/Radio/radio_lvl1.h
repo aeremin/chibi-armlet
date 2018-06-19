@@ -58,37 +58,14 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 #define CC_TX_PWR   CC_Pwr0dBm
 
 #if 1 // =========================== Pkt_t =====================================
-struct Param_t {
-    int Dogan : 4;
-    bool Dead: 1;
-    bool Corrupted: 1;
-    bool IsInTodash: 1;
-} __packed;
-
-union rPkt_t  {
-    uint32_t DWord;
-    uint16_t Word;
-    struct {
-        uint16_t ID : 13;
-        uint8_t Cycle: 3;
-        uint16_t TimeSrcID;
-        uint8_t Influence;
-        union {
-            uint8_t Param;
-            struct {
-                int Dogan : 4;
-                bool Dead: 1;
-                bool Corrupted: 1;
-                bool IsInTodash: 1;
-            } __packed;
-        } __packed;
-    } __packed;
+struct rPkt_t  {
+    uint8_t ID;
+    Color_t Clr;
     rPkt_t& operator = (const rPkt_t &Right) {
-        DWord = Right.DWord;
-        Word = Right.Word;
+        ID = Right.ID;
+        Clr.DWord32 = Right.Clr.DWord32;
         return *this;
     }
-    void Print() { Printf("ID: %u; Ccl: %u; Tsrc: %u; Inf: %u; P: %u\r", ID,Cycle,TimeSrcID,Influence,Param); }
 } __packed;
 
 #define RPKT_LEN    sizeof(rPkt_t)
@@ -97,23 +74,14 @@ union rPkt_t  {
 #define RSSI_MIN            -75
 
 #if 1 // ======================= Channels & cycles =============================
-#define ID_FIREFLY          400
-#define RCHNL               7
-#define RCYCLE_CNT          4
-#define ARMLET_CNT          82
-#define LUSTRA_CNT          200
-#define RSLOT_CNT           (ARMLET_CNT + LUSTRA_CNT)
 #endif
 
 #if 1 // =========================== Timings ===================================
-#define TIMESLOT_DURATION_ST    20
-#define MIN_SLEEP_DURATION_MS   18
-#define SCYCLES_TO_KEEP_TIMESRC 4   // After that amount of supercycles, TimeSrcID become self ID
 #endif
 
 #if 1 // ============================= RX Table ================================
-#define RXTABLE_SZ              4
-#define RXT_PKT_REQUIRED        FALSE
+#define RXTABLE_SZ              8
+#define RXT_PKT_REQUIRED        TRUE
 class RxTable_t {
 private:
 #if RXT_PKT_REQUIRED
@@ -125,13 +93,13 @@ private:
 public:
 #if RXT_PKT_REQUIRED
     void AddOrReplaceExistingPkt(rPkt_t &APkt) {
-        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
         for(uint32_t i=0; i<Cnt; i++) {
             if(IBuf[i].ID == APkt.ID) {
                 IBuf[i] = APkt; // Replace with newer pkt
                 return;
             }
         }
+        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
         IBuf[Cnt] = APkt;
         Cnt++;
     }
@@ -140,10 +108,10 @@ public:
         for(uint32_t i=0; i<Cnt; i++) {
             if(IBuf[i].ID == ID) {
                 *ptr = &IBuf[i];
-                return OK;
+                return retvOk;
             }
         }
-        return FAILURE;
+        return retvNotFound;
     }
 
     bool IDPresents(uint8_t ID) {
@@ -170,7 +138,7 @@ public:
         Printf("RxTable Cnt: %u\r", Cnt);
         for(uint32_t i=0; i<Cnt; i++) {
 #if RXT_PKT_REQUIRED
-            Printf("ID: %u; State: %u\r", IBuf[i].ID, IBuf[i].State);
+//            Printf("ID: %u; State: %u\r", IBuf[i].ID, IBuf[i].State);
 #else
             Printf("ID: %u\r", IdBuf[i]);
 #endif
@@ -195,7 +163,7 @@ class rLevel1_t {
 public:
     int8_t Rssi;
     rPkt_t PktTx, PktRx;
-    EvtMsgQ_t<RMsg_t, R_MSGQ_LEN> RMsgQ;
+//    EvtMsgQ_t<RMsg_t, R_MSGQ_LEN> RMsgQ;
     uint8_t Init();
     // Inner use
     void ITask();
