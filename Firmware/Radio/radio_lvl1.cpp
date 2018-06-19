@@ -53,17 +53,19 @@ void rLevel1_t::ITask() {
         // Iterate channels
         for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
             CC.SetChannel(ID2RCHNL(i));
-    //            Printf("%u\r", i);
+//            Printf("%u\r", i);
             CC.Recalibrate();
-            uint8_t RxRslt = CC.Receive(18, &PktRx, RPKT_LEN, &Rssi);
+            uint8_t RxRslt = CC.Receive(36, &PktRx, RPKT_LEN, &Rssi);
             if(RxRslt == retvOk) {
-                Printf("Ch=%u; Rssi=%d\r", ID2RCHNL(i), Rssi);
+//                Printf("Ch=%u; Rssi=%d\r", ID2RCHNL(i), Rssi);
                 if(PktRx.ID == ID_MAX) {
                     EvtMsg_t msg(evtIdNewRadioCmd);
                     msg.Value = (int32_t)PktRx.Clr.DWord32;
                     EvtQMain.SendNowOrExit(msg);
                 }
-                else RxTable.AddId(PktRx.ID);
+                else {
+                    RxTable.AddId(PktRx.ID);
+                }
             }
         } // for i
         TryToSleep(270);

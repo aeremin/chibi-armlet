@@ -32,6 +32,7 @@ static uint32_t AppearTimeout = 0;
 static uint32_t SaveColorTimeout = 0;
 static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
 bool IsIdle = true;
+bool IsChoosenOne = false;
 #endif
 
 int main(void) {
@@ -51,6 +52,14 @@ int main(void) {
 
     lsqIdle[0].Color = ReadColorFromEE();
     Led.Init();
+
+    // Check if choosen one
+    IsChoosenOne = (bool)EE::Read32(EE_ADDR_CHOOSEN);
+    if(IsChoosenOne) {
+        Led.StartOrRestart(lsqChoosenOne);
+        chThdSleepMilliseconds(2007);
+    }
+
     TmrEverySecond.StartOrRestart();
 
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqIdle);
@@ -84,11 +93,14 @@ void ITask() {
                     TableCheckTimeout--;
                     if(TableCheckTimeout == 0) {
                         TableCheckTimeout = CHECK_PERIOD_S;
-                        // Check table
-                        if(Radio.RxTable.GetCount() == 7) {
-                            AppearTimeout = APPEAR_DURATION;
-                            Led.StartOrContinue(lsqAppear);
-                            IsIdle = false;
+                        if(IsChoosenOne) {
+                            // Check table
+                            Printf("TblCnt: %u\r", Radio.RxTable.GetCount());
+                            if(Radio.RxTable.GetCount() == 7) {
+                                AppearTimeout = APPEAR_DURATION;
+                                Led.StartOrContinue(lsqAppear);
+                                IsIdle = false;
+                            }
                         }
                         Radio.RxTable.Clear();
                     }
@@ -125,6 +137,18 @@ void OnCmd(Shell_t *PShell) {
         PShell->Ack(retvOk);
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+
+    else if(PCmd->NameIs("BeChoosen")) {
+        IsChoosenOne = true;
+        EE::Write32(EE_ADDR_CHOOSEN, 1);
+        PShell->Ack(retvOk);
+    }
+
+    else if(PCmd->NameIs("BeOrdinary")) {
+        IsChoosenOne = false;
+        EE::Write32(EE_ADDR_CHOOSEN, 0);
+        PShell->Ack(retvOk);
+    }
 
     else PShell->Ack(retvCmdUnknown);
 }

@@ -203,6 +203,12 @@ const LedRGBChunk_t lsqStart[] = {
         {csEnd}
 };
 
+const LedRGBChunk_t lsqChoosenOne[] = {
+        {csSetup, 180, clYellow},
+        {csSetup, 180, clBlack},
+        {csEnd}
+};
+
 const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clRed},
         {csWait, 99},

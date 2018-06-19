@@ -16,3 +16,4 @@
 
 // EEAddresses
 #define EE_ADDR_COLOR   0
+#define EE_ADDR_CHOOSEN 4
