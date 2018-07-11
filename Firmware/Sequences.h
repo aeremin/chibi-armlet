@@ -195,13 +195,13 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #define clMany          clCyan
 #define SWITCH_TIME     720
 
-const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 99, clRed},
-        {csSetup, 99, clGreen},
-        {csSetup, 99, clBlue},
-        {csSetup, 99, clBlack},
-        {csEnd}
-};
+//const LedRGBChunk_t lsqStart[] = {
+//        {csSetup, 99, clRed},
+//        {csSetup, 99, clGreen},
+//        {csSetup, 99, clBlue},
+//        {csSetup, 99, clBlack},
+//        {csEnd}
+//};
 
 const LedRGBChunk_t lsqChoosenOne[] = {
         {csSetup, 180, clYellow},
@@ -224,10 +224,6 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
-const LedRGBChunk_t lsqAppear[] = {
-        {csSetup, 720, clYellow},
-        {csEnd}
-};
 #endif
 
 

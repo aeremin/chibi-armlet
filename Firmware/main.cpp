@@ -16,28 +16,42 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-static Color_t ReadColorFromEE();
-static void WriteColorToEE(Color_t AColor);
-
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
-TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
+void SetupActiveColor(bool AuleIsHere, bool OromeIsHere);
+void ShowKind();
 
-static LedRGBChunk_t lsqIdle[] = {
-        {csSetup, 360, clBlue},
+static enum Kind_t {
+    kndOromeY=0, kndOromeG=1, kndOromeW=2, kndOromeB=3,
+    kndOromeBAuleR=4, kndOromeBAuleY=5, kndOromeBAuleO=6
+} Kind;
+
+static LedRGBChunk_t lsqStart[] = {
+        {csSetup, 0, clBlue},   // Color is dummy
+        {csWait, 720},
+        {csSetup, 0, clYellow}, // Color is dummy
+        {csWait, 720},
+        {csSetup, 0, clBlack},
+        {csEnd}
+};
+static LedRGBChunk_t lsqAppear[] = {
+        {csSetup, 360, clBlack}, // Color is dummy
+        {csEnd}
+};
+static const LedRGBChunk_t lsqDisappear[] = {
+        {csSetup, 360, clBlack},
         {csEnd}
 };
 
+TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
+
 static uint32_t AppearTimeout = 0;
-static uint32_t SaveColorTimeout = 0;
 static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
-bool IsIdle = true;
-bool IsChoosenOne = false;
 #endif
 
 int main(void) {
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V5);
+    SetupVCore(vcore1V2);
     Clk.UpdateFreqValues();
     // ==== Init OS ====
     halInit();
@@ -50,19 +64,15 @@ int main(void) {
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
     Clk.PrintFreqs();
 
-    lsqIdle[0].Color = ReadColorFromEE();
-    Led.Init();
+//    uint32_t tmp = EE::Read32(EE_ADDR_KIND);
+//    if(tmp > 6) tmp = 0;
+    Kind = kndOromeB;//(Kind_t)tmp;
 
-    // Check if choosen one
-    IsChoosenOne = (bool)EE::Read32(EE_ADDR_CHOOSEN);
-    if(IsChoosenOne) {
-        Led.StartOrRestart(lsqChoosenOne);
-        chThdSleepMilliseconds(2007);
-    }
+    Led.Init();
 
     TmrEverySecond.StartOrRestart();
 
-    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqIdle);
+    if(Radio.Init() == retvOk) ShowKind();
     else Led.StartOrRestart(lsqFailure);
 
     // Main cycle
@@ -78,29 +88,22 @@ void ITask() {
 //                Printf("Second\r");
                 if(AppearTimeout > 0) {
                     AppearTimeout--;
-                    if(AppearTimeout == 0) {
-                        Led.StartOrRestart(lsqIdle);
-                        IsIdle = true;
-                    }
-                }
-
-                if(SaveColorTimeout > 0) {
-                    SaveColorTimeout--;
-                    if(SaveColorTimeout == 0) WriteColorToEE(lsqIdle[0].Color);
+                    if(AppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
                 }
 
                 if(TableCheckTimeout > 0) {
                     TableCheckTimeout--;
                     if(TableCheckTimeout == 0) {
                         TableCheckTimeout = CHECK_PERIOD_S;
-                        if(IsChoosenOne) {
-                            // Check table
-                            Printf("TblCnt: %u\r", Radio.RxTable.GetCount());
-                            if(Radio.RxTable.GetCount() == 7) {
-                                AppearTimeout = APPEAR_DURATION;
-                                Led.StartOrContinue(lsqAppear);
-                                IsIdle = false;
-                            }
+                        // Check table
+                        if(Radio.RxTable.GetCount() > 0) {
+                            Printf("Cnt=%u\r", Radio.RxTable.GetCount());
+                            // Presence of ID=0 means Aule is here. Absence means Orome only.
+                            bool AuleIsHere = Radio.RxTable.IDPresents(0);
+                            bool OromeIsHere = (!AuleIsHere) or (Radio.RxTable.GetCount() > 1);
+                            SetupActiveColor(AuleIsHere, OromeIsHere);
+                            Led.StartOrRestart(lsqAppear);
+                            AppearTimeout = APPEAR_DURATION;
                         }
                         Radio.RxTable.Clear();
                     }
@@ -112,20 +115,61 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
-            case evtIdNewRadioCmd: {
-                Color_t Clr;
-                Clr.DWord32 = (uint32_t)Msg.Value;
-                Clr.Print();
-                if(lsqIdle[0].Color != Clr) {
-                    lsqIdle[0].Color = Clr;
-                    SaveColorTimeout = 11;
-                    if(IsIdle) Led.StartOrRestart(lsqIdle);
-                }
-            } break;
-
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
+}
+
+void SetupActiveColor(bool AuleIsHere, bool OromeIsHere) {
+//    Printf("SAC Aule=%u, Orome=%u\r", AuleIsHere, OromeIsHere);
+    lsqAppear[0].Color = clBlack;
+    switch(Kind) {
+        case kndOromeY:
+            if(OromeIsHere) lsqAppear[0].Color = clYellow;
+            break;
+
+        case kndOromeG:
+            if(OromeIsHere) lsqAppear[0].Color = clGreen;
+            break;
+
+        case kndOromeW:
+            if(OromeIsHere) lsqAppear[0].Color = clWhite;
+            break;
+
+        case kndOromeB:
+            if(OromeIsHere) lsqAppear[0].Color = clBlue;
+            break;
+
+        case kndOromeBAuleR:
+            if(AuleIsHere) lsqAppear[0].Color = clRed;
+            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
+            break;
+
+        case kndOromeBAuleY:
+            if(AuleIsHere) lsqAppear[0].Color = clYellow;
+            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
+            break;
+
+        case kndOromeBAuleO:
+            if(AuleIsHere) lsqAppear[0].Color = clOrange;
+            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
+    }
+}
+
+void ShowKind() {
+    if(Kind <= kndOromeB) lsqStart[0].Color = clBlue;
+    else lsqStart[0].Color = clRed;
+    switch(Kind) {
+        case kndOromeY: lsqStart[2].Color = clYellow; break;
+        case kndOromeG: lsqStart[2].Color = clGreen;  break;
+        case kndOromeW: lsqStart[2].Color = clWhite;  break;
+        case kndOromeB: lsqStart[2].Color = clBlue;   break;
+        case kndOromeBAuleR: lsqStart[2].Color = clRed; break;
+        case kndOromeBAuleY: lsqStart[2].Color = clYellow; break;
+        case kndOromeBAuleO: lsqStart[2].Color = clOrange; break;
+    }
+    Led.StartOrRestart(lsqStart);
+    Printf("Kind: %u\r", Kind);
 }
 
 void OnCmd(Shell_t *PShell) {
@@ -138,29 +182,19 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("BeChoosen")) {
-        IsChoosenOne = true;
-        EE::Write32(EE_ADDR_CHOOSEN, 1);
-        PShell->Ack(retvOk);
-    }
-
-    else if(PCmd->NameIs("BeOrdinary")) {
-        IsChoosenOne = false;
-        EE::Write32(EE_ADDR_CHOOSEN, 0);
-        PShell->Ack(retvOk);
+    else if(PCmd->NameIs("Kind")) {
+        uint8_t IKind = 0;
+        if(PCmd->GetNext<uint8_t>(&IKind) == retvOk) {
+            if(IKind <= 6) {
+                Kind = (Kind_t)IKind;
+                EE::Write32(EE_ADDR_KIND, IKind);
+                PShell->Ack(retvOk);
+                ShowKind();
+                return;
+            }
+        }
+        PShell->Ack(retvCmdError);
     }
 
     else PShell->Ack(retvCmdUnknown);
 }
-
-#if 1 // =========================== EE management =============================
-Color_t ReadColorFromEE() {
-    Color_t Rslt;
-    Rslt.DWord32 = EE::Read32(EE_ADDR_COLOR);
-    return Rslt;
-}
-
-void WriteColorToEE(Color_t AColor) {
-    EE::Write32(EE_ADDR_COLOR, AColor.DWord32);
-}
-#endif

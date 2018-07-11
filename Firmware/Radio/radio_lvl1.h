@@ -59,11 +59,9 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t  {
-    uint8_t ID;
-    Color_t Clr;
+    uint32_t ID;
     rPkt_t& operator = (const rPkt_t &Right) {
         ID = Right.ID;
-        Clr.DWord32 = Right.Clr.DWord32;
         return *this;
     }
 } __packed;
@@ -133,6 +131,12 @@ public:
         Cnt++;
     }
 
+    bool IDPresents(uint8_t ID) {
+        for(uint32_t i=0; i<Cnt; i++) {
+            if(IdBuf[i] == ID) return true;
+        }
+        return false;
+    }
 #endif
     uint32_t GetCount() { return Cnt; }
     void Clear() { Cnt = 0; }

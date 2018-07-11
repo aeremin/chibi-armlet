@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "Kurukshetra"
+#define APP_NAME            "WayHome"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE

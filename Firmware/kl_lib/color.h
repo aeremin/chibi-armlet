@@ -273,6 +273,7 @@ struct ColorHSV_t {
 #define clMagenta   ((Color_t){255, 0, 255})
 #define clCyan      ((Color_t){0, 255, 255})
 #define clWhite     ((Color_t){255, 255, 255})
+#define clOrange    ((Color_t){229, 83, 0})
 
 #define clGrey      ((Color_t){126, 126, 126})
 #define clLightGrey ((Color_t){180, 180, 180})
