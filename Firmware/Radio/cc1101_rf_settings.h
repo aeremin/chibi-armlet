@@ -5,8 +5,7 @@
  * Created on 7 Март 2010 г., 12:42
  */
 
-#ifndef _CC_RF_SETTINGS_H
-#define	_CC_RF_SETTINGS_H
+#pragma once
 
 // All this is for 27.0 MHz crystal, and for 868 MHz carrier
 
@@ -46,11 +45,10 @@
 #define CC_NUM_PREAMBLE     0x20    // 010 => 4 bytes of preamble
 #define CC_MDMCFG1_VALUE    (CC_FEC_EN | CC_NUM_PREAMBLE | CC_CHANSPC_E)
 
-#define CC_MCSM0_VALUE      0x18        // Calibrate at IDLE->RX,TX
-//#define CC_MCSM0_VALUE      0x08        // Never calibrate
+//#define CC_MCSM0_VALUE      0x18        // Calibrate at IDLE->RX,TX
+#define CC_MCSM0_VALUE      0x08        // Never calibrate
 
 // ==== MCSM1 ==== bits 7:6 not used, 5:4 ClearChannel mode, 3:2 RxOff mode, 1:0 TxOff mode
-// Clear channel signal
 #define CC_CCA_MODE         0b00000000  // Always clear
 //#define CC_CCA_MODE         0b00100000  // Unless currently receiving a packet
 #define CC_RXOFF_MODE       0b00000000  // RX->IDLE
@@ -60,16 +58,18 @@
 
 #define CC_MCSM2_VALUE      0b00000111  // WOR settings, nothing interesting here
 
-#define CC_FIFOTHR_VALUE    0b00000111  // RX attenuation = 0; RXFIFO and TXFIFO thresholds: TX 33, RX 32
+//#define CC_FIFOTHR_VALUE    0b00000111  // RX attenuation = 0; RXFIFO and TXFIFO thresholds: TX 33, RX 32
+#define CC_FIFOTHR_VALUE    0b00001100  // RX attenuation = 0; RXFIFO and TXFIFO thresholds: TX 13, RX 52
 #define CC_IOCFG2_VALUE     0x07        // GDO2 - Asserts when a packet has been received with CRC OK. De-asserts when the first byte is read from the RX FIFO.
 #define CC_IOCFG0_VALUE     0x06        // GDO0 - Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
                                         // In RX, the pin will also deassert when a packet is discarded due to address or maximum length filtering
 
 //#define CC_PKTCTRL1_VALUE   0b00001110  // PQT=0, CRC autoflush=1, Append=1, Address check = 10 (check, 0 is broadcast)
 #define CC_PKTCTRL1_VALUE   0b00001100  // PQT=0, CRC autoflush=1, Append=1, Address check = 00 (no check)
-#define CC_PKTCTRL0_VALUE   0b01000100  // WhiteData=1, PKTFormat=normal, CRC enabled, Fixed Length
-//#define CC_PKTCTRL0_VALUE   0b00000100  // WhiteData=0, PKTFormat=normal, CRC enabled, Fixed Length
-//#define CC_PKTCTRL0_VALUE   0b00000000  // WhiteData=0, PKTFormat=normal, CRC disabled, Fixed Length
+#define CC_PKTCTRL0_VALUE   0b01000100  // WhiteData=1, PKTFrmt=norm, CRC en, Fixed Length
+//#define CC_PKTCTRL0_VALUE   0b00000100  // WhiteData=0, PKTFrmt=norm, CRC en, Fixed Length
+//#define CC_PKTCTRL0_VALUE   0b01000101  // WhiteData=1, PKTFrmt=norm, CRC en, Variable Length
+//#define CC_PKTCTRL0_VALUE   0b00000000  // WhiteData=0, PKTFrmt=norm, CRC dis, Fixed Length
 #define CC_ADDR_VALUE       0x01        // Device address.
 
 // ========================= Bitrate-specific ==================================
@@ -80,7 +80,6 @@
 #define CC_MDMCFG4_VALUE    0xC8        // Modem configuration: channel bandwidth
 #define CC_MDMCFG3_VALUE    0x84        // Modem configuration.
 #define CC_MDMCFG2_VALUE    0x13        // Filter, modulation format, Manchester coding, SYNC_MODE=011 => 30/32 sync word bits
-#define CC_MDMCFG0_VALUE    0xE5        // Modem configuration.
 
 #define CC_DEVIATN_VALUE    0x34        // Modem deviation setting - RF studio
 #define CC_FREND1_VALUE     0x56        // Front end RX configuration - RF studio
@@ -110,7 +109,6 @@
 #define CC_MDMCFG4_VALUE    0xCA        // }
 #define CC_MDMCFG3_VALUE    0x75        // } Modem configuration: RF Studio, nothing to do here
 #define CC_MDMCFG2_VALUE    0x13        // Filter, modulation format, Manchester coding, SYNC_MODE=011 => 30/32 sync word bits
-#define CC_MDMCFG0_VALUE    0xF8        // Modem configuration: RF Studio, nothing to do here
 
 #define CC_DEVIATN_VALUE    0x34        // Modem deviation setting - RF studio, nothing to do here
 #define CC_FREND1_VALUE     0x56        // Front end RX configuration - RF studio, no docs, nothing to do
@@ -140,7 +138,6 @@
 #define CC_MDMCFG3_VALUE    0xE5        // } Modem configuration: RF Studio, nothing to do here
 //#define CC_MDMCFG2_VALUE    0x11        // Filter, GFSK, no Manchester coding, SYNC_MODE=010 => 16/16 sync word bits
 #define CC_MDMCFG2_VALUE    0x13        // Filter, GFSK, no Manchester coding, SYNC_MODE=011 => 30/32 sync word bits
-#define CC_MDMCFG0_VALUE    0xE5        // Channel spacing mantissa. See exponent at MDMCFG1. RF studio.
 
 #define CC_DEVIATN_VALUE    0x46        // Modem deviation setting: 46 kHz
 #define CC_FREND1_VALUE     0xB6        // Front end RX configuration - RF studio, no docs, nothing to do
@@ -169,6 +166,7 @@
 #define CC_MDMCFG4_VALUE    0x2D        // }
 #define CC_MDMCFG3_VALUE    0x2F        // } Modem configuration: RF Studio, nothing to do here
 #define CC_MDMCFG2_VALUE    0x13        // Filter, modulation format, no Manchester coding, SYNC_MODE=011 => 30/32 sync word bits
+//#define CC_MDMCFG2_VALUE    0x11        // Filter, modulation format, no Manchester coding, SYNC_MODE=001 => 15/16 sync word bits
 
 #define CC_DEVIATN_VALUE    0x62        // Modem deviation setting - RF studio, nothing to do here
 #define CC_FREND1_VALUE     0xB6        // Front end RX configuration - RF studio, no docs, nothing to do
@@ -196,7 +194,6 @@
 #define CC_MDMCFG4_VALUE    0x0E        // }
 #define CC_MDMCFG3_VALUE    0x2F        // } Modem configuration: RF Studio, nothing to do here
 #define CC_MDMCFG2_VALUE    0x73        // Filter on, modulation format MSK, no Manchester, SYNC_MODE=011 => 30/32 sync word bits
-#define CC_MDMCFG0_VALUE    0xFF        // Channel spacing mantissa. See exponent at MDMCFG1. RF studio.
 
 #define CC_DEVIATN_VALUE    0x00        // Modem deviation setting - RF studio, nothing to do here
 #define CC_FREND1_VALUE     0xB6        // Front end RX configuration - RF studio, no docs, nothing to do
@@ -223,7 +220,3 @@
 #define CC_SYNC0_VALUE      0x91
 
 #define CC_CHANNR_VALUE     0x00        // Channel number.
-
-
-#endif	/* _CC_RF_SETTINGS_H */
-
