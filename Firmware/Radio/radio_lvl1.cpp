@@ -32,6 +32,8 @@ cc1101_t CC(CC_Setup0);
 #endif
 
 rLevel1_t Radio;
+extern Timer_t SyncTmr;
+extern Mode_t Mode;
 
 #if 1 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
@@ -46,22 +48,23 @@ void rLevel1_t::TryToSleep(uint32_t SleepDuration) {
     chThdSleepMilliseconds(SleepDuration);
 }
 
-
 __noreturn
 void rLevel1_t::ITask() {
     while(true) {
-        // Iterate channels
-        for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
-            CC.SetChannel(ID2RCHNL(i));
-//            Printf("%u\r", i);
-            CC.Recalibrate();
-            uint8_t RxRslt = CC.Receive(36, &PktRx, RPKT_LEN, &Rssi);
-            if(RxRslt == retvOk) {
-//                Printf("ID=%u; Rssi=%d\r", i, Rssi);
-                  RxTable.AddId(PktRx.ID);
-            }
-        } // for i
-        TryToSleep(810);
+        CC.Recalibrate();
+        uint8_t RxRslt = CC.Receive(180, &PktRx, RPKT_LEN, &Rssi);
+        if(RxRslt == retvOk) {
+//            Printf("Rssi=%d\r", Rssi);
+//            PktRx.Print();
+            if(Mode == modeSync) SyncTmr.SetCounter(PktRx.Time); // Sync timer
+            EvtMsg_t Msg;
+            Msg.ID = evtIdNewRadioCmd;
+            Msg.w16[0] = PktRx.Mode;
+            Msg.w16[1] = PktRx.ColorH;
+            Msg.w16[2] = PktRx.Period;
+            EvtQMain.SendNowOrExit(Msg);
+        }
+        TryToSleep(360);
     } // while
 }
 #endif // task

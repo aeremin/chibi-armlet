@@ -16,3 +16,5 @@
 
 // EEAddresses
 #define EE_ADDR_KIND   0
+
+enum Mode_t {modeOff=0, modeSync=1, modeAsync=2, modeRandom=3};

@@ -58,12 +58,23 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 #define CC_TX_PWR   CC_Pwr0dBm
 
 #if 1 // =========================== Pkt_t =====================================
-struct rPkt_t  {
-    uint32_t ID;
+union rPkt_t  {
+    struct {
+        uint32_t DWord;
+        uint16_t Word16;
+    };
+    struct {
+        uint8_t Mode;
+        uint16_t ColorH;
+        uint8_t Period;
+        uint16_t Time;
+    } __packed;
     rPkt_t& operator = (const rPkt_t &Right) {
-        ID = Right.ID;
+        DWord = Right.DWord;
+        Word16 = Right.Word16;
         return *this;
     }
+    void Print() { Printf("%d %d %d %d\r", Mode,ColorH,Period,Time); }
 } __packed;
 
 #define RPKT_LEN    sizeof(rPkt_t)
@@ -170,7 +181,7 @@ class rLevel1_t {
 public:
     int8_t Rssi;
     rPkt_t PktTx, PktRx;
-    RxTable_t RxTable;
+//    RxTable_t RxTable;
 //    EvtMsgQ_t<RMsg_t, R_MSGQ_LEN> RMsgQ;
     uint8_t Init();
     // Inner use

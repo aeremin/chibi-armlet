@@ -16,37 +16,34 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
-
-void SetupActiveColor(bool AuleIsHere, bool OromeIsHere);
-void ShowKind();
-
-static enum Kind_t {
-    kndOromeY=0, kndOromeG=1, kndOromeW=2, kndOromeB=3,
-    kndOromeBAuleR=4, kndOromeBAuleY=5, kndOromeBAuleO=6
-} Kind;
-
-static LedRGBChunk_t lsqStart[] = {
-        {csSetup, 0, clBlue},   // Color is dummy
-        {csWait, 720},
-        {csSetup, 0, clYellow}, // Color is dummy
-        {csWait, 720},
-        {csSetup, 0, clBlack},
-        {csEnd}
-};
-static LedRGBChunk_t lsqAppear[] = {
-        {csSetup, 360, clBlack}, // Color is dummy
-        {csEnd}
-};
-static const LedRGBChunk_t lsqDisappear[] = {
-        {csSetup, 360, clBlack},
+LedHSV_t LedHsv { LED_R_PIN, LED_G_PIN, LED_B_PIN };
+static LedHSVChunk_t lsqFlicker[] = {
+        {csSetup, 99, hsvRed},
+        {csSetup, 99, hsvBlack},
         {csEnd}
 };
 
-TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
+Timer_t SyncTmr(TIM9);
+uint16_t GetTimerArr(uint32_t Period);
 
-static uint32_t AppearTimeout = 0;
-static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
+#define BLINK_PERIOD_MAX_S  100
+
+Mode_t Mode = modeOff;
+static uint16_t ClrH = 0;
+static uint16_t Period = BLINK_PERIOD_MAX_S+1;
+bool IsFlickering = false;
+
+void ProcessCmd(Mode_t NewMode, uint16_t NewClrH, uint16_t NewPeriod);
+uint16_t GetRandomClrH() {
+    int16_t H;
+    int16_t OldH = lsqFlicker[0].Color.H;
+    do {
+        H = Random::Generate(0, 360);
+    } while(ABS(H - OldH) < 36);
+    return H;
+}
+
+void ProcessTmrUpdate();
 #endif
 
 int main(void) {
@@ -64,16 +61,19 @@ int main(void) {
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
     Clk.PrintFreqs();
 
-//    uint32_t tmp = EE::Read32(EE_ADDR_KIND);
-//    if(tmp > 6) tmp = 0;
-    Kind = kndOromeB;//(Kind_t)tmp;
+    Random::Seed(GetUniqID3());
 
-    Led.Init();
+    LedHsv.Init();
 
-    TmrEverySecond.StartOrRestart();
+    if(Radio.Init() == retvOk) LedHsv.StartOrRestart(lsqHsvStart);
+    else LedHsv.StartOrRestart(lsqHsvFailure);
 
-    if(Radio.Init() == retvOk) ShowKind();
-    else Led.StartOrRestart(lsqFailure);
+    // Setup sync timer
+    SyncTmr.Init();
+    SyncTmr.SetTopValue(63000);
+    SyncTmr.SetupPrescaler(1000);
+    SyncTmr.EnableIrqOnUpdate();
+    SyncTmr.EnableIrq(TIM9_IRQn, IRQ_PRIO_LOW);
 
     // Main cycle
     ITask();
@@ -84,92 +84,134 @@ void ITask() {
     while(true) {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
-            case evtIdEverySecond:
-//                Printf("Second\r");
-                if(AppearTimeout > 0) {
-                    AppearTimeout--;
-                    if(AppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
-                }
-
-                if(TableCheckTimeout > 0) {
-                    TableCheckTimeout--;
-                    if(TableCheckTimeout == 0) {
-                        TableCheckTimeout = CHECK_PERIOD_S;
-                        // Check table
-                        if(Radio.RxTable.GetCount() > 0) {
-                            Printf("Cnt=%u\r", Radio.RxTable.GetCount());
-                            // Presence of ID=0 means Aule is here. Absence means Orome only.
-                            bool AuleIsHere = Radio.RxTable.IDPresents(0);
-                            bool OromeIsHere = (!AuleIsHere) or (Radio.RxTable.GetCount() > 1);
-                            SetupActiveColor(AuleIsHere, OromeIsHere);
-                            Led.StartOrRestart(lsqAppear);
-                            AppearTimeout = APPEAR_DURATION;
-                        }
-                        Radio.RxTable.Clear();
-                    }
-                }
-                break;
-
             case evtIdShellCmd:
                 OnCmd((Shell_t*)Msg.Ptr);
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
+
+            case evtIdNewRadioCmd:
+//                Printf("radio\r");
+                ProcessCmd((Mode_t)Msg.w16[0], Msg.w16[1], Msg.w16[2]);
+                break;
+
+            case evtIdSyncTmrUpdate: ProcessTmrUpdate(); break;
 
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
 }
 
-void SetupActiveColor(bool AuleIsHere, bool OromeIsHere) {
-//    Printf("SAC Aule=%u, Orome=%u\r", AuleIsHere, OromeIsHere);
-    lsqAppear[0].Color = clBlack;
-    switch(Kind) {
-        case kndOromeY:
-            if(OromeIsHere) lsqAppear[0].Color = clYellow;
-            break;
+void ProcessCmd(Mode_t NewMode, uint16_t NewClrH, uint16_t NewPeriod) {
+    IsFlickering = (NewPeriod <= BLINK_PERIOD_MAX_S);
+    // Process mode
+    if(Mode != NewMode) {
+        Mode = NewMode;
+        LedHsv.Stop();
+        SyncTmr.SetCounter(0);
+        if(Mode == modeOff) SyncTmr.Disable();
+        else {
+            // Timer
+            if(IsFlickering) {
+                SyncTmr.Enable();
+                SyncTmr.SetTopValue(GetTimerArr(Period));
+            }
+            else SyncTmr.Disable();
+            // Led
+            ClrH = NewClrH;
+            if(Mode == modeRandom and IsFlickering) ClrH = GetRandomClrH();
+            if(IsFlickering) {
+                LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 0));
+                lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
+                lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);    // Make it black
+                LedHsv.StartOrRestart(lsqFlicker);
+            }
+            else { // Stay off if random and not flickering
+                if(Mode != modeRandom) LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 100));
+            }
+        } // if modeOff
+    } // if mode changed
+    // Mode unchanged
+    else {
+        if(Mode == modeOff) return; // Nothing to do here
+        // Period
+        if(NewPeriod != Period) {
+            Printf("Period changed\r");
+            Period = NewPeriod;
+            LedHsv.Stop();
+            if(IsFlickering) {
+                // Timer
+                SyncTmr.SetCounter(0);
+                SyncTmr.SetTopValue(GetTimerArr(Period));
+                SyncTmr.Enable();
+                // lsq smooth
+                lsqFlicker[0].Value = Period * 18;
+                lsqFlicker[1].Value = lsqFlicker[0].Value;
+                LedHsv.StartOrRestart(lsqFlicker);
+            }
+            else SyncTmr.Disable();
+        }
 
-        case kndOromeG:
-            if(OromeIsHere) lsqAppear[0].Color = clGreen;
-            break;
-
-        case kndOromeW:
-            if(OromeIsHere) lsqAppear[0].Color = clWhite;
-            break;
-
-        case kndOromeB:
-            if(OromeIsHere) lsqAppear[0].Color = clBlue;
-            break;
-
-        case kndOromeBAuleR:
-            if(AuleIsHere) lsqAppear[0].Color = clRed;
-            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
-            break;
-
-        case kndOromeBAuleY:
-            if(AuleIsHere) lsqAppear[0].Color = clYellow;
-            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
-            break;
-
-        case kndOromeBAuleO:
-            if(AuleIsHere) lsqAppear[0].Color = clOrange;
-            else if(OromeIsHere) lsqAppear[0].Color = clBlue;
+        // Color (if not Random)
+        if(NewMode == modeAsync or NewMode == modeSync) {
+            ClrH = NewClrH;
+            if(IsFlickering) {
+                lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
+                lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);    // Make it black
+                LedHsv.SetCurrentH(ClrH);
+            }
+            else LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 100));
+        }
     }
 }
 
-void ShowKind() {
-    if(Kind <= kndOromeB) lsqStart[0].Color = clBlue;
-    else lsqStart[0].Color = clRed;
-    switch(Kind) {
-        case kndOromeY: lsqStart[2].Color = clYellow; break;
-        case kndOromeG: lsqStart[2].Color = clGreen;  break;
-        case kndOromeW: lsqStart[2].Color = clWhite;  break;
-        case kndOromeB: lsqStart[2].Color = clBlue;   break;
-        case kndOromeBAuleR: lsqStart[2].Color = clRed; break;
-        case kndOromeBAuleY: lsqStart[2].Color = clYellow; break;
-        case kndOromeBAuleO: lsqStart[2].Color = clOrange; break;
+void ProcessTmrUpdate() {
+    if(!IsFlickering) {
+        SyncTmr.Disable();
+        return;
     }
-    Led.StartOrRestart(lsqStart);
-    Printf("Kind: %u\r", Kind);
+    switch(Mode) {
+        case modeOff: SyncTmr.Disable(); break;
+
+        case modeSync:
+            LedHsv.StartOrRestart(lsqFlicker);
+            break;
+
+        case modeAsync: {
+            uint16_t NewTopValue = GetTimerArr(Period) + Random::Generate(0, 540);
+            SyncTmr.SetCounter(0);
+            SyncTmr.SetTopValue(NewTopValue);
+            LedHsv.StartOrRestart(lsqFlicker);
+            Printf("%u %u\r", GetTimerArr(Period), NewTopValue);
+        }
+        break;
+
+        case modeRandom: {
+            uint16_t NewTopValue = GetTimerArr(Period) + Random::Generate(0, 540);
+            SyncTmr.SetCounter(0);
+            SyncTmr.SetTopValue(NewTopValue);
+            ClrH = GetRandomClrH();
+            lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
+            lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);
+            LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 0));
+            LedHsv.StartOrRestart(lsqFlicker);
+        }
+        break;
+    }
+}
+
+uint16_t GetTimerArr(uint32_t Period) {
+    if     (Period >= 80) return Period * 114 + 11;
+    else if(Period >= 60) return Period * 115 + 11;
+    else if(Period >= 40) return Period * 116 + 11;
+    else if(Period >= 30) return Period * 117 + 11;
+    else if(Period >= 20) return Period * 119 + 11;
+    else if(Period >= 15) return Period * 121 + 11;
+    else if(Period >= 10) return Period * 125 + 11;
+    else if(Period >= 7) return Period * 130 + 11;
+    else if(Period >= 4) return Period * 155 + 11;
+    else if(Period == 3) return 534;
+    else if(Period == 2) return 469;
+    else return 412;
 }
 
 void OnCmd(Shell_t *PShell) {
@@ -182,19 +224,16 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("Kind")) {
-        uint8_t IKind = 0;
-        if(PCmd->GetNext<uint8_t>(&IKind) == retvOk) {
-            if(IKind <= 6) {
-                Kind = (Kind_t)IKind;
-                EE::Write32(EE_ADDR_KIND, IKind);
-                PShell->Ack(retvOk);
-                ShowKind();
-                return;
-            }
-        }
-        PShell->Ack(retvCmdError);
-    }
-
     else PShell->Ack(retvCmdUnknown);
+}
+
+// IRQ
+extern "C"
+void VectorA4() {
+    CH_IRQ_PROLOGUE();
+    chSysLockFromISR();
+    SyncTmr.ClearIrqPendingBit();
+    EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdSyncTmrUpdate));
+    chSysUnlockFromISR();
+    CH_IRQ_EPILOGUE();
 }

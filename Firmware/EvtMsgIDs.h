@@ -15,6 +15,8 @@ enum EvtMsgId_t {
     evtIdEverySecond,
     evtIdAdcRslt,
 
+    evtIdSyncTmrUpdate,
+
     // Not eternal
     evtIdNewRadioCmd,
 };

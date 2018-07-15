@@ -195,13 +195,13 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #define clMany          clCyan
 #define SWITCH_TIME     720
 
-//const LedRGBChunk_t lsqStart[] = {
-//        {csSetup, 99, clRed},
-//        {csSetup, 99, clGreen},
-//        {csSetup, 99, clBlue},
-//        {csSetup, 99, clBlack},
-//        {csEnd}
-//};
+const LedRGBChunk_t lsqStart[] = {
+        {csSetup, 99, clRed},
+        {csSetup, 99, clGreen},
+        {csSetup, 99, clBlue},
+        {csSetup, 99, clBlack},
+        {csEnd}
+};
 
 const LedRGBChunk_t lsqChoosenOne[] = {
         {csSetup, 180, clYellow},
@@ -223,9 +223,32 @@ const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clBlack},
         {csEnd},
 };
-
 #endif
 
+#if 1 // ============================ LED HSV ==================================
+const LedHSVChunk_t lsqHsvStart[] = {
+        {csSetup, 99, hsvRed},
+        {csSetup, 99, hsvGreen},
+        {csSetup, 99, hsvBlue},
+        {csSetup, 99, hsvBlack},
+        {csEnd}
+};
+
+const LedHSVChunk_t lsqHsvFailure[] = {
+        {csSetup, 0, hsvRed},
+        {csWait, 99},
+        {csSetup, 0, hsvBlack},
+        {csWait, 99},
+        {csSetup, 0, hsvRed},
+        {csWait, 99},
+        {csSetup, 0, hsvBlack},
+        {csWait, 99},
+        {csSetup, 0, hsvRed},
+        {csWait, 99},
+        {csSetup, 0, hsvBlack},
+        {csEnd},
+};
+#endif
 
 #if 0 // =========================== LED Smooth ================================
 #define LED_TOP_BRIGHTNESS  255
