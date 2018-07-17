@@ -468,6 +468,7 @@ public:
     void EnableArrBuffering()  const { ITmr->CR1 |=  TIM_CR1_ARPE; }
     void DisableArrBuffering() const { ITmr->CR1 &= ~TIM_CR1_ARPE; }
     void SetupPrescaler(uint32_t PrescaledFreqHz) const;
+    void SetPrescaler(uint32_t PrescalerValue) const { ITmr->PSC = PrescalerValue; }
     void SetCounter(uint32_t Value) const { ITmr->CNT = Value; }
     uint32_t GetCounter() const { return ITmr->CNT; }
     // Master/Slave

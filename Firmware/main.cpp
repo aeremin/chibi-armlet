@@ -69,12 +69,13 @@ int main(void) {
     else LedHsv.StartOrRestart(lsqHsvFailure);
 
     // Setup sync timer
+    PinSetupAlterFunc(GPIOA, 2, omPushPull, pudPullDown, AF3);
     SyncTmr.Init();
-    SyncTmr.SetTopValue(63000);
-    SyncTmr.SetupPrescaler(1000);
+    SyncTmr.SetTopValue(999);
+    SyncTmr.SetupPrescaler(999);
     SyncTmr.EnableIrqOnUpdate();
     SyncTmr.EnableIrq(TIM9_IRQn, IRQ_PRIO_LOW);
-
+//    SyncTmr.EnableArrBuffering();
     // Main cycle
     ITask();
 }
@@ -94,7 +95,10 @@ void ITask() {
                 ProcessCmd((Mode_t)Msg.w16[0], Msg.w16[1], Msg.w16[2]);
                 break;
 
-            case evtIdSyncTmrUpdate: ProcessTmrUpdate(); break;
+            case evtIdSyncTmrUpdate:
+//                Printf("Tmr\r");
+                ProcessTmrUpdate();
+                break;
 
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
@@ -107,15 +111,27 @@ void ProcessCmd(Mode_t NewMode, uint16_t NewClrH, uint16_t NewPeriod) {
     if(Mode != NewMode) {
         Mode = NewMode;
         LedHsv.Stop();
+        SyncTmr.Disable();
         SyncTmr.SetCounter(0);
-        if(Mode == modeOff) SyncTmr.Disable();
-        else {
+        if(Mode != modeOff) {
             // Timer
             if(IsFlickering) {
-                SyncTmr.Enable();
+                // Setup timer input freq
+                Printf("mode %u\r", Mode);
+                if(Mode == modeSync) {
+                    Printf("modeSync\r");
+                    SyncTmr.SetPrescaler(209);  // 27000000 / 128 / 1000 = 210.93
+                    SyncTmr.SelectSlaveMode(smExternal);
+                    SyncTmr.SetTriggerInput(tiTI1FP1);
+                }
+                else {
+                    SyncTmr.SetupPrescaler(999);
+                    SyncTmr.SelectSlaveMode(smDisable);
+                }
                 SyncTmr.SetTopValue(GetTimerArr(Period));
+                SyncTmr.GenerateUpdateEvt();
+                SyncTmr.Enable();
             }
-            else SyncTmr.Disable();
             // Led
             ClrH = NewClrH;
             if(Mode == modeRandom and IsFlickering) ClrH = GetRandomClrH();
@@ -181,7 +197,6 @@ void ProcessTmrUpdate() {
             SyncTmr.SetCounter(0);
             SyncTmr.SetTopValue(NewTopValue);
             LedHsv.StartOrRestart(lsqFlicker);
-            Printf("%u %u\r", GetTimerArr(Period), NewTopValue);
         }
         break;
 
@@ -224,6 +239,8 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
+    else if(PCmd->NameIs("tmr")) Printf("%u %u\r", TIM9->CNT, TIM9->ARR);
+
     else PShell->Ack(retvCmdUnknown);
 }
 
@@ -234,6 +251,7 @@ void VectorA4() {
     chSysLockFromISR();
     SyncTmr.ClearIrqPendingBit();
     EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdSyncTmrUpdate));
+//    PrintfI("%u\r", chVTGetSystemTimeX());
     chSysUnlockFromISR();
     CH_IRQ_EPILOGUE();
 }

@@ -60,7 +60,7 @@
 
 #define CC_FIFOTHR_VALUE    0b00000111  // RX attenuation = 0; RXFIFO and TXFIFO thresholds: TX 33, RX 32
 //#define CC_FIFOTHR_VALUE    0b00001100  // RX attenuation = 0; RXFIFO and TXFIFO thresholds: TX 13, RX 52
-#define CC_IOCFG2_VALUE     0x07        // GDO2 - Asserts when a packet has been received with CRC OK. De-asserts when the first byte is read from the RX FIFO.
+#define CC_IOCFG2_VALUE     0x3E
 #define CC_IOCFG0_VALUE     0x06        // GDO0 - Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
                                         // In RX, the pin will also deassert when a packet is discarded due to address or maximum length filtering
 

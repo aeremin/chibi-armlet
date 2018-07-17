@@ -44,7 +44,9 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::TryToSleep(uint32_t SleepDuration) {
-    if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
+    if(Mode != modeSync) {
+        if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
+    }
     chThdSleepMilliseconds(SleepDuration);
 }
 
@@ -56,7 +58,12 @@ void rLevel1_t::ITask() {
         if(RxRslt == retvOk) {
 //            Printf("Rssi=%d\r", Rssi);
 //            PktRx.Print();
-            if(Mode == modeSync) SyncTmr.SetCounter(PktRx.Time); // Sync timer
+            if(Mode == modeSync) {
+//                if((SyncTmr.GetTopValue() - SyncTmr.GetCounter()) > 180) {
+                    SyncTmr.SetCounter(PktRx.Time); // Sync timer
+//                }
+            }
+
             EvtMsg_t Msg;
             Msg.ID = evtIdNewRadioCmd;
             Msg.w16[0] = PktRx.Mode;
@@ -64,7 +71,7 @@ void rLevel1_t::ITask() {
             Msg.w16[2] = PktRx.Period;
             EvtQMain.SendNowOrExit(Msg);
         }
-        TryToSleep(360);
+        TryToSleep(270);
     } // while
 }
 #endif // task
