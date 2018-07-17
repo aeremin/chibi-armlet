@@ -15,7 +15,7 @@
 
 cc1101_t CC(CC_Setup0);
 
-#define DBG_PINS
+//#define DBG_PINS
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOC
@@ -32,8 +32,6 @@ cc1101_t CC(CC_Setup0);
 #endif
 
 rLevel1_t Radio;
-extern Timer_t SyncTmr;
-extern Mode_t Mode;
 
 #if 1 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
@@ -44,34 +42,25 @@ static void rLvl1Thread(void *arg) {
 }
 
 void rLevel1_t::TryToSleep(uint32_t SleepDuration) {
-    if(Mode != modeSync) {
-        if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
-    }
+    if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
     chThdSleepMilliseconds(SleepDuration);
 }
 
 __noreturn
 void rLevel1_t::ITask() {
     while(true) {
-        CC.Recalibrate();
-        uint8_t RxRslt = CC.Receive(180, &PktRx, RPKT_LEN, &Rssi);
-        if(RxRslt == retvOk) {
-//            Printf("Rssi=%d\r", Rssi);
-//            PktRx.Print();
-            if(Mode == modeSync) {
-//                if((SyncTmr.GetTopValue() - SyncTmr.GetCounter()) > 180) {
-                    SyncTmr.SetCounter(PktRx.Time); // Sync timer
-//                }
+        // Iterate channels
+        for(int32_t i = ID_MIN; i <= ID_MAX; i++) {
+            CC.SetChannel(ID2RCHNL(i));
+//            Printf("%u\r", i);
+            CC.Recalibrate();
+            uint8_t RxRslt = CC.Receive(27, &PktRx, RPKT_LEN, &Rssi);
+            if(RxRslt == retvOk) {
+//                Printf("Ch=%u; Rssi=%d\r", ID2RCHNL(i), Rssi);
+                if(PktRx.TheWord == 0xCA115EA1) RxTable.AddId(i);
             }
-
-            EvtMsg_t Msg;
-            Msg.ID = evtIdNewRadioCmd;
-            Msg.w16[0] = PktRx.Mode;
-            Msg.w16[1] = PktRx.ColorH;
-            Msg.w16[2] = PktRx.Period;
-            EvtQMain.SendNowOrExit(Msg);
-        }
-        TryToSleep(270);
+        } // for i
+        TryToSleep(720);
     } // while
 }
 #endif // task

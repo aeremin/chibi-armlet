@@ -17,6 +17,10 @@ static void ITask();
 static void OnCmd(Shell_t *PShell);
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
+
+TmrKL_t TmrEverySecond {MS2ST(999), evtIdEverySecond, tktPeriodic};
+static uint32_t AppearTimeout = 0;
+static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
 #endif
 
 int main(void) {
@@ -36,6 +40,8 @@ int main(void) {
 
     Led.Init();
 
+    TmrEverySecond.StartOrRestart();
+
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
 
@@ -53,6 +59,28 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
+            case evtIdEverySecond:
+//                Printf("Second\r");
+                if(AppearTimeout > 0) {
+                    AppearTimeout--;
+                    if(AppearTimeout == 0) Led.StartOrRestart(lsqIdle);
+                }
+
+                if(TableCheckTimeout > 0) {
+                    TableCheckTimeout--;
+                    if(TableCheckTimeout == 0) {
+                        TableCheckTimeout = CHECK_PERIOD_S;
+                        // Check table
+//                        Printf("TblCnt: %u\r", Radio.RxTable.GetCount());
+                        if(Radio.RxTable.GetCount() > 0) {
+                            AppearTimeout = APPEAR_DURATION;
+                            Led.StartOrContinue(lsqAppear);
+                            Radio.RxTable.Clear();
+                        }
+                    }
+                }
+                break;
+
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
@@ -68,7 +96,6 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("tmr")) Printf("%u %u\r", TIM9->CNT, TIM9->ARR);
 
     else PShell->Ack(retvCmdUnknown);
 }
