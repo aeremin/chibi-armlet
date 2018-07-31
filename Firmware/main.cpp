@@ -16,34 +16,18 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-LedHSV_t LedHsv { LED_R_PIN, LED_G_PIN, LED_B_PIN };
-static LedHSVChunk_t lsqFlicker[] = {
-        {csSetup, 99, hsvRed},
-        {csSetup, 99, hsvBlack},
-        {csEnd}
-};
+// EEAddresses
+#define EE_ADDR_DEVICE_ID       0
 
-Timer_t SyncTmr(TIM9);
-uint16_t GetTimerArr(uint32_t Period);
+uint8_t ID;
+static uint8_t ISetID(int32_t NewID);
+void ReadIDfromEE();
 
-#define BLINK_PERIOD_MAX_S  100
+void CheckRxTable();
 
-Mode_t Mode = modeOff;
-static uint16_t ClrH = 0;
-static uint16_t Period = BLINK_PERIOD_MAX_S+1;
-bool IsFlickering = false;
+LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
-void ProcessCmd(Mode_t NewMode, uint16_t NewClrH, uint16_t NewPeriod);
-uint16_t GetRandomClrH() {
-    int16_t H;
-    int16_t OldH = lsqFlicker[0].Color.H;
-    do {
-        H = Random::Generate(0, 360);
-    } while(ABS(H - OldH) < 36);
-    return H;
-}
-
-void ProcessTmrUpdate();
+uint8_t SignalTx = SIGN_DARK;
 #endif
 
 int main(void) {
@@ -58,24 +42,15 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init();
     Uart.StartRx();
-    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+    ReadIDfromEE();
+    Printf("\r%S %S ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
     Clk.PrintFreqs();
 
-    Random::Seed(GetUniqID3());
+    Led.Init();
 
-    LedHsv.Init();
+    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
+    else Led.StartOrRestart(lsqFailure);
 
-    if(Radio.Init() == retvOk) LedHsv.StartOrRestart(lsqHsvStart);
-    else LedHsv.StartOrRestart(lsqHsvFailure);
-
-    // Setup sync timer
-    PinSetupAlterFunc(GPIOA, 2, omPushPull, pudPullDown, AF3);
-    SyncTmr.Init();
-    SyncTmr.SetTopValue(999);
-    SyncTmr.SetupPrescaler(999);
-    SyncTmr.EnableIrqOnUpdate();
-    SyncTmr.EnableIrq(TIM9_IRQn, IRQ_PRIO_LOW);
-//    SyncTmr.EnableArrBuffering();
     // Main cycle
     ITask();
 }
@@ -90,143 +65,9 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
-            case evtIdNewRadioCmd:
-//                Printf("radio\r");
-                ProcessCmd((Mode_t)Msg.w16[0], Msg.w16[1], Msg.w16[2]);
-                break;
-
-            case evtIdSyncTmrUpdate:
-//                Printf("Tmr\r");
-                ProcessTmrUpdate();
-                break;
-
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
-}
-
-void ProcessCmd(Mode_t NewMode, uint16_t NewClrH, uint16_t NewPeriod) {
-    IsFlickering = (NewPeriod <= BLINK_PERIOD_MAX_S);
-    // Process mode
-    if(Mode != NewMode) {
-        Mode = NewMode;
-        LedHsv.Stop();
-        SyncTmr.Disable();
-        SyncTmr.SetCounter(0);
-        if(Mode != modeOff) {
-            // Timer
-            if(IsFlickering) {
-                // Setup timer input freq
-                Printf("mode %u\r", Mode);
-                if(Mode == modeSync) {
-                    Printf("modeSync\r");
-                    SyncTmr.SetPrescaler(209);  // 27000000 / 128 / 1000 = 210.93
-                    SyncTmr.SelectSlaveMode(smExternal);
-                    SyncTmr.SetTriggerInput(tiTI1FP1);
-                }
-                else {
-                    SyncTmr.SetupPrescaler(999);
-                    SyncTmr.SelectSlaveMode(smDisable);
-                }
-                SyncTmr.SetTopValue(GetTimerArr(Period));
-                SyncTmr.GenerateUpdateEvt();
-                SyncTmr.Enable();
-            }
-            // Led
-            ClrH = NewClrH;
-            if(Mode == modeRandom and IsFlickering) ClrH = GetRandomClrH();
-            if(IsFlickering) {
-                LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 0));
-                lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
-                lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);    // Make it black
-                LedHsv.StartOrRestart(lsqFlicker);
-            }
-            else { // Stay off if random and not flickering
-                if(Mode != modeRandom) LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 100));
-            }
-        } // if modeOff
-    } // if mode changed
-    // Mode unchanged
-    else {
-        if(Mode == modeOff) return; // Nothing to do here
-        // Period
-        if(NewPeriod != Period) {
-            Printf("Period changed\r");
-            Period = NewPeriod;
-            LedHsv.Stop();
-            if(IsFlickering) {
-                // Timer
-                SyncTmr.SetCounter(0);
-                SyncTmr.SetTopValue(GetTimerArr(Period));
-                SyncTmr.Enable();
-                // lsq smooth
-                lsqFlicker[0].Value = Period * 18;
-                lsqFlicker[1].Value = lsqFlicker[0].Value;
-                LedHsv.StartOrRestart(lsqFlicker);
-            }
-            else SyncTmr.Disable();
-        }
-
-        // Color (if not Random)
-        if(NewMode == modeAsync or NewMode == modeSync) {
-            ClrH = NewClrH;
-            if(IsFlickering) {
-                lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
-                lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);    // Make it black
-                LedHsv.SetCurrentH(ClrH);
-            }
-            else LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 100));
-        }
-    }
-}
-
-void ProcessTmrUpdate() {
-    if(!IsFlickering) {
-        SyncTmr.Disable();
-        return;
-    }
-    switch(Mode) {
-        case modeOff: SyncTmr.Disable(); break;
-
-        case modeSync:
-            LedHsv.StartOrRestart(lsqFlicker);
-            break;
-
-        case modeAsync: {
-            uint16_t NewTopValue = GetTimerArr(Period) + Random::Generate(0, 540);
-            SyncTmr.SetCounter(0);
-            SyncTmr.SetTopValue(NewTopValue);
-            LedHsv.StartOrRestart(lsqFlicker);
-        }
-        break;
-
-        case modeRandom: {
-            uint16_t NewTopValue = GetTimerArr(Period) + Random::Generate(0, 540);
-            SyncTmr.SetCounter(0);
-            SyncTmr.SetTopValue(NewTopValue);
-            ClrH = GetRandomClrH();
-            lsqFlicker[0].Color.FromHSV(ClrH, 100, 100);
-            lsqFlicker[1].Color.FromHSV(ClrH, 100, 0);
-            LedHsv.SetColorAndMakeCurrent(ColorHSV_t(ClrH, 100, 0));
-            LedHsv.StartOrRestart(lsqFlicker);
-        }
-        break;
-    }
-}
-
-uint16_t GetTimerArr(uint32_t Period) {
-    if     (Period >= 80) return Period * 114 + 11;
-    else if(Period >= 60) return Period * 115 + 11;
-    else if(Period >= 40) return Period * 116 + 11;
-    else if(Period >= 30) return Period * 117 + 11;
-    else if(Period >= 20) return Period * 119 + 11;
-    else if(Period >= 15) return Period * 121 + 11;
-    else if(Period >= 10) return Period * 125 + 11;
-    else if(Period >= 7) return Period * 130 + 11;
-    else if(Period >= 4) return Period * 155 + 11;
-    else if(Period == 3) return 534;
-    else if(Period == 2) return 469;
-    else return 412;
 }
 
 void OnCmd(Shell_t *PShell) {
@@ -239,19 +80,37 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("tmr")) Printf("%u %u\r", TIM9->CNT, TIM9->ARR);
+    else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
+
+    else if(PCmd->NameIs("SetID")) {
+        if(PCmd->GetNext<uint8_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
+        uint8_t r = ISetID(ID);
+        PShell->Ack(r);
+    }
 
     else PShell->Ack(retvCmdUnknown);
 }
 
-// IRQ
-extern "C"
-void VectorA4() {
-    CH_IRQ_PROLOGUE();
-    chSysLockFromISR();
-    SyncTmr.ClearIrqPendingBit();
-    EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdSyncTmrUpdate));
-//    PrintfI("%u\r", chVTGetSystemTimeX());
-    chSysUnlockFromISR();
-    CH_IRQ_EPILOGUE();
+#if 1 // =========================== ID management =============================
+void ReadIDfromEE() {
+    ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
+    if(ID < ID_MIN or ID > ID_MAX) {
+        Printf("\rUsing default ID\r");
+        ID = 1;
+    }
 }
+
+uint8_t ISetID(int32_t NewID) {
+    if(NewID < ID_MIN or NewID > ID_MAX) return retvFail;
+    uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
+    if(rslt == retvOk) {
+        ID = NewID;
+        Printf("New ID: %u\r", ID);
+        return retvOk;
+    }
+    else {
+        Printf("EE error: %u\r", rslt);
+        return retvFail;
+    }
+}
+#endif

@@ -8,13 +8,14 @@
 #pragma once
 
 
-#define ID_MIN          0
-#define ID_MAX          3
+#define ID_MIN                  1
+#define ID_MAX                  50
 
-#define CHECK_PERIOD_S  4
-#define APPEAR_DURATION 9
+// Types of signal
+#define SIGN_SILMARIL       0b0001UL
+#define SIGN_OATH           0b0010UL
+#define SIGN_LIGHT          0b0100UL
+#define SIGN_DARK           0b1000UL
 
-// EEAddresses
-#define EE_ADDR_KIND   0
+extern uint8_t ID;
 
-enum Mode_t {modeOff=0, modeSync=1, modeAsync=2, modeRandom=3};

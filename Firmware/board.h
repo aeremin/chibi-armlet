@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "SmallTales"
+#define APP_NAME            "HI2018"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE
