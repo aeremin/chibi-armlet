@@ -165,7 +165,7 @@ uint8_t rLevel1_t::Init() {
 
     RMsgQ.Init();
     if(CC.Init() == retvOk) {
-        CC.SetTxPower(CC_Pwr0dBm);
+        CC.SetTxPower(CC_PwrPlus5dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(RCHNL);
 
