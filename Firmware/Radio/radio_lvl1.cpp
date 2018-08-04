@@ -12,15 +12,15 @@
 
 cc1101_t CC(CC_Setup0);
 
-//#define DBG_PINS
+#define DBG_PINS
 
 #ifdef DBG_PINS
-#define DBG_GPIO1   GPIOA
-#define DBG_PIN1    0
+#define DBG_GPIO1   GPIOC
+#define DBG_PIN1    13
 #define DBG1_SET()  PinSetHi(DBG_GPIO1, DBG_PIN1)
 #define DBG1_CLR()  PinSetLo(DBG_GPIO1, DBG_PIN1)
-#define DBG_GPIO2   GPIOB
-#define DBG_PIN2    9
+#define DBG_GPIO2   GPIOC
+#define DBG_PIN2    15
 #define DBG2_SET()  PinSetHi(DBG_GPIO2, DBG_PIN2)
 #define DBG2_CLR()  PinSetLo(DBG_GPIO2, DBG_PIN2)
 #else
@@ -48,28 +48,26 @@ public:
         // Start Cycle timer
         chVTSetI(&TmrCycle, (TIMESLOT_CNT * TIMESLOT_DURATION_ST), TmrCycleCallback, nullptr);
         // Generate TX slot
-        uint32_t TxSlot = rand() % (TIMESLOT_CNT - 1); // Do not use last timeslot
-        if(TxSlot == 0) {    // Tx now
-            Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToTx)); // Enter TX
-        }
-        else {
+//        uint32_t TxSlot = rand() % (TIMESLOT_CNT - 1); // Do not use last timeslot
+//        if(TxSlot == 0) {    // Tx now
+//            Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToTx)); // Enter TX
+//        }
+//        else {
             // Enter RX or sleep depending on cycle number
-//            if(Cycle == 0) Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToRx)); // Enter RX
-//            else
-                Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToSleep));
+            if(Cycle == 0) Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToRx)); // Enter RX
+            else Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToSleep));
             // Prepare to TX
-            chVTSetI(&TmrTxStart, (TxSlot * TIMESLOT_DURATION_ST), TmrTxStartCallback, nullptr);
-        }
+//            chVTSetI(&TmrTxStart, (TxSlot * TIMESLOT_DURATION_ST), TmrTxStartCallback, nullptr);
+//        }
     }
 
     void OnTxStartI() {
-        Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToTx)); // Enter TX
+//        Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToTx)); // Enter TX
     }
 
     void OnTxRxEndI() {
-//        if(Cycle == 0) Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToRx)); // Enter RX
-//        else
-            Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToSleep));
+        if(Cycle == 0) Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToRx)); // Enter RX
+        else Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgTimeToSleep));
     }
 } RadioTime;
 
@@ -88,7 +86,6 @@ void RxCallback() {
     Radio.RMsgQ.SendNowOrExitI(RMsg_t(rmsgPktRx));
 }
 
-
 #if 1 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
 __noreturn
@@ -103,31 +100,32 @@ void rLevel1_t::ITask() {
         RMsg_t msg = RMsgQ.Fetch(TIME_INFINITE);
         switch(msg.Cmd) {
             case rmsgTimeToTx:
-                DBG2_CLR();
-                PktTx.ID = ID;
-                PktTx.Signal = SignalTx;
-//                PktTx.Print();
-                DBG1_SET();
-                CC.Recalibrate();
-//                CC.Transmit(&PktTx, RPKT_LEN);
-                for(uint32_t N=0; N<4; N++) {
-                    if(CC.TransmitWithCCA(&PktTx, RPKT_LEN, -81) == retvOk) {
-//                        if(N!=0) Printf("N=%u\r", N);
-                        break;
-                    }
-                    chThdSleep(TIMESLOT_DURATION_ST / 2);
-                }
-                DBG1_CLR();
-                // Tx done
-                chSysLock();
-                RadioTime.OnTxRxEndI();
-                chSysUnlock();
+//                DBG2_CLR();
+//                PktTx.ID = ID;
+//                PktTx.Signal = SignalTx;
+////                PktTx.Print();
+//                DBG1_SET();
+//                CC.Recalibrate();
+////                CC.Transmit(&PktTx, RPKT_LEN);
+//                for(uint32_t N=0; N<4; N++) {
+//                    if(CC.TransmitWithCCA(&PktTx, RPKT_LEN, -81) == retvOk) {
+////                        if(N!=0) Printf("N=%u\r", N);
+//                        break;
+//                    }
+//                    chThdSleep(TIMESLOT_DURATION_ST / 2);
+//                }
+//                DBG1_CLR();
+//                // Tx done
+//                chSysLock();
+//                RadioTime.OnTxRxEndI();
+//                chSysUnlock();
                 break;
 
             case rmsgTimeToRx:
 //                Printf("Ttrx\r");
                 DBG2_SET();
-//                CC.ReceiveAsync(RxCallback);
+                CC.Recalibrate();
+                CC.ReceiveAsync(RxCallback);
                 break;
 
             case rmsgTimeToSleep:
@@ -140,7 +138,10 @@ void rLevel1_t::ITask() {
                 if(CC.ReadFIFO(&PktRx, &Rssi, RPKT_LEN) == retvOk) {  // if pkt successfully received
 //                    Printf("%d; ", Rssi);
 //                    PktRx.Print();
-                    RxTable.AddOrReplaceExistingPkt(PktRx);
+                    if(Rssi > RSSI_LOWEST and PktRx.ID <= ID_MAX) {
+                        PktRx.Rssi = Rssi; // Put received RSSI to pkt
+                        RxTable.AddOrReplaceExistingPkt(PktRx);
+                    }
                 }
                 chSysLock();
                 RadioTime.OnTxRxEndI();

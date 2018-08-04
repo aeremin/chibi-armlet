@@ -20,14 +20,15 @@ static void OnCmd(Shell_t *PShell);
 #define EE_ADDR_DEVICE_ID       0
 
 uint8_t ID;
+uint8_t Type;
+
 static uint8_t ISetID(int32_t NewID);
 void ReadIDfromEE();
-
 void CheckRxTable();
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
-uint8_t SignalTx = SIGN_DARK;
+static TmrKL_t TmrRxTableCheck {MS2ST(4005), evtIdCheckRxTable, tktPeriodic};
 #endif
 
 int main(void) {
@@ -51,6 +52,8 @@ int main(void) {
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
 
+    TmrRxTableCheck.StartOrRestart();
+
     // Main cycle
     ITask();
 }
@@ -65,9 +68,36 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
+            case evtIdCheckRxTable: CheckRxTable(); break;
+
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
+}
+
+void CheckRxTable() {
+    uint8_t TableCnt = Radio.RxTable.GetCount();
+    if(TableCnt > 0) {
+        bool WhiteIsHere = false;
+        uint8_t RedCnt = 0, BlueCnt = 0;
+        // Analyze RxTable
+        for(uint32_t i=0; i<TableCnt; i++) {
+            if(Radio.RxTable.Buf[i].Type == TYPE_WHITE) {
+                WhiteIsHere = true;
+                break;
+            }
+            else if(Radio.RxTable.Buf[i].Type == TYPE_RED) RedCnt++;
+            else if(Radio.RxTable.Buf[i].Type == TYPE_BLUE) BlueCnt++;
+        } // for
+        // Indicate
+        if(WhiteIsHere) Led.StartOrContinue(lsqWhiteOn);
+        else {
+            if(RedCnt > BlueCnt) Led.StartOrContinue(lsqRedOn);
+            else Led.StartOrContinue(lsqBlueOn);
+        }
+    } // if(TableCnt > 0)
+    else Led.StartOrContinue(lsqOff);
+    Radio.RxTable.Clear();
 }
 
 void OnCmd(Shell_t *PShell) {

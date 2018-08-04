@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "HI2018"
+#define APP_NAME            "WhiteFlowers"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE

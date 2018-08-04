@@ -199,7 +199,7 @@ const LedRGBChunk_t lsqStart[] = {
         {csSetup, 99, clRed},
         {csSetup, 99, clGreen},
         {csSetup, 99, clBlue},
-        {csSetup, 99, {1, 0, 0}},
+        {csSetup, 99, clBlack},
         {csEnd}
 };
 
@@ -217,9 +217,29 @@ const LedRGBChunk_t lsqFailure[] = {
         {csSetup, 0, clBlack},
         {csEnd},
 };
+
+#define SMOOTH  180
+
+const LedRGBChunk_t lsqWhiteOn[] = {
+        {csSetup, SMOOTH, clWhite},
+        {csEnd}
+};
+const LedRGBChunk_t lsqBlueOn[] = {
+        {csSetup, SMOOTH, clBlue},
+        {csEnd}
+};
+const LedRGBChunk_t lsqRedOn[] = {
+        {csSetup, SMOOTH, clRed},
+        {csEnd}
+};
+
+const LedRGBChunk_t lsqOff[] = {
+        {csSetup, SMOOTH, clBlack},
+        {csEnd}
+};
 #endif
 
-#if 1 // ============================ LED HSV ==================================
+#if 0 // ============================ LED HSV ==================================
 const LedHSVChunk_t lsqHsvStart[] = {
         {csSetup, 99, hsvRed},
         {csSetup, 99, hsvGreen},
