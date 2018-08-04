@@ -39,8 +39,7 @@ union rPkt_t  {
 #define RCYCLE_CNT          4
 #define TIMESLOT_CNT        99
 
-#define RSSI_LOWEST         -90
-#define RSSI_NEAR           -63
+#define RSSI_LOWEST         -54
 #endif
 
 #if 1 // =========================== Timings ===================================
