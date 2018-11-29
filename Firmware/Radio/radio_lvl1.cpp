@@ -166,16 +166,18 @@ uint8_t rLevel1_t::Init() {
 
     RMsgQ.Init();
     if(CC.Init() == retvOk) {
-        CC.SetTxPower(CC_PwrPlus5dBm);
-        CC.SetPktSize(RPKT_LEN);
-        CC.SetChannel(RCHNL);
+        CC.EnterPwrDown();
 
-        // Thread
-        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
-        chSysLock();
-        RadioTime.OnNewCycleI();
-        chSchRescheduleS();
-        chSysUnlock();
+//        CC.SetTxPower(CC_PwrPlus5dBm);
+//        CC.SetPktSize(RPKT_LEN);
+//        CC.SetChannel(RCHNL);
+//
+//        // Thread
+//        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+//        chSysLock();
+//        RadioTime.OnNewCycleI();
+//        chSchRescheduleS();
+//        chSysUnlock();
         return retvOk;
     }
     else return retvFail;

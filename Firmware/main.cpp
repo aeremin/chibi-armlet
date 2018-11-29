@@ -43,7 +43,7 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init();
     Uart.StartRx();
-    ReadIDfromEE();
+//    ReadIDfromEE();
     Printf("\r%S %S ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
     Clk.PrintFreqs();
 
@@ -52,7 +52,7 @@ int main(void) {
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
 
-    TmrRxTableCheck.StartOrRestart();
+//    TmrRxTableCheck.StartOrRestart();
 
     // Main cycle
     ITask();

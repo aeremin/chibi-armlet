@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "WhiteFlowers"
+#define APP_NAME            "BlueOnly"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE
