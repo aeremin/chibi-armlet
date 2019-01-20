@@ -12,7 +12,7 @@
 
 cc1101_t CC(CC_Setup0);
 
-#define DBG_PINS
+//#define DBG_PINS
 
 #ifdef DBG_PINS
 #define DBG_GPIO1   GPIOC
@@ -87,12 +87,12 @@ void RxCallback() {
 }
 
 #if 1 // ================================ Task =================================
-static THD_WORKING_AREA(warLvl1Thread, 256);
-__noreturn
-static void rLvl1Thread(void *arg) {
-    chRegSetThreadName("rLvl1");
-    Radio.ITask();
-}
+//static THD_WORKING_AREA(warLvl1Thread, 256);
+//__noreturn
+//static void rLvl1Thread(void *arg) {
+//    chRegSetThreadName("rLvl1");
+//    Radio.ITask();
+//}
 
 __noreturn
 void rLevel1_t::ITask() {
@@ -138,10 +138,10 @@ void rLevel1_t::ITask() {
                 if(CC.ReadFIFO(&PktRx, &Rssi, RPKT_LEN) == retvOk) {  // if pkt successfully received
 //                    Printf("%d; ", Rssi);
 //                    PktRx.Print();
-                    if(Rssi > RSSI_LOWEST and PktRx.ID <= ID_MAX) {
-                        PktRx.Rssi = Rssi; // Put received RSSI to pkt
-                        RxTable.AddOrReplaceExistingPkt(PktRx);
-                    }
+//                    if(Rssi > RSSI_LOWEST and PktRx.ID <= ID_MAX) {
+//                        PktRx.Rssi = Rssi; // Put received RSSI to pkt
+//                        RxTable.AddOrReplaceExistingPkt(PktRx);
+//                    }
                 }
                 chSysLock();
                 RadioTime.OnTxRxEndI();
@@ -169,13 +169,13 @@ uint8_t rLevel1_t::Init() {
         CC.SetTxPower(CC_PwrPlus5dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(RCHNL);
-
+        CC.EnterPwrDown();
         // Thread
-        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
-        chSysLock();
-        RadioTime.OnNewCycleI();
-        chSchRescheduleS();
-        chSysUnlock();
+//        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), HIGHPRIO, (tfunc_t)rLvl1Thread, NULL);
+//        chSysLock();
+//        RadioTime.OnNewCycleI();
+//        chSchRescheduleS();
+//        chSysUnlock();
         return retvOk;
     }
     else return retvFail;

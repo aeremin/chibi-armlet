@@ -196,10 +196,9 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #define SWITCH_TIME     720
 
 const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 99, clRed},
-        {csSetup, 99, clGreen},
-        {csSetup, 99, clBlue},
-        {csSetup, 99, clBlack},
+        {csSetup, 0, clWhite},
+        {csWait, 99},
+        {csSetup, 0, clBlack},
         {csEnd}
 };
 
@@ -218,25 +217,18 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
-#define SMOOTH  180
-
-const LedRGBChunk_t lsqWhiteOn[] = {
-        {csSetup, SMOOTH, clWhite},
-        {csEnd}
-};
-const LedRGBChunk_t lsqBlueOn[] = {
-        {csSetup, SMOOTH, clBlue},
-        {csEnd}
-};
-const LedRGBChunk_t lsqRedOn[] = {
-        {csSetup, SMOOTH, clRed},
-        {csEnd}
+const LedRGBChunk_t lsqOnPillConnect[] = {
+        {csSetup, 0, clGreen},
+        {csWait, 450},
+        {csSetup, 0, clBlack},
+        {csEnd},
 };
 
-const LedRGBChunk_t lsqOff[] = {
-        {csSetup, SMOOTH, clBlack},
-        {csEnd}
+const LedRGBChunk_t lsqLightOn[] = {
+        {csSetup, 0, clWhite},
+        {csEnd},
 };
+
 #endif
 
 #if 0 // ============================ LED HSV ==================================

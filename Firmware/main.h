@@ -1,19 +1,19 @@
-/*
- * main.h
- *
- *  Created on: 19 θών. 2018 γ.
- *      Author: Kreyl
- */
-
 #pragma once
 
-#define ID_MIN              1
-#define ID_MAX              10
+enum PillType_t {
+    pilltNone = 0,
+    pilltParalyzer = 1,
+    pilltRegen = 2,
+    pilltAccelerator = 3,
+    pilltLight = 4,
+    pilltBlow = 5
+};
 
-#define TYPE_WHITE          0
-#define TYPE_BLUE           1
-#define TYPE_RED            2
-
-extern uint8_t ID;
-extern uint8_t Type;;
-
+enum DevType_t {
+    devtNone = 0,
+    devtParalyzer = 1,
+    devtRegen = 2,
+    devtAccelerator = 3,
+    devtLight = 4,
+    devtMaster = 9
+};

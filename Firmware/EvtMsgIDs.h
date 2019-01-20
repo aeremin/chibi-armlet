@@ -20,4 +20,7 @@ enum EvtMsgId_t {
     evtIdRadioCmd,
     evtIdCheckRxTable,
     evtIdLedEnd,
+
+    evtIdPillConnected,
+    evtIdPillDisconnected
 };

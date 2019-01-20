@@ -7,6 +7,9 @@
 #include "led.h"
 #include "Sequences.h"
 #include "main.h"
+#include "pill.h"
+#include "pill_mgr.h"
+#include "kl_i2c.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -16,19 +19,7 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-// EEAddresses
-#define EE_ADDR_DEVICE_ID       0
-
-uint8_t ID;
-uint8_t Type;
-
-static uint8_t ISetID(int32_t NewID);
-void ReadIDfromEE();
-void CheckRxTable();
-
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
-
-static TmrKL_t TmrRxTableCheck {MS2ST(4005), evtIdCheckRxTable, tktPeriodic};
 #endif
 
 int main(void) {
@@ -43,16 +34,19 @@ int main(void) {
     // ==== Init Hard & Soft ====
     Uart.Init();
     Uart.StartRx();
-    ReadIDfromEE();
-    Printf("\r%S %S ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
+//    ReadIDfromEE();
+    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
     Clk.PrintFreqs();
 
     Led.Init();
+    Led.StartOrRestart(lsqStart);
 
-    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
-    else Led.StartOrRestart(lsqFailure);
+    i2c1.Init();
+    PillMgr.Init();
 
-    TmrRxTableCheck.StartOrRestart();
+    Radio.Init();
+//    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
+//    else Led.StartOrRestart(lsqFailure);
 
     // Main cycle
     ITask();
@@ -68,36 +62,21 @@ void ITask() {
                 ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
                 break;
 
-            case evtIdCheckRxTable: CheckRxTable(); break;
+            case evtIdPillConnected:
+                Printf("Pill: %u\r", PillMgr.Pill.DWord32);
+                if(PillMgr.Pill.DWord32 == pilltLight) Led.StartOrRestart(lsqLightOn);
+                else Led.StartOrRestart(lsqOnPillConnect);
+                break;
+
+            case evtIdPillDisconnected:
+                Printf("Pill disconn\r");
+//                Led.StartOrRestart(lsqNoPill);
+                Led.Stop();
+                break;
 
             default: Printf("Unhandled Msg %u\r", Msg.ID); break;
         } // switch
     } // while true
-}
-
-void CheckRxTable() {
-    uint8_t TableCnt = Radio.RxTable.GetCount();
-    if(TableCnt > 0) {
-        bool WhiteIsHere = false;
-        uint8_t RedCnt = 0, BlueCnt = 0;
-        // Analyze RxTable
-        for(uint32_t i=0; i<TableCnt; i++) {
-            if(Radio.RxTable.Buf[i].Type == TYPE_WHITE) {
-                WhiteIsHere = true;
-                break;
-            }
-            else if(Radio.RxTable.Buf[i].Type == TYPE_RED) RedCnt++;
-            else if(Radio.RxTable.Buf[i].Type == TYPE_BLUE) BlueCnt++;
-        } // for
-        // Indicate
-        if(WhiteIsHere) Led.StartOrContinue(lsqWhiteOn);
-        else {
-            if(RedCnt > BlueCnt) Led.StartOrContinue(lsqRedOn);
-            else Led.StartOrContinue(lsqBlueOn);
-        }
-    } // if(TableCnt > 0)
-    else Led.StartOrContinue(lsqOff);
-    Radio.RxTable.Clear();
 }
 
 void OnCmd(Shell_t *PShell) {
@@ -110,37 +89,5 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
-
-    else if(PCmd->NameIs("SetID")) {
-        if(PCmd->GetNext<uint8_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
-        uint8_t r = ISetID(ID);
-        PShell->Ack(r);
-    }
-
     else PShell->Ack(retvCmdUnknown);
 }
-
-#if 1 // =========================== ID management =============================
-void ReadIDfromEE() {
-    ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
-    if(ID < ID_MIN or ID > ID_MAX) {
-        Printf("\rUsing default ID\r");
-        ID = 1;
-    }
-}
-
-uint8_t ISetID(int32_t NewID) {
-    if(NewID < ID_MIN or NewID > ID_MAX) return retvFail;
-    uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
-    if(rslt == retvOk) {
-        ID = NewID;
-        Printf("New ID: %u\r", ID);
-        return retvOk;
-    }
-    else {
-        Printf("EE error: %u\r", rslt);
-        return retvFail;
-    }
-}
-#endif

@@ -11,10 +11,10 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "WhiteFlowers"
+#define APP_NAME            "Giganda"
 
 // ==== High-level peripery control ====
-#define PILL_ENABLED        FALSE
+#define PILL_ENABLED        TRUE
 #define BEEPER_ENABLED      FALSE
 
 // MCU type as defined in the ST header.
@@ -50,8 +50,8 @@
 // I2C
 #if I2C1_ENABLED
 #define I2C1_GPIO       GPIOB
-#define I2C1_SCL        6
-#define I2C1_SDA        7
+#define I2C1_SCL        8
+#define I2C1_SDA        9
 #endif
 
 // Pill power
