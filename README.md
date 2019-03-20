@@ -1,6 +1,6 @@
 # chibi-armlet
 
-Chibi-armlet (more pften called Fallout Device) Project. 
+Chibi-armlet (more often called Fallout Device) Project. 
 Fallout Device is device for LARPs with STM32 microcontroller, beeper, RGB LED, connector for microflash. It is powered with one AA battery, has no case. Vibro and power relay might be connected.
 
 Fallout device was created for radiation model on Fallout LARP, but now is used mainly as radio-controlled led or radio-beacon for other devices. 
