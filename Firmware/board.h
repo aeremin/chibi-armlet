@@ -7,14 +7,12 @@
 
 #pragma once
 
-#include <inttypes.h>
-
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "Giganda"
+#define APP_NAME            "HeartOfStorm"
 
 // ==== High-level peripery control ====
-#define PILL_ENABLED        TRUE
+#define PILL_ENABLED        FALSE
 #define BEEPER_ENABLED      FALSE
 
 // MCU type as defined in the ST header.
@@ -58,7 +56,7 @@
 #define PILL_PWR_PIN    { GPIOB, 7, omPushPull }
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
-#define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
+#define CC_Setup0       SPI1, GPIOA, 5,6,7, GPIOA,4, GPIOA,3
 
 #endif // GPIO
 
@@ -90,27 +88,11 @@
 #if 1 // =========================== DMA =======================================
 #define STM32_DMA_REQUIRED  TRUE
 // ==== Uart ====
-#define UART_DMA_TX     STM32_DMA1_STREAM4
-#define UART_DMA_RX     STM32_DMA1_STREAM5
+#define UART_DMA_TX_MODE(Chnl) (STM32_DMA_CR_CHSEL(Chnl) | DMA_PRIORITY_LOW | STM32_DMA_CR_MSIZE_BYTE | STM32_DMA_CR_PSIZE_BYTE | STM32_DMA_CR_MINC | STM32_DMA_CR_DIR_M2P | STM32_DMA_CR_TCIE)
+#define UART_DMA_RX_MODE(Chnl) (STM32_DMA_CR_CHSEL(Chnl) | DMA_PRIORITY_MEDIUM | STM32_DMA_CR_MSIZE_BYTE | STM32_DMA_CR_PSIZE_BYTE | STM32_DMA_CR_MINC | STM32_DMA_CR_DIR_P2M | STM32_DMA_CR_CIRC)
+#define UART_DMA_TX     STM32_DMA_STREAM_ID(1, 4)
+#define UART_DMA_RX     STM32_DMA_STREAM_ID(1, 5)
 #define UART_DMA_CHNL   0   // Dummy
-#define UART_DMA_TX_MODE(Chnl) \
-                            (STM32_DMA_CR_CHSEL(Chnl) | \
-                            DMA_PRIORITY_LOW | \
-                            STM32_DMA_CR_MSIZE_BYTE | \
-                            STM32_DMA_CR_PSIZE_BYTE | \
-                            STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
-                            STM32_DMA_CR_DIR_M2P |    /* Direction is memory to peripheral */ \
-                            STM32_DMA_CR_TCIE         /* Enable Transmission Complete IRQ */)
-
-#define UART_DMA_RX_MODE(Chnl) \
-                            (STM32_DMA_CR_CHSEL((Chnl)) | \
-                            DMA_PRIORITY_MEDIUM | \
-                            STM32_DMA_CR_MSIZE_BYTE | \
-                            STM32_DMA_CR_PSIZE_BYTE | \
-                            STM32_DMA_CR_MINC |       /* Memory pointer increase */ \
-                            STM32_DMA_CR_DIR_P2M |    /* Direction is peripheral to memory */ \
-                            STM32_DMA_CR_CIRC         /* Circular buffer enable */)
-
 
 #if I2C1_ENABLED // ==== I2C ====
 #define I2C1_DMA_TX     STM32_DMA1_STREAM6
@@ -135,6 +117,9 @@
 #define PRINTF_FLOAT_EN FALSE
 #define UART_TXBUF_SZ   1024
 #define UART_RXBUF_SZ   99
+
+#define UARTS_CNT       1
+
 #define CMD_UART_PARAMS \
     USART1, UART_GPIO, UART_TX_PIN, UART_GPIO, UART_RX_PIN, \
     UART_DMA_TX, UART_DMA_RX, UART_DMA_TX_MODE(UART_DMA_CHNL), UART_DMA_RX_MODE(UART_DMA_CHNL)

@@ -88,7 +88,7 @@ public:
         return Rslt;
     }
 
-    bool NameIs(const char *SCmd) { return (strcasecmp(Name, SCmd) == 0); }
+    bool NameIs(const char *SCmd) { return (kl_strcasecmp(Name, SCmd) == 0); }
     Cmd_t() {
         Cnt = 0;
         Completed = false;
@@ -101,9 +101,9 @@ class Shell_t {
 public:
 	Cmd_t Cmd;
 	virtual void SignalCmdProcessed() = 0;
-	virtual void Printf(const char *format, ...) = 0;
-	void Reply(const char* CmdCode, int32_t Data) { Printf("%S,%d\r\n", CmdCode, Data); }
-	void Ack(int32_t Result) { Printf("Ack %d\r\n", Result); }
+	virtual void Print(const char *format, ...) = 0;
+	void Reply(const char* CmdCode, int32_t Data) { Print("%S,%d\r\n", CmdCode, Data); }
+	void Ack(int32_t Result) { Print("Ack %d\r\n", Result); }
 };
 
 
