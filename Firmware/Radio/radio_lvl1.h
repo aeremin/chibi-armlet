@@ -16,27 +16,22 @@
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    union {
-        uint32_t DWord[2];
-        int32_t TimeAfterPress;
-        struct {
-            uint8_t R1, G1, B1, R2, G2, B2;
-            uint16_t Wait_ms;
-        } __attribute__ ((__packed__));
-    } __attribute__ ((__packed__));
-    uint8_t Cmd;
-    uint8_t ID;
+    uint8_t ID = 0;
+    uint8_t LvlMin = 0;
+    uint8_t LvlMax = 0;
+    uint8_t DmgMin = 0;
+    uint8_t DmgMax = 0;
 //    bool operator == (const rPkt_t &APkt) { return (DWord32 == APkt.DWord32); }
     rPkt_t& operator = (const rPkt_t &Right) {
         chSysLock();
-        DWord[0] = Right.DWord[0];
-        DWord[1] = Right.DWord[1];
-        Cmd = Right.Cmd;
         ID = Right.ID;
+        LvlMin = Right.LvlMin;
+        LvlMax = Right.LvlMax;
+        DmgMin = Right.DmgMin;
+        DmgMax = Right.DmgMax;
         chSysUnlock();
         return *this;
     }
-    rPkt_t() : TimeAfterPress(0), Cmd(0) {}
 } __attribute__ ((__packed__));
 #endif
 

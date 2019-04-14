@@ -34,7 +34,7 @@ cc1101_t CC(CC_Setup0);
 
 rLevel1_t Radio;
 static rPkt_t Pkt;
-static int8_t Rssi;
+//static int8_t Rssi;
 
 #if 1 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
@@ -42,13 +42,18 @@ __noreturn
 static void rLvl1Thread(void *arg) {
     chRegSetThreadName("rLvl1");
     while(true) {
+        Pkt.ID = 11;
+
         CC.Recalibrate();
-        uint8_t RxRslt = CC.Receive(RX_T_MS, &Pkt, RPKT_LEN, &Rssi);
-        if(RxRslt == retvOk and Pkt.ID == ID) {
-            Printf("%u: %d; %u\r", Pkt.ID, Rssi, Pkt.Cmd);
+        CC.Transmit(&Pkt, RPKT_LEN);
+        chThdSleepMilliseconds(27);
+
+//        uint8_t RxRslt = CC.Receive(RX_T_MS, &Pkt, RPKT_LEN, &Rssi);
+//        if(RxRslt == retvOk and Pkt.ID == ID) {
+//            Printf("%u: %d; %u\r", Pkt.ID, Rssi, Pkt.Cmd);
 //            CC.Transmit(&Pkt, RPKT_LEN);
 //            EvtQMain.SendNowOrExit(EvtMsg_t(evtIdHostCmd));
-        }
+//        }
     } // while true
 }
 #endif // task
