@@ -59,7 +59,7 @@ uint8_t cc1101_t::Init() {
     FlushRxFIFO();
     RfConfig();
     IGdo0.EnableIrq(IRQ_PRIO_HIGH);
-    Printf("CC init ok\r");
+//    Printf("CC init ok\r");
     return retvOk;
 }
 

@@ -16,79 +16,71 @@
 EvtMsgQ_t<EvtMsg_t, MAIN_EVT_Q_LEN> EvtQMain;
 static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
 CmdUart_t Uart{&CmdUartParams};
-static void ITask();
-static void OnCmd(Shell_t *PShell);
 
 uint8_t ID = 0;
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
+
+cc1101_t CC(CC_Setup0);
 #endif
 
 int main(void) {
+    Iwdg::InitAndStart(450);
     // ==== Init Vcore & clock system ====
-    SetupVCore(vcore1V2);
+    SetupVCore(vcore1V5);
+    Clk.SetMSI4MHz();
     Clk.UpdateFreqValues();
     // ==== Init OS ====
     halInit();
     chSysInit();
-    EvtQMain.Init();
 
     // ==== Init Hard & Soft ====
+    PinSetupOut(GPIOC, 15, omPushPull);
+    PinSetHi(GPIOC, 15);
+    PinSetupOut(GPIOC, 14, omPushPull);
     Uart.Init();
 //    ReadIDfromEE();
-    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
-    Clk.PrintFreqs();
+//    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+//    Clk.PrintFreqs();
 
-    Led.Init();
-//    Led.StartOrRestart(lsqStart);
+    if(!Sleep::WasInStandby()) Led.Init();
 
-//    i2c1.Init();
-//    PillMgr.Init();
+    if(CC.Init() == retvOk) {
+        if(!Sleep::WasInStandby()) {
+            Led.StartOrRestart(lsqStart);
+            chThdSleepMilliseconds(360);
+            Iwdg::Reload();
+        }
+        CC.SetTxPower(CC_PwrPlus5dBm);
+//        CC.SetTxPower(CC_Pwr0dBm);
 
-//    Radio.Init();
-    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
-    else Led.StartOrRestart(lsqFailure);
-
-    // Main cycle
-    ITask();
-}
-
-__noreturn
-void ITask() {
-    while(true) {
-        EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
-        switch(Msg.ID) {
-            case evtIdShellCmd:
-                OnCmd((Shell_t*)Msg.Ptr);
-                ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
-                break;
-
-//            case evtIdPillConnected:
-//                Printf("Pill: %u\r", PillMgr.Pill.DWord32);
-//                if(PillMgr.Pill.DWord32 == pilltLight) Led.StartOrRestart(lsqLightOn);
-//                else Led.StartOrRestart(lsqOnPillConnect);
-//                break;
-//
-//            case evtIdPillDisconnected:
-//                Printf("Pill disconn\r");
-////                Led.StartOrRestart(lsqNoPill);
-//                Led.Stop();
-//                break;
-
-            default: Printf("Unhandled Msg %u\r", Msg.ID); break;
-        } // switch
-    } // while true
-}
-
-void OnCmd(Shell_t *PShell) {
-    Cmd_t *PCmd = &PShell->Cmd;
-    __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
-//    Uart.Printf("%S\r", PCmd->Name);
-    // Handle command
-    if(PCmd->NameIs("Ping")) {
-        PShell->Ack(retvOk);
+        CC.SetPktSize(RPKT_LEN);
+        CC.SetChannel(0);
+        rPkt_t Pkt;
+        Pkt.ID = 11;
+//        while(true) {
+            PinSetHi(GPIOC, 14);
+            CC.Recalibrate();
+            CC.Transmit(&Pkt, RPKT_LEN);
+            chThdSleepMilliseconds(2);
+//            Iwdg::Reload();
+//        }
+//        PinSetLo(GPIOC, 14);
+        //        uint8_t RxRslt = CC.Receive(RX_T_MS, &Pkt, RPKT_LEN, &Rssi);
+        //        if(RxRslt == retvOk and Pkt.ID == ID) {
+        //            Printf("%u: %d; %u\r", Pkt.ID, Rssi, Pkt.Cmd);
+        CC.EnterPwrDown();
     }
-    else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+    else {
+        Led.Init();
+        Led.StartOrRestart(lsqFailure);
+        chThdSleepMilliseconds(999);
+    }
 
-    else PShell->Ack(retvCmdUnknown);
+    chSysLock();
+    Iwdg::Reload();
+    Sleep::EnterStandby();
+    chSysUnlock();
+
+    while(true); // Will never be here
 }
