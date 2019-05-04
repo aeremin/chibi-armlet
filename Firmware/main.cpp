@@ -33,7 +33,7 @@ static const uint8_t PwrTable[12] = {
         CC_PwrPlus12dBm   // 11
 };
 
-int32_t ID = 18;
+int32_t ID = 1;
 int32_t RssiThr = -99;
 uint8_t PwrLvlId = 7; // 0dBm
 
@@ -69,6 +69,7 @@ int main(void) {
     PinSetHi(GPIOC, 15);
     PinSetupOut(GPIOC, 14, omPushPull);
     Uart.Init();
+    SetID(ID);
     ReadParams();
 
     if(!Sleep::WasInStandby()) {
