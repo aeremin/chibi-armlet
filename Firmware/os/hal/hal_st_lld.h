@@ -57,7 +57,7 @@
  * @note    Timers 2, 3, 4 and 5 are supported.
  */
 #if !defined(STM32_ST_USE_TIMER) || defined(__DOXYGEN__)
-#define STM32_ST_USE_TIMER                  2
+#define STM32_ST_USE_TIMER                  9
 #endif
 /** @} */
 
@@ -100,6 +100,9 @@
 
 #elif STM32_ST_USE_TIMER == 5
 #define STM32_ST_TIM                        STM32_TIM5
+
+#elif STM32_ST_USE_TIMER == 9
+#define STM32_ST_TIM                        STM32_TIM9
 
 #elif STM32_ST_USE_TIMER == 21
 #define STM32_ST_TIM                        STM32_TIM21

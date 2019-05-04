@@ -3,7 +3,7 @@
 #include "hal.h"
 #include "uart.h"
 #include "radio_lvl1.h"
-//#include "vibro.h"
+#include "beeper.h"
 #include "led.h"
 #include "Sequences.h"
 #include "main.h"
@@ -43,6 +43,7 @@ uint8_t PwrLvlId = 7; // 0dBm
 #define EE_ADDR_PWR_LVL_ID  8
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
+Beeper_t Beeper {BEEPER_PIN};
 
 cc1101_t CC(CC_Setup0);
 
@@ -104,7 +105,7 @@ int main(void) {
         Pkt.From = ID;
         Pkt.To = 0; // to everyone
         Pkt.RssiThr = RssiThr;
-        Pkt.PowerLvlId = PwrLvlId;
+        Pkt.Value = PwrLvlId;
         PinSetHi(GPIOC, 14);
         CC.Recalibrate();
         CC.Transmit(&Pkt, RPKT_LEN);
@@ -115,8 +116,17 @@ int main(void) {
 //            Printf("%u: Thr: %d; Pwr: %u\r", Pkt.From, Pkt.RssiThr, Pkt.PowerLvlId);
 //            chThdSleepMilliseconds(9);
             if(Pkt.From == 1 and Pkt.To == ID) { // From host to me
-                SetThr(Pkt.RssiThr);
-                SetPwr(Pkt.PowerLvlId);
+                if(Pkt.RssiThr > 0) {
+                    Led.Init();
+                    Beeper.Init();
+                    Beeper.StartOrRestart(bsqSearch);
+                    Led.StartOrRestart(lsqSearch);
+                    chThdSleepMilliseconds(108);
+                }
+                else {
+                    SetThr(Pkt.RssiThr);
+                    SetPwr(Pkt.Value);
+                }
             }
         }
         CC.EnterPwrDown();
