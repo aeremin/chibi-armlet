@@ -19,18 +19,7 @@ struct rPkt_t {
     uint16_t From;
     uint16_t To;
     int8_t RssiThr;
-    uint8_t PowerLvlId;
-//    bool operator == (const rPkt_t &APkt) { return (DWord32 == APkt.DWord32); }
-//    rPkt_t& operator = (const rPkt_t &Right) {
-//        chSysLock();
-//        ID = Right.ID;
-//        LvlMin = Right.LvlMin;
-//        LvlMax = Right.LvlMax;
-//        DmgMin = Right.DmgMin;
-//        DmgMax = Right.DmgMax;
-//        chSysUnlock();
-//        return *this;
-//    }
+    uint8_t Value;
 } __attribute__ ((__packed__));
 #endif
 

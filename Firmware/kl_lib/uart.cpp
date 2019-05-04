@@ -23,7 +23,7 @@
 #endif
 
 // Array of utilized UARTs to organize RX
-static BaseUart_t* PUarts[UARTS_CNT];
+//static BaseUart_t* PUarts[UARTS_CNT];
 #endif // Common and eternal
 
 #if 1 // ========================= Base UART ===================================

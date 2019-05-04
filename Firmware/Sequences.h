@@ -224,6 +224,13 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd},
 };
 
+const LedRGBChunk_t lsqSearch[] = {
+        {csSetup, 0, clRed},
+        {csWait, 99},
+        {csSetup, 0, clBlack},
+        {csEnd},
+};
+
 const LedRGBChunk_t lsqOnPillConnect[] = {
         {csSetup, 0, clGreen},
         {csWait, 450},
@@ -285,16 +292,9 @@ const LedSmoothChunk_t lsqEnterIdle[] = {
 
 #endif
 
-#if 0 // ============================= Beeper ==================================
-#define BEEP_VOLUME     2
-
+#if 1 // ============================= Beeper ==================================
+#define BEEP_VOLUME     9
 // Type, duration_ms, freq, volume
-const BeepChunk_t bsqButton[] = {
-        {csSetup, 1, 1975},
-        {csWait, 54},
-        {csSetup, 0},
-        {csEnd}
-};
 const BeepChunk_t bsqBeepBeep[] = {
         {csSetup, BEEP_VOLUME, 1975},
         {csWait, 54},
@@ -302,6 +302,13 @@ const BeepChunk_t bsqBeepBeep[] = {
         {csWait, 54},
         {csSetup, BEEP_VOLUME, 1975},
         {csWait, 54},
+        {csSetup, 0},
+        {csEnd}
+};
+
+const BeepChunk_t bsqSearch[] = {
+        {csSetup, BEEP_VOLUME, 1975},
+        {csWait, 99},
         {csSetup, 0},
         {csEnd}
 };
