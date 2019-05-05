@@ -50,12 +50,10 @@ static void rLvl1Thread(void *arg) {
             Printf("%u: Thr: %d; Pwr: %u; Rssi: %d\r", RxPkt.From, RxPkt.RssiThr, RxPkt.Value, Rssi);
             if(Rssi+5 >= RxPkt.RssiThr) {
                 // Damage pkt from lustra
-//                if(RxPkt.From >= 1000 and RxPkt.From <= 1200) {
+                if(RxPkt.From >= 1000 and RxPkt.From <= 1200) {
                     EvtQMain.SendNowOrExit(EvtMsg_t(evtIdDamagePkt, (int32_t)RxPkt.From));
-//                }
-//                Led.StartOrRestart(lsqBlinkR);
+                }
             }
-//            else Led.StartOrRestart(lsqBlinkB);
         }
     } // while true
 }

@@ -243,7 +243,7 @@ const LedRGBChunk_t lsqBlinkB[] = {
 
 const LedRGBChunk_t lsqBlinkR[] = {
         {csSetup, 0, clRed},
-        {csWait, 99},
+        {csWait, 45},
 //        {csSetup, 0, clBlack},
         {csSetup, 0, {0,4,0}},
         {csEnd},

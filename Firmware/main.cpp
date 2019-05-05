@@ -80,8 +80,18 @@ int main(void) {
     PillMgr.Init();
 #endif
 
-    // ==== Time and timers ====
-//    TmrEverySecond.StartOrRestart();
+    // Init clicker
+    rccEnableTIM2(FALSE);
+    TIM2->CR1 = TIM_CR1_OPM;
+    TIM2->ARR = 22;
+    TIM2->CCMR1 = (0b111 << 12);
+    TIM2->CCER = TIM_CCER_CC2E;
+    uint32_t tmp = TIM2->ARR * 1000;
+    tmp = Clk.APB1FreqHz / tmp;
+    if(tmp != 0) tmp--;
+    TIM2->PSC = (uint16_t)tmp;
+    TIM2->CCR2 = 20;
+    PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
 
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
@@ -98,6 +108,11 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
+                break;
+
+            case evtIdDamagePkt:
+                TMR_ENABLE(TIM2);
+                Led.StartOrRestart(lsqBlinkR);
                 break;
 
 #if BUTTONS_ENABLED
@@ -167,12 +182,6 @@ void OnCmd(Shell_t *PShell) {
         PShell->Ack(r);
     }
 
-    else if(PCmd->NameIs("Rst")) {
-        SaveHP(20);
-        SaveMaxHP(20);
-        SaveDefaultHP(20);
-        PShell->Ack(retvOk);
-    }
 
 #if 0 // === Pill ===
     else if(PCmd->NameIs("ReadPill")) {
