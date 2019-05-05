@@ -10,10 +10,6 @@
 #include "pill_mgr.h"
 #include "MsgQ.h"
 #include "main.h"
-// SM
-#include "qhsm.h"
-#include "eventHandlers.h"
-#include "mHoS.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -25,21 +21,13 @@ static void OnCmd(Shell_t *PShell);
 
 // EEAddresses
 #define EE_ADDR_DEVICE_ID   0
-// StateMachines
-#define EE_ADDR_STATE       2048
-#define EE_ADDR_HP          2052
-#define EE_ADDR_MAX_HP      2056
-#define EE_ADDR_DEFAULT_HP  2060
-void InitSM();
-void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value);
-static mHoSQEvt e;
 
 int32_t ID;
 static uint8_t ISetID(int32_t NewID);
 void ReadIDfromEE();
 
 // ==== Periphery ====
-Vibro_t VibroMotor {VIBRO_SETUP};
+//Vibro_t VibroMotor {VIBRO_SETUP};
 #if BEEPER_ENABLED
 Beeper_t Beeper {BEEPER_PIN};
 #endif
@@ -47,9 +35,9 @@ Beeper_t Beeper {BEEPER_PIN};
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 // ==== Timers ====
-static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
+//static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-static int32_t TimeS;
+//static int32_t TimeS;
 #endif
 
 int main(void) {
@@ -77,7 +65,7 @@ int main(void) {
 
     Led.Init();
 //    Led.SetupSeqEndEvt(chThdGetSelfX(), EVT_LED_SEQ_END);
-    VibroMotor.Init();
+//    VibroMotor.Init();
 #if BEEPER_ENABLED // === Beeper ===
     Beeper.Init();
     Beeper.StartOrRestart(bsqBeepBeep);
@@ -93,15 +81,12 @@ int main(void) {
 #endif
 
     // ==== Time and timers ====
-    TmrEverySecond.StartOrRestart();
+//    TmrEverySecond.StartOrRestart();
 
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
-    VibroMotor.StartOrRestart(vsqBrrBrr);
     chThdSleepMilliseconds(1008);
-
-    InitSM();
 
     // Main cycle
     ITask();
@@ -113,13 +98,7 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-                TimeS++;
-                SendEventSM(TIME_TICK_1S_SIG, 0, 0);
                 break;
-
-            case evtIdDamagePkt: SendEventSM(DAMAGE_RECEIVED_SIG, Msg.Value, 1); break;
-            case evtIdDeathPkt:  SendEventSM(KILL_SIGNAL_RECEIVED_SIG, 0, 0);    break;
-            case evtIdUpdateHP:  SendEventSM(UPDATE_HP_SIG, 0, Msg.Value);       break;
 
 #if BUTTONS_ENABLED
             case evtIdButtons:
@@ -164,99 +143,6 @@ void ITask() {
     } // while true
 } // ITask()
 
-#if 1 // ======================== State Machines ===============================
-extern "C" {
-void SaveHP(uint32_t HP) {
-    if(EE::Write32(EE_ADDR_HP, HP) != retvOk) Printf("Saving HP fail\r");
-}
-
-void SaveMaxHP(uint32_t HP) {
-    if(EE::Write32(EE_ADDR_MAX_HP, HP) != retvOk) Printf("Saving MaxHP fail\r");
-}
-
-void SaveDefaultHP(uint32_t HP) {
-    if(EE::Write32(EE_ADDR_DEFAULT_HP, HP) != retvOk) Printf("Saving DefHP fail\r");
-}
-
-void SaveState(uint32_t AState) {
-    if(EE::Write32(EE_ADDR_STATE, AState) != retvOk) Printf("Saving State fail\r");
-}
-} // extern C
-
-void InitSM() {
-    // Load saved data
-    uint32_t HP = EE::Read32(EE_ADDR_HP);
-    uint32_t MaxHP = EE::Read32(EE_ADDR_MAX_HP);
-    uint32_t DefaultHP = EE::Read32(EE_ADDR_DEFAULT_HP);
-    uint32_t State = EE::Read32(EE_ADDR_STATE);
-    Printf("Saved: HP=%d MaxHP=%d DefaultHP=%d State=%d\r", HP, MaxHP, DefaultHP, State);
-    // Check if params are bad
-    if(HP == 0 and DefaultHP == 0 and MaxHP == 0) { // Empty EE
-        HP = 20;
-        MaxHP = 20;
-        DefaultHP = 20;
-        State = SIMPLE;
-        SaveHP(HP);
-        SaveMaxHP(MaxHP);
-        SaveDefaultHP(DefaultHP);
-    }
-    // Init
-    MHoS_ctor(HP, MaxHP, DefaultHP, State);
-    QMSM_INIT(the_mHoS, (QEvt *)0);
-}
-
-void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value) {
-    e.super.sig = QSig;
-    e.id = SrcID;
-    e.value = Value;
-    Printf("e Sig: %d; id: %d; value: %d\r", e.super.sig, e.id, e.value);
-    QMSM_DISPATCH(the_mHoS, &(e.super));
-}
-
-extern "C" {
-BaseChunk_t vsqSMBrr[] = {
-        {csSetup, VIBRO_VOLUME},
-        {csWait, 99},
-        {csSetup, 0},
-        {csEnd}
-};
-
-void Vibro(uint32_t Duration_ms) {
-    vsqSMBrr[1].Time_ms = Duration_ms;
-    VibroMotor.StartOrRestart(vsqSMBrr);
-}
-
-
-LedRGBChunk_t lsqSM[] = {
-        {csSetup, 0, clRed},
-        {csWait, 207},
-        {csSetup, 0, {0,4,0}},
-        {csEnd},
-};
-
-void Flash(uint8_t R, uint8_t G, uint8_t B, uint32_t Duration_ms) {
-    lsqSM[0].Color.FromRGB(R, G, B);
-    lsqSM[1].Time_ms = Duration_ms;
-    Led.StartOrRestart(lsqSM);
-}
-
-void SendKillingSignal() {
-    Radio.RMsgQ.SendWaitingAbility(RMsg_t(R_MSG_SEND_KILL), 999);
-}
-
-#define THE_WORD    0xCA115EA1
-void ClearPill() {
-    uint32_t DWord32 = THE_WORD;
-    if(PillMgr.Write(0, &DWord32, 4) != retvOk) Printf("ClearPill fail\r");
-}
-
-bool PillWasImmune() {
-    uint32_t DWord32;
-    if(PillMgr.Read(0, &DWord32, 4) == retvOk) return (DWord32 == THE_WORD);
-    else return false;
-}
-} // extern C
-#endif
 
 #if 1 // ================= Command processing ====================
 void OnCmd(Shell_t *PShell) {
@@ -288,7 +174,7 @@ void OnCmd(Shell_t *PShell) {
         PShell->Ack(retvOk);
     }
 
-#if 1 // === Pill ===
+#if 0 // === Pill ===
     else if(PCmd->NameIs("ReadPill")) {
         int32_t DWord32;
         uint8_t Rslt = PillMgr.Read(0, &DWord32, 4);

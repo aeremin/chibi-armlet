@@ -9,11 +9,11 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "HeartOfStormPlayer"
+#define APP_NAME            "HeartOfStormDetector"
 
 // ==== High-level peripery control ====
-#define PILL_ENABLED        TRUE
-#define BEEPER_ENABLED      TRUE
+#define PILL_ENABLED        FALSE
+#define BEEPER_ENABLED      FALSE
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
