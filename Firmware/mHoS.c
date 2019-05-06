@@ -46,7 +46,7 @@ static QState MHoS_final(MHoS * const me, QEvt const * const e);
 
 static MHoS mHoS; /* the only instance of the MHoS class */
 
-
+//void PrintfC(const char *format, ...);
 
 /* global-scope definitions -----------------------------------------*/
 QHsm * const the_mHoS = (QHsm *) &mHoS; /* the opaque pointer */
@@ -120,7 +120,8 @@ static QState MHoS_dead(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::dead::UPDATE_HP_SIG} */
 		 case Q_ENTRY_SIG: {
-			printf("entered dead\n");
+//			PrintfC("entered dead\r\n");
+			status_ = Q_HANDLED();
             break;
         }
         case UPDATE_HP_SIG: {
@@ -155,7 +156,7 @@ static QState MHoS_just_died(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::dead::just_died} */
         case Q_ENTRY_SIG: {
-			printf("Just died\n");
+//			PrintfC("Just died\n");
             SaveState(DEAD);
             UpdateHP(me, 0);
             Vibro(DEATH_TO_S*1000/3);
@@ -189,7 +190,7 @@ static QState MHoS_wait_reset(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::dead::wait_reset} */
         case Q_ENTRY_SIG: {
-            printf("Entered Wait Reset\n");
+//            PrintfC("Entered Wait Reset\r\n");
 			me->DeathTime = 0;
             status_ = Q_HANDLED();
             break;
@@ -213,7 +214,8 @@ static QState MHoS_alive(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::alive::BUTTON_PRESSED} */
 		case Q_ENTRY_SIG: {
-			printf("entered alive\n");
+//			PrintfC("entered alive\r\n");
+			status_ = Q_HANDLED();
             break;
         }
         case BUTTON_PRESSED_SIG: {
@@ -260,7 +262,8 @@ static QState MHoS_NOT_IMMUNE(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::alive::NOT_IMMUNE::DAMAGE_RECEIVED} */
         case Q_ENTRY_SIG: {
-			printf("entered not immune\n");
+//			PrintfC("entered not immune\r\n");
+			status_ = Q_HANDLED();
             break;
         }
 		case DAMAGE_RECEIVED_SIG: {
@@ -270,7 +273,7 @@ static QState MHoS_NOT_IMMUNE(MHoS * const me, QEvt const * const e) {
             }
             /* ${SMs::MHoS::SM::global::alive::NOT_IMMUNE::DAMAGE_RECEIVED::[else]} */
             else {
-                me->CharHP -= ((mHoSQEvt*)e)->value;
+                UpdateHP(me, me->CharHP -((mHoSQEvt*)e)->value);
                 IndicateDamage(me);
                 status_ = Q_HANDLED();
             }
@@ -289,7 +292,7 @@ static QState MHoS_simple(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::alive::NOT_IMMUNE::simple} */
         case Q_ENTRY_SIG: {
-            printf("Entered simple\n");
+//            PrintfC("Entered simple\r\n");
 			SaveState(SIMPLE);
             Flash(0, 255, 0, FLASH_MS);
             status_ = Q_HANDLED();
@@ -326,7 +329,7 @@ static QState MHoS_mutant(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::alive::NOT_IMMUNE::mutant} */
         case Q_ENTRY_SIG: {
-			printf("Entered mutant\n");
+//			PrintfC("Entered mutant\r\n");
             SaveState(MUTANT);
             Flash(0, 0, 255, FLASH_MS);
             status_ = Q_HANDLED();
@@ -371,7 +374,7 @@ static QState MHoS_immune(MHoS * const me, QEvt const * const e) {
     switch (e->sig) {
         /* ${SMs::MHoS::SM::global::alive::immune} */
         case Q_ENTRY_SIG: {
-            printf("entered immune\n");
+//            PrintfC("entered immune\r\n");
 			ClearPill();
             Flash(255, 0, 255, FLASH_MS);
             status_ = Q_HANDLED();
@@ -385,6 +388,7 @@ static QState MHoS_immune(MHoS * const me, QEvt const * const e) {
         }
         /* ${SMs::MHoS::SM::global::alive::immune::PILL_REMOVED} */
         case PILL_REMOVED_SIG: {
+//			PrintfC("Pill removed\r\n");
             /* ${SMs::MHoS::SM::global::alive::immune::PILL_REMOVED::[me->LastState==MUTANT]} */
             if (me->LastState == MUTANT) {
                 status_ = Q_TRAN(&MHoS_mutant);
@@ -398,6 +402,7 @@ static QState MHoS_immune(MHoS * const me, QEvt const * const e) {
         /* ${SMs::MHoS::SM::global::alive::immune::TIME_TICK_1S} */
         case TIME_TICK_1S_SIG: {
 			if (!(PillWasImmune())) {
+//				PrintfC("Wrong pill, going out\r\n");
                 /* ${SMs::MHoS::SM::global::alive::immune::TIME_TICK_1S::[me->LastState==MUTANT]} */
                 if (me->LastState == MUTANT) {
                     status_ = Q_TRAN(&MHoS_mutant);
@@ -406,8 +411,10 @@ static QState MHoS_immune(MHoS * const me, QEvt const * const e) {
                 else {
                    status_ = Q_TRAN(&MHoS_simple);
                 }
-                break;
+			} else {
+				status_ = Q_HANDLED();
 			}
+            break;
         }
         default: {
             status_ = Q_SUPER(&MHoS_alive);

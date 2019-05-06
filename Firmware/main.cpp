@@ -49,7 +49,7 @@ LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 // ==== Timers ====
 static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-static int32_t TimeS;
+static void CheckRxData();
 #endif
 
 int main(void) {
@@ -67,16 +67,9 @@ int main(void) {
     Uart.Init();
     ReadIDfromEE();
     Printf("\r%S %S; ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
-//    Uart.Printf("ID: %X %X %X\r", GetUniqID1(), GetUniqID2(), GetUniqID3());
-//    if(Sleep::WasInStandby()) {
-//        Uart.Printf("WasStandby\r");
-//        Sleep::ClearStandbyFlag();
-//    }
     Clk.PrintFreqs();
-//    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
-//    Led.SetupSeqEndEvt(chThdGetSelfX(), EVT_LED_SEQ_END);
     VibroMotor.Init();
 #if BEEPER_ENABLED // === Beeper ===
     Beeper.Init();
@@ -85,7 +78,6 @@ int main(void) {
 #if BUTTONS_ENABLED
     SimpleSensors::Init();
 #endif
-//    Adc.Init();
 
 #if PILL_ENABLED // === Pill ===
     i2c1.Init();
@@ -113,8 +105,9 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-                TimeS++;
+                PillMgr.Check();
                 SendEventSM(TIME_TICK_1S_SIG, 0, 0);
+                CheckRxData();
                 break;
 
             case evtIdDamagePkt: SendEventSM(DAMAGE_RECEIVED_SIG, Msg.Value, 1); break;
@@ -151,7 +144,6 @@ void ITask() {
             case evtIdPillDisconnected:
                 Printf("Pill disconn\r");
                 SendEventSM(PILL_REMOVED_SIG, 0, 0);
-//                Led.StartOrRestart(lsqNoPill);
                 break;
 #endif
 
@@ -163,6 +155,14 @@ void ITask() {
         } // Switch
     } // while true
 } // ITask()
+
+void CheckRxData() {
+    for(int i=0; i<LUSTRA_CNT; i++) {
+        if(Radio.RxData[i].ProcessAndCheck()) {
+            EvtQMain.SendNowOrExit(EvtMsg_t(evtIdDamagePkt, i+LUSTRA_MIN_ID));
+        }
+    }
+}
 
 #if 1 // ======================== State Machines ===============================
 extern "C" {
