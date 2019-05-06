@@ -56,7 +56,7 @@ uint8_t SetPwr(uint32_t NewPwrId);
 #endif
 
 int main(void) {
-    Iwdg::InitAndStart(207);
+    Iwdg::InitAndStart(198);
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
     Clk.SetMSI4MHz();
