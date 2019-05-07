@@ -56,7 +56,7 @@ uint8_t SetPwr(uint32_t NewPwrId);
 #endif
 
 int main(void) {
-    Iwdg::InitAndStart(450);
+    Iwdg::InitAndStart(198);
     // ==== Init Vcore & clock system ====
     SetupVCore(vcore1V5);
     Clk.SetMSI4MHz();
@@ -94,7 +94,9 @@ int main(void) {
     if(CC.Init() == retvOk) {
         if(!Sleep::WasInStandby()) {
             Led.StartOrRestart(lsqStart);
-            chThdSleepMilliseconds(360);
+            chThdSleepMilliseconds(126);
+            Iwdg::Reload();
+            chThdSleepMilliseconds(126);
             Iwdg::Reload();
         }
         // Setup CC
@@ -135,7 +137,18 @@ int main(void) {
     else {
         Led.Init();
         Led.StartOrRestart(lsqFailure);
-        chThdSleepMilliseconds(999);
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
+        chThdSleepMilliseconds(126);
+        Iwdg::Reload();
     }
 
     chSysLock();
