@@ -35,9 +35,10 @@ Beeper_t Beeper {BEEPER_PIN};
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 // ==== Timers ====
-//static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
+static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
 //static int32_t TimeS;
+static void CheckRxData();
 #endif
 
 int main(void) {
@@ -80,6 +81,8 @@ int main(void) {
     PillMgr.Init();
 #endif
 
+    TmrEverySecond.StartOrRestart();
+
     // Init clicker
     rccEnableTIM2(FALSE);
     TIM2->CR1 = TIM_CR1_OPM;
@@ -108,11 +111,13 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
+                CheckRxData();
                 break;
 
             case evtIdDamagePkt:
                 TMR_ENABLE(TIM2);
                 Led.StartOrRestart(lsqBlinkR);
+                chThdSleepMilliseconds(72);
                 break;
 
 #if BUTTONS_ENABLED
@@ -158,6 +163,13 @@ void ITask() {
     } // while true
 } // ITask()
 
+void CheckRxData() {
+    for(int i=0; i<LUSTRA_CNT; i++) {
+        if(Radio.RxData[i].ProcessAndCheck()) {
+            EvtQMain.SendNowOrExit(EvtMsg_t(evtIdDamagePkt, i+LUSTRA_MIN_ID));
+        }
+    }
+}
 
 #if 1 // ================= Command processing ====================
 void OnCmd(Shell_t *PShell) {
