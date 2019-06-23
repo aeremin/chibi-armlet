@@ -15,12 +15,16 @@ enum EvtMsgId_t {
     evtIdEverySecond,
     evtIdAdcRslt,
 
+    evtIdPillConnected,
+    evtIdPillDisconnected,
+
     // Not eternal
     evtIdButtons,
     evtIdRadioCmd,
     evtIdCheckRxTable,
-    evtIdLedEnd,
 
-    evtIdPillConnected,
-    evtIdPillDisconnected
+    // SM
+    evtIdDeathPkt,
+    evtIdDamagePkt,
+    evtIdUpdateHP,
 };
