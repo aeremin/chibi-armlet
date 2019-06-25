@@ -9,7 +9,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "HeartOfStormDetector"
+#define APP_NAME            "Master"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE
