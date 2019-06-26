@@ -62,14 +62,38 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-                Printf("Second\r");
+//                Printf("Second\r");
+                // Check if time to disappear
                 if(AppearTimeout > 0) {
                     AppearTimeout--;
                     if(AppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
                 }
-
-
-
+                // Check if time to check RxTable
+                if(TableCheckTimeout > 0) {
+                    TableCheckTimeout--;
+                    if(TableCheckTimeout == 0) {
+                        TableCheckTimeout = CHECK_PERIOD_S;
+                        // Check table
+                        if(Radio.RxTable.GetCount() > 0) {
+                            Printf("Cnt=%u\r", Radio.RxTable.GetCount());
+#if GREEN_AND_WHITE
+                            // Presence of ID=2 means White is here
+                            if(Radio.RxTable.IDPresents(2)) {
+                                Led.StartOrRestart(lsqAppearWhite);
+                            }
+                            else Led.StartOrRestart(lsqAppearGreen);
+                            AppearTimeout = APPEAR_DURATION;
+#else
+                            // Presence of ID=1 means Green is here
+                            if(Radio.RxTable.IDPresents(1)) {
+                                Led.StartOrRestart(lsqAppearGreen);
+                                AppearTimeout = APPEAR_DURATION;
+                            }
+#endif
+                        }
+                        Radio.RxTable.Clear();
+                    }
+                }
                 break;
 
             case evtIdShellCmd:
@@ -93,64 +117,6 @@ void OnCmd(Shell_t *PShell) {
     }
     else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
-
-    else if(PCmd->NameIs("SetID")) {
-        if(PCmd->GetNext<int32_t>(&ID) != retvOk) { PShell->Ack(retvCmdError); return; }
-        uint8_t r = ISetID(ID);
-        RMsg_t msg;
-        msg.Cmd = R_MSG_SET_CHNL;
-        msg.Value = ID2RCHNL(ID);
-        Radio.RMsgQ.SendNowOrExit(msg);
-        PShell->Ack(r);
-    }
-
-
-#if 0 // === Pill ===
-    else if(PCmd->NameIs("ReadPill")) {
-        int32_t DWord32;
-        uint8_t Rslt = PillMgr.Read(0, &DWord32, 4);
-        if(Rslt == retvOk) {
-            PShell->Print("Read %d\r\n", DWord32);
-        }
-        else PShell->Ack(retvFail);
-    }
-
-    else if(PCmd->NameIs("WritePill")) {
-        int32_t DWord32;
-        if(PCmd->GetNext<int32_t>(&DWord32) == retvOk) {
-            uint8_t Rslt = PillMgr.Write(0, &DWord32, 4);
-            PShell->Ack(Rslt);
-        }
-        else PShell->Ack(retvCmdError);
-    }
-#endif
-
     else PShell->Ack(retvCmdUnknown);
-}
-#endif
-
-
-#if 1 // =========================== ID management =============================
-void ReadIDfromEE() {
-    ID = EE::Read32(EE_ADDR_DEVICE_ID);  // Read device ID
-    if(ID < ID_MIN or ID > ID_MAX) {
-        Printf("\rUsing default ID\r");
-        ID = ID_DEFAULT;
-    }
-}
-
-uint8_t ISetID(int32_t NewID) {
-    if(NewID < ID_MIN or NewID > ID_MAX) return retvFail;
-    uint8_t rslt = EE::Write32(EE_ADDR_DEVICE_ID, NewID);
-    if(rslt == retvOk) {
-        ID = NewID;
-        Printf("New ID: %u\r", ID);
-        return retvOk;
-    }
-    else {
-        Printf("EE error: %u\r", rslt);
-        return retvFail;
-    }
 }
 #endif

@@ -7,6 +7,10 @@
 
 #pragma once
 
-#define GREEN_AND_WHITE      TRUE
+#define CHNL_MIN    1
+#define CHNL_MAX    4
+
+
+#define GREEN_AND_WHITE      FALSE
 #define CHECK_PERIOD_S       4
 #define APPEAR_DURATION      9
