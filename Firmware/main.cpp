@@ -19,25 +19,12 @@ CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
-// EEAddresses
-#define EE_ADDR_DEVICE_ID   0
-
-int32_t ID;
-static uint8_t ISetID(int32_t NewID);
-void ReadIDfromEE();
-
-// ==== Periphery ====
-//Vibro_t VibroMotor {VIBRO_SETUP};
-#if BEEPER_ENABLED
-Beeper_t Beeper {BEEPER_PIN};
-#endif
-
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 // ==== Timers ====
-//static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
-//static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-//static int32_t TimeS;
+static TmrKL_t TmrEverySecond {TIME_MS2I(999), evtIdEverySecond, tktPeriodic};
+static uint32_t AppearTimeout = 0;
+static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
 #endif
 
 int main(void) {
@@ -53,50 +40,17 @@ int main(void) {
 
     // ==== Init hardware ====
     Uart.Init();
-    ReadIDfromEE();
-    Printf("\r%S %S; ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
-//    Uart.Printf("ID: %X %X %X\r", GetUniqID1(), GetUniqID2(), GetUniqID3());
-//    if(Sleep::WasInStandby()) {
-//        Uart.Printf("WasStandby\r");
-//        Sleep::ClearStandbyFlag();
-//    }
+    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
     Clk.PrintFreqs();
-//    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
-//    Led.SetupSeqEndEvt(chThdGetSelfX(), EVT_LED_SEQ_END);
-//    VibroMotor.Init();
-#if BEEPER_ENABLED // === Beeper ===
-    Beeper.Init();
-    Beeper.StartOrRestart(bsqBeepBeep);
-#endif
-#if BUTTONS_ENABLED
-    SimpleSensors::Init();
-#endif
-//    Adc.Init();
-
-#if PILL_ENABLED // === Pill ===
-    i2c1.Init();
-    PillMgr.Init();
-#endif
-
-    // Init clicker
-    rccEnableTIM2(FALSE);
-    TIM2->CR1 = TIM_CR1_OPM;
-    TIM2->ARR = 22;
-    TIM2->CCMR1 = (0b111 << 12);
-    TIM2->CCER = TIM_CCER_CC2E;
-    uint32_t tmp = TIM2->ARR * 1000;
-    tmp = Clk.APB1FreqHz / tmp;
-    if(tmp != 0) tmp--;
-    TIM2->PSC = (uint16_t)tmp;
-    TIM2->CCR2 = 20;
-    PinSetupAlterFunc(GPIOB, 3, omPushPull, pudNone, AF1);
 
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
     chThdSleepMilliseconds(1008);
+
+    TmrEverySecond.StartOrRestart();
 
     // Main cycle
     ITask();
@@ -108,46 +62,15 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-                break;
-
-            case evtIdDamagePkt:
-                TMR_ENABLE(TIM2);
-                Led.StartOrRestart(lsqBlinkR);
-                break;
-
-#if BUTTONS_ENABLED
-            case evtIdButtons:
-//                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID);
-                if(Msg.BtnEvtInfo.Type == beShortPress) {
-                    SendEventSM(BUTTON_PRESSED_SIG, 0, 0);
+                Printf("Second\r");
+                if(AppearTimeout > 0) {
+                    AppearTimeout--;
+                    if(AppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
                 }
-                else if(Msg.BtnEvtInfo.Type == beLongCombo and Msg.BtnEvtInfo.BtnCnt == 3) {
-                    Printf("Combo\r");
-                    SendEventSM(BUTTON_LONG_PRESSED_SIG, 0, 0);
-                }
-                break;
-#endif
 
-#if PILL_ENABLED // ==== Pill ====
-            case evtIdPillConnected:
-                Printf("Pill: %u\r", PillMgr.Pill.DWord32);
-                switch(PillMgr.Pill.DWord32) {
-                    case 0: SendEventSM(PILL_RESET_SIG, 0, 0); break;
-                    case 1: SendEventSM(PILL_MUTANT_SIG, 0, 0); break;
-                    case 2: SendEventSM(PILL_IMMUNE_SIG, 0, 0); break;
-                    case 3: SendEventSM(PILL_HP_DOUBLE_SIG, 0, 0); break;
-                    case 4: SendEventSM(PILL_HEAL_SIG, 0, 0); break;
-                    case 5: SendEventSM(PILL_SURGE_SIG , 0, 0); break;
-                    default: break;
-                }
-                break;
 
-            case evtIdPillDisconnected:
-                Printf("Pill disconn\r");
-                SendEventSM(PILL_REMOVED_SIG, 0, 0);
-//                Led.StartOrRestart(lsqNoPill);
+
                 break;
-#endif
 
             case evtIdShellCmd:
                 OnCmd((Shell_t*)Msg.Ptr);

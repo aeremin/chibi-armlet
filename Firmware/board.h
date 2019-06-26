@@ -9,7 +9,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "Master"
+#define APP_NAME            "MagicPath"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE

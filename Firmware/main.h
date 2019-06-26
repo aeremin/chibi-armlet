@@ -7,8 +7,6 @@
 
 #pragma once
 
-#define ID_MIN                  1
-#define ID_MAX                  15
-#define ID_DEFAULT              ID_MIN
-extern int32_t ID;
-
+#define GREEN_AND_WHITE      TRUE
+#define CHECK_PERIOD_S       4
+#define APPEAR_DURATION      9
