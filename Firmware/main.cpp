@@ -11,7 +11,7 @@
 #include "MsgQ.h"
 #include "main.h"
 
-#define STATE_MACHINE_EN    FALSE
+#define STATE_MACHINE_EN    TRUE
 
 #if STATE_MACHINE_EN
 #include "qhsm.h"
@@ -36,8 +36,10 @@ static void OnCmd(Shell_t *PShell);
 
 #if STATE_MACHINE_EN
 void InitSM();
-void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value);
-static mHoSQEvt e;
+void SendEventSMPill(int QSig, unsigned int SrcID, unsigned int Value);
+void SendEventSMPlayer(int QSig, unsigned int SrcID, unsigned int Value);
+static oregonPlayerQEvt ePlayer;
+static oregonPillQEvt ePill;
 #endif
 
 int32_t ID;
@@ -57,7 +59,7 @@ LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 // ==== Timers ====
 static TmrKL_t TmrEverySecond {TIME_MS2I(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-static void CheckRxData();
+uint32_t TimeS = 0;
 #endif
 
 int main(void) {
@@ -120,16 +122,26 @@ void ITask() {
         switch(Msg.ID) {
             case evtIdEverySecond:
                 PillMgr.Check();
+                TimeS++;
 #if STATE_MACHINE_EN
-                SendEventSM(TIME_TICK_1S_SIG, 0, 0);
+                SendEventSMPlayer(TIME_TICK_1S_SIG, 0, 0);
+                SendEventSMPill(TIME_TICK_1S_SIG, 0, 0);
+                if((TimeS % 10) == 0) {
+                    SendEventSMPlayer(TIME_TICK_10S_SIG, 0, 0);
+                }
+                if((TimeS % 60) == 0) {
+                    SendEventSMPlayer(TIME_TICK_1M_SIG, 0, 0);
+                    SendEventSMPill(TIME_TICK_1M_SIG, 0, 0);
+                }
 #endif
-                CheckRxData();
-                break;
-
-            case evtIdDamagePkt:
+                // Check RX data
+                for(int32_t i=0; i<LUSTRA_CNT; i++) {
+                    if(Radio.RxData[i].ProcessAndCheck()) {
 #if STATE_MACHINE_EN
-                SendEventSM(DAMAGE_RECEIVED_SIG, Msg.Value, 1);
+                        SendEventSMPlayer(RAD_RCVD_SIG, (i+LUSTRA_MIN_ID), Radio.RxData[i].Dmg);
 #endif
+                    }
+                }
                 break;
 
 #if BUTTONS_ENABLED
@@ -149,13 +161,17 @@ void ITask() {
             case evtIdPillConnected:
                 Printf("Pill: %u\r", PillMgr.Pill.DWord32);
 #if STATE_MACHINE_EN
+                SendEventSMPill(PILL_ANY_SIG, 0, 0);
                 switch(PillMgr.Pill.DWord32) {
-                    case 0: SendEventSM(PILL_RESET_SIG, 0, 0); break;
-                    case 1: SendEventSM(PILL_MUTANT_SIG, 0, 0); break;
-                    case 2: SendEventSM(PILL_IMMUNE_SIG, 0, 0); break;
-                    case 3: SendEventSM(PILL_HP_DOUBLE_SIG, 0, 0); break;
-                    case 4: SendEventSM(PILL_HEAL_SIG, 0, 0); break;
-                    case 5: SendEventSM(PILL_SURGE_SIG , 0, 0); break;
+                    case 0: SendEventSMPill(PILL_RESET_SIG, 0, 0); break;
+                    case 1: SendEventSMPill(PILL_ANTIRAD_SIG, 0, 0); break;
+                    case 2: SendEventSMPill(PILL_RADX_SIG, 0, 0); break;
+                    case 3: SendEventSMPill(PILL_HEAL_SIG, 0, 0); break;
+                    case 4: SendEventSMPill(PILL_HEALSTATION_SIG, 0, 0); break;
+                    case 5: SendEventSMPill(PILL_BLESS_SIG, 0, 0); break;
+                    case 6: SendEventSMPill(PILL_CURSE_SIG, 0, 0); break;
+                    case 7: SendEventSMPill(PILL_GHOUL_SIG, 0, 0); break;
+                    case 8: SendEventSMPill(PILL_TEST_SIG, 0, 0); break;
                     default: break;
                 }
 #endif
@@ -164,7 +180,7 @@ void ITask() {
             case evtIdPillDisconnected:
                 Printf("Pill disconn\r");
 #if STATE_MACHINE_EN
-                SendEventSM(PILL_REMOVED_SIG, 0, 0);
+                SendEventSMPill(PILL_REMOVED_SIG, 0, 0);
 #endif
                 break;
 #endif
@@ -177,14 +193,6 @@ void ITask() {
         } // Switch
     } // while true
 } // ITask()
-
-void CheckRxData() {
-    for(int i=0; i<LUSTRA_CNT; i++) {
-        if(Radio.RxData[i].ProcessAndCheck()) {
-            EvtQMain.SendNowOrExit(EvtMsg_t(evtIdDamagePkt, i+LUSTRA_MIN_ID));
-        }
-    }
-}
 
 #if 1 // ==== Glue functions ====
 extern "C" {
@@ -280,14 +288,21 @@ void InitSM() {
     QMSM_INIT(the_mHoS, (QEvt *)0);
 }
 
-void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value) {
-    e.super.sig = QSig;
-    e.id = SrcID;
-    e.value = Value;
-    Printf("e Sig: %d; id: %d; value: %d\r", e.super.sig, e.id, e.value);
-    QMSM_DISPATCH(the_mHoS, &(e.super));
+void SendEventSMPlayer(int QSig, unsigned int SrcID, unsigned int Value) {
+    ePlayer.super.sig = QSig;
+    ePlayer.id = SrcID;
+    ePlayer.value = Value;
+    Printf("ePlayer Sig: %d; id: %d; value: %d\r", ePlayer.super.sig, ePlayer.id, ePlayer.value);
+    QMSM_DISPATCH(the_oregonPlayer, &(ePlayer.super));
 }
 
+void SendEventSMPill(int QSig, unsigned int SrcID, unsigned int Value) {
+    ePill.super.sig = QSig;
+    ePill.id = SrcID;
+    ePill.value = Value;
+    Printf("ePill Sig: %d; id: %d; value: %d\r", ePill.super.sig, ePill.id, ePill.value);
+    QMSM_DISPATCH(the_oregonPill, &(ePill.super));
+}
 #endif
 
 #if 1 // ================= Command processing ====================

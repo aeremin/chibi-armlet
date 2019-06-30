@@ -175,6 +175,7 @@ public:
     int32_t Cnt;
     int32_t Summ;
     int32_t Threshold;
+    int32_t Dmg;
     bool ProcessAndCheck() {
         bool Rslt = false;
         if(Cnt >= 3L) {

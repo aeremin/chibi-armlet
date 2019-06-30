@@ -53,6 +53,7 @@ static void rLvl1Thread(void *arg) {
                 Radio.RxData[Indx].Cnt++;
                 Radio.RxData[Indx].Summ += Rssi;
                 Radio.RxData[Indx].Threshold = RxPkt.RssiThr;
+                Radio.RxData[Indx].Dmg = RxPkt.Value;
             }
         }
     } // while true
