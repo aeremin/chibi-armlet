@@ -11,9 +11,9 @@
 #include "MsgQ.h"
 #include "main.h"
 // SM
-#include "qhsm.h"
-#include "eventHandlers.h"
-#include "mHoS.h"
+//#include "qhsm.h"
+//#include "eventHandlers.h"
+//#include "mHoS.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -30,9 +30,9 @@ static void OnCmd(Shell_t *PShell);
 #define EE_ADDR_HP          2052
 #define EE_ADDR_MAX_HP      2056
 #define EE_ADDR_DEFAULT_HP  2060
-void InitSM();
-void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value);
-static mHoSQEvt e;
+//void InitSM();
+//void SendEventSM(int QSig, unsigned int SrcID, unsigned int Value);
+//static mHoSQEvt e;
 
 int32_t ID;
 static uint8_t ISetID(int32_t NewID);
@@ -93,7 +93,7 @@ int main(void) {
     VibroMotor.StartOrRestart(vsqBrrBrr);
     chThdSleepMilliseconds(1008);
 
-    InitSM();
+//    InitSM();
 
     // Main cycle
     ITask();
@@ -106,13 +106,13 @@ void ITask() {
         switch(Msg.ID) {
             case evtIdEverySecond:
                 PillMgr.Check();
-                SendEventSM(TIME_TICK_1S_SIG, 0, 0);
+//                SendEventSM(TIME_TICK_1S_SIG, 0, 0);
                 CheckRxData();
                 break;
 
-            case evtIdDamagePkt: SendEventSM(DAMAGE_RECEIVED_SIG, Msg.Value, 1); break;
-            case evtIdDeathPkt:  SendEventSM(KILL_SIGNAL_RECEIVED_SIG, 0, 0);    break;
-            case evtIdUpdateHP:  SendEventSM(UPDATE_HP_SIG, 0, Msg.Value);       break;
+//            case evtIdDamagePkt: SendEventSM(DAMAGE_RECEIVED_SIG, Msg.Value, 1); break;
+//            case evtIdDeathPkt:  SendEventSM(KILL_SIGNAL_RECEIVED_SIG, 0, 0);    break;
+//            case evtIdUpdateHP:  SendEventSM(UPDATE_HP_SIG, 0, Msg.Value);       break;
 
 #if BUTTONS_ENABLED
             case evtIdButtons:
@@ -130,20 +130,20 @@ void ITask() {
 #if PILL_ENABLED // ==== Pill ====
             case evtIdPillConnected:
                 Printf("Pill: %u\r", PillMgr.Pill.DWord32);
-                switch(PillMgr.Pill.DWord32) {
-                    case 0: SendEventSM(PILL_RESET_SIG, 0, 0); break;
-                    case 1: SendEventSM(PILL_MUTANT_SIG, 0, 0); break;
-                    case 2: SendEventSM(PILL_IMMUNE_SIG, 0, 0); break;
-                    case 3: SendEventSM(PILL_HP_DOUBLE_SIG, 0, 0); break;
-                    case 4: SendEventSM(PILL_HEAL_SIG, 0, 0); break;
-                    case 5: SendEventSM(PILL_SURGE_SIG , 0, 0); break;
-                    default: break;
-                }
+//                switch(PillMgr.Pill.DWord32) {
+//                    case 0: SendEventSM(PILL_RESET_SIG, 0, 0); break;
+//                    case 1: SendEventSM(PILL_MUTANT_SIG, 0, 0); break;
+//                    case 2: SendEventSM(PILL_IMMUNE_SIG, 0, 0); break;
+//                    case 3: SendEventSM(PILL_HP_DOUBLE_SIG, 0, 0); break;
+//                    case 4: SendEventSM(PILL_HEAL_SIG, 0, 0); break;
+//                    case 5: SendEventSM(PILL_SURGE_SIG , 0, 0); break;
+//                    default: break;
+//                }
                 break;
 
             case evtIdPillDisconnected:
                 Printf("Pill disconn\r");
-                SendEventSM(PILL_REMOVED_SIG, 0, 0);
+//                SendEventSM(PILL_REMOVED_SIG, 0, 0);
                 break;
 #endif
 
@@ -164,7 +164,7 @@ void CheckRxData() {
     }
 }
 
-#if 1 // ======================== State Machines ===============================
+#if 0 // ======================== State Machines ===============================
 extern "C" {
 void SaveHP(uint32_t HP) {
     if(EE::Write32(EE_ADDR_HP, HP) != retvOk) Printf("Saving HP fail\r");
@@ -287,9 +287,9 @@ void OnCmd(Shell_t *PShell) {
     }
 
     else if(PCmd->NameIs("Rst")) {
-        SaveHP(20);
-        SaveMaxHP(20);
-        SaveDefaultHP(20);
+//        SaveHP(20);
+//        SaveMaxHP(20);
+//        SaveDefaultHP(20);
         PShell->Ack(retvOk);
     }
 
