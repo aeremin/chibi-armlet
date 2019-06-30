@@ -35,12 +35,12 @@ static const uint8_t PwrTable[12] = {
 
 int32_t ID = 1;
 int32_t RssiThr = -99;
-uint8_t PwrLvlId = 7; // 0dBm
+uint16_t Damage = 1;
 
 // EEAddresses
 #define EE_ADDR_ID          0
 #define EE_ADDR_THRESHOLD   4
-#define EE_ADDR_PWR_LVL_ID  8
+#define EE_ADDR_DAMAGE      8
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 Beeper_t Beeper {BEEPER_PIN};
@@ -52,7 +52,7 @@ void OnCmd(Cmd_t *PCmd);
 void ReadParams();
 uint8_t SetID(int32_t NewID);
 uint8_t SetThr(int32_t NewThr);
-uint8_t SetPwr(uint32_t NewPwrId);
+uint8_t SetDmg(uint32_t NewDmg);
 #endif
 
 int main(void) {
@@ -66,17 +66,16 @@ int main(void) {
     chSysInit();
 
     // ==== Init Hard & Soft ====
-    PinSetupOut(GPIOC, 15, omPushPull);
+    PinSetupOut(GPIOC, 15, omPushPull); // To measure total ON time
     PinSetHi(GPIOC, 15);
-    PinSetupOut(GPIOC, 14, omPushPull);
+    PinSetupOut(GPIOC, 14, omPushPull); // To measure TX time
     Uart.Init();
-    SetID(ID);
     ReadParams();
 
     if(!Sleep::WasInStandby()) {
         Led.Init();
         Led.StartOrRestart(lsqStart0);
-        Printf("\r%S %S\rID=%u; Thr=%d; Pwr=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID, RssiThr, PwrLvlId);
+        Printf("\r%S %S\rID=%u; Thr=%d; Dmg=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID, RssiThr, Damage);
         Clk.PrintFreqs();
         for(int i=0; i<27; i++) {
             chThdSleepMilliseconds(99);
@@ -100,7 +99,7 @@ int main(void) {
             Iwdg::Reload();
         }
         // Setup CC
-        CC.SetTxPower(PwrTable[PwrLvlId]);
+        CC.SetTxPower(CC_PwrPlus5dBm);
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(0);
         // Transmit
@@ -108,7 +107,7 @@ int main(void) {
         Pkt.From = ID;
         Pkt.To = 0; // to everyone
         Pkt.RssiThr = RssiThr;
-        Pkt.Value = PwrLvlId;
+        Pkt.Value = Damage;
         PinSetHi(GPIOC, 14);
         CC.Recalibrate();
         CC.Transmit(&Pkt, RPKT_LEN);
@@ -128,7 +127,7 @@ int main(void) {
                 }
                 else {
                     SetThr(Pkt.RssiThr);
-                    SetPwr(Pkt.Value);
+                    SetDmg(Pkt.Value);
                 }
             }
         }
@@ -182,11 +181,10 @@ void OnCmd(Cmd_t *PCmd) {
         Ack(SetThr(NewThr));
     }
 
-    else if(PCmd->NameIs("SetPwr")) {
-        uint32_t NewPwr;
-        if(PCmd->GetNext<uint32_t>(&NewPwr) != retvOk) { Ack(retvCmdError); return; }
-        if(NewPwr > 11) NewPwr = 11;
-        Ack(SetPwr(NewPwr));
+    else if(PCmd->NameIs("SetDmg")) {
+        uint32_t NewDmg;
+        if(PCmd->GetNext<uint32_t>(&NewDmg) != retvOk) { Ack(retvCmdError); return; }
+        Ack(SetDmg(NewDmg));
     }
 
     else if(PCmd->NameIs("Set")) {
@@ -194,10 +192,9 @@ void OnCmd(Cmd_t *PCmd) {
         if(PCmd->GetNext<int32_t>(&NewID) != retvOk) { Ack(retvCmdError); return; }
         int32_t NewThr;
         if(PCmd->GetNext<int32_t>(&NewThr) != retvOk) { Ack(retvCmdError); return; }
-        uint32_t NewPwr;
-        if(PCmd->GetNext<uint32_t>(&NewPwr) != retvOk) { Ack(retvCmdError); return; }
-        if(NewPwr > 11) NewPwr = 11;
-        Printf("Ack %u %u %u\r\n", SetID(NewID), SetThr(NewThr), SetPwr(NewPwr));
+        uint32_t NewDmg;
+        if(PCmd->GetNext<uint32_t>(&NewDmg) != retvOk) { Ack(retvCmdError); return; }
+        Printf("Ack %u %u %u\r\n", SetID(NewID), SetThr(NewThr), SetDmg(NewDmg));
     }
 }
 #endif
@@ -206,8 +203,7 @@ void OnCmd(Cmd_t *PCmd) {
 void ReadParams() {
     ID = EE::Read32(EE_ADDR_ID);
     RssiThr = EE::Read32(EE_ADDR_THRESHOLD);
-    PwrLvlId = EE::Read32(EE_ADDR_PWR_LVL_ID);
-    if(PwrLvlId > 11) PwrLvlId = 11;
+    Damage = EE::Read32(EE_ADDR_DAMAGE);
 }
 
 uint8_t SetID(int32_t NewID) {
@@ -234,10 +230,10 @@ uint8_t SetThr(int32_t NewThr) {
     }
 }
 
-uint8_t SetPwr(uint32_t NewPwrId) {
-    uint8_t rslt = EE::Write32(EE_ADDR_PWR_LVL_ID, NewPwrId);
+uint8_t SetDmg(uint32_t NewDmg) {
+    uint8_t rslt = EE::Write32(EE_ADDR_DAMAGE, NewDmg);
     if(rslt == retvOk) {
-        PwrLvlId = NewPwrId;
+        Damage = NewDmg;
         return retvOk;
     }
     else {

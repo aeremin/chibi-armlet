@@ -9,7 +9,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Fallout"
-#define APP_NAME            "HeartOfStorm"
+#define APP_NAME            "OregonLustra"
 
 // ==== High-level peripery control ====
 #define PILL_ENABLED        FALSE
