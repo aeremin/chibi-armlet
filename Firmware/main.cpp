@@ -16,7 +16,7 @@
 #if STATE_MACHINE_EN
 #include "qhsm.h"
 #include "eventHandlers.h"
-#include "mHoS.h"
+#include "oregonPill.h"
 #endif
 
 #if 1 // ======================== Variables and defines ========================
@@ -165,7 +165,7 @@ void ITask() {
                 switch(PillMgr.Pill.DWord32) {
                     case 0: SendEventSMPill(PILL_RESET_SIG, 0, 0); break;
                     case 1: SendEventSMPill(PILL_ANTIRAD_SIG, 0, 0); break;
-                    case 2: SendEventSMPill(PILL_RADX_SIG, 0, 0); break;
+                    case 2: SendEventSMPill(PILL_RAD_X_SIG, 0, 0); break;
                     case 3: SendEventSMPill(PILL_HEAL_SIG, 0, 0); break;
                     case 4: SendEventSMPill(PILL_HEALSTATION_SIG, 0, 0); break;
                     case 5: SendEventSMPill(PILL_BLESS_SIG, 0, 0); break;
@@ -195,7 +195,6 @@ void ITask() {
 } // ITask()
 
 #if 1 // ==== Glue functions ====
-extern "C" {
 void SaveState(uint32_t AState) {
     if(EE::Write32(EE_ADDR_STATE, AState) != retvOk) Printf("Saving State fail\r");
 }
@@ -261,46 +260,32 @@ void ClearPill() {
     uint32_t DWord32 = THE_WORD;
     if(PillMgr.Write(0, &DWord32, 4) != retvOk) Printf("ClearPill fail\r");
 }
-
-} // extern C
 #endif
 
 #if STATE_MACHINE_EN // ======================== State Machines ===============================
 void InitSM() {
     // Load saved data
     uint32_t HP = EE::Read32(EE_ADDR_HP);
-    uint32_t MaxHP = EE::Read32(EE_ADDR_MAX_HP);
-    uint32_t DefaultHP = EE::Read32(EE_ADDR_DEFAULT_HP);
     uint32_t State = EE::Read32(EE_ADDR_STATE);
-    Printf("Saved: HP=%d MaxHP=%d DefaultHP=%d State=%d\r", HP, MaxHP, DefaultHP, State);
+    uint32_t TmrAgony = EE::Read32(EE_ADDR_AGONY);
+//    Printf("Saved: HP=%d MaxHP=%d DefaultHP=%d State=%d\r", HP, MaxHP, DefaultHP, State);
     // Check if params are bad
-    if(HP == 0 and DefaultHP == 0 and MaxHP == 0) { // Empty EE
-        HP = 20;
-        MaxHP = 20;
-        DefaultHP = 20;
-        State = SIMPLE;
-        SaveHP(HP);
-        SaveMaxHP(MaxHP);
-        SaveDefaultHP(DefaultHP);
-    }
-    // Init
-    MHoS_ctor(HP, MaxHP, DefaultHP, State);
-    QMSM_INIT(the_mHoS, (QEvt *)0);
+    OregonPlayer_ctor(HP, State, TmrAgony);
+    QMSM_INIT(the_oregonPlayer, (QEvt *)0);
+    OregonPill_ctor(the_oregonPlayer);
+    QMSM_INIT(the_oregonPill, (QEvt *)0);
 }
 
 void SendEventSMPlayer(int QSig, unsigned int SrcID, unsigned int Value) {
     ePlayer.super.sig = QSig;
-    ePlayer.id = SrcID;
     ePlayer.value = Value;
-    Printf("ePlayer Sig: %d; id: %d; value: %d\r", ePlayer.super.sig, ePlayer.id, ePlayer.value);
+    Printf("ePlayer Sig: %d; value: %d\r", ePlayer.super.sig, ePlayer.value);
     QMSM_DISPATCH(the_oregonPlayer, &(ePlayer.super));
 }
 
 void SendEventSMPill(int QSig, unsigned int SrcID, unsigned int Value) {
     ePill.super.sig = QSig;
-    ePill.id = SrcID;
-    ePill.value = Value;
-    Printf("ePill Sig: %d; id: %d; value: %d\r", ePill.super.sig, ePill.id, ePill.value);
+    Printf("ePill Sig: %d\r", ePill.super.sig);
     QMSM_DISPATCH(the_oregonPill, &(ePill.super));
 }
 #endif
@@ -329,9 +314,7 @@ void OnCmd(Shell_t *PShell) {
     }
 
     else if(PCmd->NameIs("Rst")) {
-//        SaveHP(20);
-//        SaveMaxHP(20);
-//        SaveDefaultHP(20);
+        SendEventSMPill(PILL_RESET_SIG, 0, 0);
         PShell->Ack(retvOk);
     }
 
