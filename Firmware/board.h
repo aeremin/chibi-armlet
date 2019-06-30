@@ -14,6 +14,7 @@
 // ==== High-level peripery control ====
 #define PILL_ENABLED        TRUE
 #define BEEPER_ENABLED      TRUE
+#define VIBRO_ENABLED       FALSE
 
 // MCU type as defined in the ST header.
 #define STM32L151xB

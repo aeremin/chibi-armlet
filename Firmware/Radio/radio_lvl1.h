@@ -60,7 +60,7 @@ struct rPkt_t {
     uint16_t From;
     uint16_t To;
     int8_t RssiThr;
-    uint8_t Value;
+    uint16_t Value;
 } __attribute__ ((__packed__));
 #endif
 
@@ -187,7 +187,7 @@ public:
     }
 };
 
-#define LUSTRA_CNT      50
+#define LUSTRA_CNT      100
 #define LUSTRA_MIN_ID   1000
 #define LUSTRA_MAX_ID   (LUSTRA_MIN_ID + LUSTRA_CNT - 1)
 
