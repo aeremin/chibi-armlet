@@ -21,6 +21,7 @@
 #include "glue.h"
 
 
+
 #include <stdint.h>
 
 //Q_DEFINE_THIS_FILE
@@ -160,12 +161,7 @@ static QState OregonPlayer_active(OregonPlayer * const me, QEvt const * const e)
 static QState OregonPlayer_alive(OregonPlayer * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
-        /* ${SMs::OregonPlayer::SM::global::active::alive} */
-        case Q_ENTRY_SIG: {
-            \
-            status_ = Q_HANDLED();
-            break;
-        }
+
         /* ${SMs::OregonPlayer::SM::global::active::alive::PILL_GHOUL} */
         case PILL_GHOUL_SIG: {
             status_ = Q_TRAN(&OregonPlayer_ghoul_good);
@@ -184,7 +180,7 @@ static QState OregonPlayer_immune(OregonPlayer * const me, QEvt const * const e)
     switch (e->sig) {
         /* ${SMs::OregonPlayer::SM::global::active::alive::immune} */
         case Q_ENTRY_SIG: {
-            BeepForPeriod(LONG_BEEP_MS);
+            BeepForPeriod(MEDIUM_BEEP_MS);
             status_ = Q_HANDLED();
             break;
         }
@@ -252,7 +248,7 @@ static QState OregonPlayer_healthy(OregonPlayer * const me, QEvt const * const e
         /* ${SMs::OregonPlayer::SM::global::active::alive::healthy} */
         case Q_ENTRY_SIG: {
             SaveState(HEALTHY);
-                BeepForPeriod(LONG_BEEP_MS);
+                BeepForPeriod(MEDIUM_BEEP_MS);
             status_ = Q_HANDLED();
             break;
         }
@@ -373,7 +369,7 @@ static QState OregonPlayer_ghoul_good(OregonPlayer * const me, QEvt const * cons
         /* ${SMs::OregonPlayer::SM::global::active::ghoul::good} */
         case Q_ENTRY_SIG: {
             SaveState(GHOUL_GOOD);
-                BeepForPeriod(LONG_BEEP_MS);
+                BeepForPeriod(MEDIUM_BEEP_MS);
                 UpdateHP(me, GHOUL_HP);
             status_ = Q_HANDLED();
             break;
@@ -397,7 +393,6 @@ static QState OregonPlayer_ghoul_healing(OregonPlayer * const me, QEvt const * c
         /* ${SMs::OregonPlayer::SM::global::active::ghoul::healing} */
         case Q_ENTRY_SIG: {
             SaveState(GHOUL_HEALING);
-            BeepForPeriod(LONG_BEEP_MS);
             status_ = Q_HANDLED();
             break;
         }
