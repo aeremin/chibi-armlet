@@ -456,14 +456,14 @@ static QState OregonPlayer_dead(OregonPlayer * const me, QEvt const * const e) {
             SaveState(DEAD);
                 BeepForPeriod(LONG_BEEP_MS);
                 UpdateHP(me, 0);
-                Flash(255, 0, 0, 1000);
+                Flash(255, 0, 0, FLASH_1M);
             status_ = Q_HANDLED();
             break;
         }
         /* ${SMs::OregonPlayer::SM::global::active::dead::TIME_TICK_1M} */
         case TIME_TICK_1M_SIG: {
             BeepForPeriod(SHORT_BEEP_MS);
-                Flash(255, 0, 0, 1000);
+                Flash(255, 0, 0, FLASH_1M);
             status_ = Q_HANDLED();
             break;
         }
