@@ -6,6 +6,11 @@
 #include "oregonPlayer.h"
 #include <stdbool.h>
 
+#define RED 255
+#define RED_MEDIUM 127
+#define GREEN_MEDIUM 127
+#define BLUE_MEDIUM 127
+
 
 //logic functions
 void UpdateHP(OregonPlayer* me, unsigned int HP);

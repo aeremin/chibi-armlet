@@ -52,11 +52,11 @@ void Reset(OregonPlayer* me) {
 //}
 
 void ShowCurrentHealth (OregonPlayer* me) {
-     Flash(255 - me->CharHP*255/DEFAULT_HP, me->CharHP*255/DEFAULT_HP, 0, FLASH_MS);
+     Flash(RED_MEDIUM - me->CharHP*RED_MEDIUM/DEFAULT_HP, me->CharHP*RED_MEDIUM/DEFAULT_HP, 0, FLASH_MS);
 }
 
 void ShowCurrentHealthGhoul (OregonPlayer* me) {
-     Flash(255 - me->CharHP*255/(GHOUL_HP), 0, me->CharHP*255/(GHOUL_HP), FLASH_MS);
+     Flash(RED_MEDIUM - me->CharHP*RED_MEDIUM/(GHOUL_HP), 0, me->CharHP*RED_MEDIUM/(GHOUL_HP), FLASH_MS);
 }
 
 //only a stub
@@ -69,6 +69,6 @@ void ShowCurrentHealthGhoul (OregonPlayer* me) {
 //}
 
 void PillIndicate(void) {
-	Flash(255, 255, 255, FLASH_MS);
-	BeepForPeriod(300);
+	Flash(RED_MEDIUM, GREEN_MEDIUM, BLUE_MEDIUM, FLASH_MS);
+	BeepForPeriod(SHORT_BEEP_MS);
 }

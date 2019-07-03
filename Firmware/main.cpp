@@ -183,9 +183,10 @@ void ITask() {
                 Printf("Pill disconn\r");
 #if STATE_MACHINE_EN
                 if (PillId == 7) {
-                	SendEventSMPill(PILL_GHOUL_REMOVED_SIG, 0, 0)
+                	SendEventSMPill(PILL_GHOUL_REMOVED_SIG, 0, 0);
+                } else {
+                    SendEventSMPill(PILL_REMOVED_SIG, 0, 0);
                 }
-                SendEventSMPill(PILL_REMOVED_SIG, 0, 0);
 #endif
                 break;
 #endif

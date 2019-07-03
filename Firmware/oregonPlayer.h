@@ -29,13 +29,12 @@ extern "C" {
 #define GHOUL_WOUNDED 4
 #define GHOUL_HEALING 5
 #define BLESSED 6
-#define FLASH_MS 300
+#define FLASH_MS 200
 #define FLASH_1M 60100
-#define TIMEOUT_AGONY_S 600
-#define TIMEOUT_DEATH_S 15
-#define TIMEOUT_RADX_S 900
-#define LONG_BEEP_MS 15000
-#define MEDIUM_BEEP_MS 3000
+#define FLASH_SEC 1010
+#define TIMEOUT_AGONY_S 60  //must be 600
+#define LONG_BEEP_MS 10000
+#define MEDIUM_BEEP_MS 1500
 #define SHORT_BEEP_MS 300
 #define DEFAULT_HP 27000
 #define GHOUL_HP (DEFAULT_HP/3)
