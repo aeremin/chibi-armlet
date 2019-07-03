@@ -56,7 +56,7 @@ void ShowCurrentHealth (OregonPlayer* me) {
 }
 
 void ShowCurrentHealthGhoul (OregonPlayer* me) {
-     Flash(255 - me->CharHP*255/DEFAULT_HP, me->CharHP*255/DEFAULT_HP, 0, FLASH_MS);
+     Flash(255 - me->CharHP*255/(GHOUL_HP), 0, me->CharHP*255/(GHOUL_HP), FLASH_MS);
 }
 
 //only a stub

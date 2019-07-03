@@ -49,7 +49,7 @@ typedef struct {
 extern QHsm * const the_oregonPill; /* opaque pointer to the oregonPill HSM */
 
 /*${SMs::OregonPill_ctor} ..................................................*/
-void OregonPill_ctor(QHsm* Player);
+void OregonPill_ctor();
 
 #ifdef __cplusplus
 }

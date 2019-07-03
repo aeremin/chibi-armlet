@@ -111,11 +111,22 @@ static QState OregonPill_active(OregonPill * const me, QEvt const * const e) {
         }
         /* ${SMs::OregonPill::SM::global::active::PILL_REMOVED} */
         case PILL_REMOVED_SIG: {
+			PASS_EVENT_TO(the_oregonPlayer);
+            status_ = Q_TRAN(&OregonPill_idle);
+            break;
+        }
+        case PILL_GHOUL_REMOVED_SIG: {
+        	PASS_EVENT_TO(the_oregonPlayer);
             status_ = Q_TRAN(&OregonPill_idle);
             break;
         }
         /* ${SMs::OregonPill::SM::global::active::PILL_RESET} */
         case PILL_RESET_SIG: {
+            PASS_EVENT_TO(the_oregonPlayer);
+            status_ = Q_TRAN(&OregonPill_idle);
+            break;
+        }
+        case PILL_TEST_SIG: {
             PASS_EVENT_TO(the_oregonPlayer);
             status_ = Q_TRAN(&OregonPill_idle);
             break;
@@ -315,6 +326,7 @@ static QState OregonPill_wait_heal(OregonPill * const me, QEvt const * const e) 
         		status_ = Q_HANDLED();
         	}
         	break;
+		}
         /* ${SMs::OregonPill::SM::global::active::wait_heal} */
         case Q_EXIT_SIG: {
             status_ = Q_HANDLED();

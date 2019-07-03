@@ -162,6 +162,8 @@ void ITask() {
                 Printf("Pill: %u\r", PillMgr.Pill.DWord32);
 #if STATE_MACHINE_EN
                 SendEventSMPill(PILL_ANY_SIG, 0, 0);
+                uint32_t PillId;
+                PillId = PillMgr.Pill.DWord32;
                 switch(PillMgr.Pill.DWord32) {
                     case 0: SendEventSMPill(PILL_RESET_SIG, 0, 0); break;
                     case 1: SendEventSMPill(PILL_ANTIRAD_SIG, 0, 0); break;
@@ -180,6 +182,9 @@ void ITask() {
             case evtIdPillDisconnected:
                 Printf("Pill disconn\r");
 #if STATE_MACHINE_EN
+                if (PillId == 7) {
+                	SendEventSMPill(PILL_GHOUL_REMOVED_SIG, 0, 0)
+                }
                 SendEventSMPill(PILL_REMOVED_SIG, 0, 0);
 #endif
                 break;
@@ -272,7 +277,7 @@ void InitSM() {
     // Check if params are bad
     OregonPlayer_ctor(HP, State, TmrAgony);
     QMSM_INIT(the_oregonPlayer, (QEvt *)0);
-    OregonPill_ctor(the_oregonPlayer);
+    OregonPill_ctor();
     QMSM_INIT(the_oregonPill, (QEvt *)0);
 }
 

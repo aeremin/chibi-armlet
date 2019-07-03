@@ -375,7 +375,7 @@ static QState OregonPlayer_ghoul_good(OregonPlayer * const me, QEvt const * cons
             break;
         }
         /* ${SMs::OregonPlayer::SM::global::active::ghoul::good::PILL_REMOVED} */
-        case PILL_REMOVED_SIG: {
+        case PILL_GHOUL_REMOVED_SIG: {
             status_ = Q_TRAN(&OregonPlayer_ghoul_wounded);
             break;
         }
