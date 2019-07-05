@@ -60,7 +60,7 @@ struct rPkt_t {
     uint16_t From;
     uint16_t To;
     int8_t RssiThr;
-    uint8_t Value;
+    uint16_t Value;
 } __attribute__ ((__packed__));
 #endif
 

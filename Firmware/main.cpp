@@ -111,10 +111,12 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
+            	Printf("Tick-tack\n");
                 CheckRxData();
                 break;
 
             case evtIdDamagePkt:
+                Printf("Damage received\n");
                 TMR_ENABLE(TIM2);
                 Led.StartOrRestart(lsqBlinkR);
                 chThdSleepMilliseconds(72);

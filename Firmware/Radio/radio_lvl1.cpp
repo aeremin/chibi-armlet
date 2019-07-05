@@ -45,9 +45,10 @@ static void rLvl1Thread(void *arg) {
         rPkt_t RxPkt;
         CC.Recalibrate();
         uint8_t RxRslt = CC.Receive(360, &RxPkt, RPKT_LEN, &Rssi);
+        Printf("%u", RxRslt);
         if(RxRslt == retvOk) {
-//            Printf("Rssi=%d\r", Rssi);
-//            Printf("%u: Thr: %d; Pwr: %u; Rssi: %d\r", RxPkt.From, RxPkt.RssiThr, RxPkt.Value, Rssi);
+            Printf("Rssi=%d\r", Rssi);
+            Printf("%u: Thr: %d; Pwr: %u; Rssi: %d\r", RxPkt.From, RxPkt.RssiThr, RxPkt.Value, Rssi);
             // Damage pkt from lustra
             if(RxPkt.From >= LUSTRA_MIN_ID and RxPkt.From <= LUSTRA_MAX_ID) {
                 // Add to accumulator. Averaging is done in main thd
