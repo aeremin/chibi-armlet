@@ -22,8 +22,8 @@ extern "C" {
 #endif
 #include "qhsm.h"    /* include own framework tagunil version */
 
-#define TIMEOUT_RADX_S 60  //must be 900
-#define TIMEOUT_HEAL_S 60  //must be 300
+#define TIMEOUT_RADX_S 600
+#define TIMEOUT_HEAL_S 300
 #define TIMEOUT_ATOM_S 60
 
 typedef struct oregonPillQEvt {

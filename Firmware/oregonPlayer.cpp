@@ -139,6 +139,11 @@ static QState OregonPlayer_global(OregonPlayer * const me, QEvt const * const e)
 static QState OregonPlayer_active(OregonPlayer * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
+        case Q_ENTRY_SIG: {
+        	SetDefaultColor(0, 0, 0);
+        	status_ = Q_HANDLED();
+        	break;
+        }
         /* ${SMs::OregonPlayer::SM::global::active::PILL_RESET} */
         case PILL_RESET_SIG: {
             Reset(me);

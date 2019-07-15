@@ -32,10 +32,10 @@ extern "C" {
 #define FLASH_MS 200
 #define FLASH_1M 60100
 #define FLASH_SEC 1010
-#define TIMEOUT_AGONY_S 60  //must be 600
+#define TIMEOUT_AGONY_S 600
 #define LONG_BEEP_MS 10000
-#define MEDIUM_BEEP_MS 1500
-#define SHORT_BEEP_MS 300
+#define MEDIUM_BEEP_MS 200
+#define SHORT_BEEP_MS 200
 #define DEFAULT_HP 27000
 #define GHOUL_HP (DEFAULT_HP/3)
 

@@ -189,6 +189,10 @@ static QState OregonPill_radx(OregonPill * const me, QEvt const * const e) {
 static QState OregonPill_antirad(OregonPill * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
+        case TIME_TICK_1S_SIG: {
+           	status_ = Q_HANDLED();
+           	break;
+        }
         default: {
             status_ = Q_SUPER(&OregonPill_cast_rad_immune);
             break;
