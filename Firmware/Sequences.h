@@ -47,6 +47,31 @@ const LedRGBChunk_t lsqAppearGreen[] = {
         {csEnd}
 };
 
+const LedRGBChunk_t lsqAppearRed[] = {
+        {csSetup, 360, clRed},
+        {csEnd}
+};
+
+const LedRGBChunk_t lsqAppearBlue[] = {
+        {csSetup, 360, clBlue},
+        {csEnd}
+};
+
+const LedRGBChunk_t lsqAppearYellow[] = {
+        {csSetup, 360, clYellow},
+        {csEnd}
+};
+
+const LedRGBChunk_t lsqAppearMagenta[] = {
+        {csSetup, 360, clMagenta},
+        {csEnd}
+};
+
+const LedRGBChunk_t lsqAppearCyan[] = {
+        {csSetup, 360, clCyan},
+        {csEnd}
+};
+
 const LedRGBChunk_t lsqAppearWhite[] = {
         {csSetup, 360, clWhite},
         {csEnd}

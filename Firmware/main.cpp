@@ -76,20 +76,32 @@ void ITask() {
                         // Check table
                         if(Radio.RxTable.GetCount() > 0) {
                             Printf("Cnt=%u\r", Radio.RxTable.GetCount());
-#if GREEN_AND_WHITE
+// #if GREEN_AND_WHITE
                             // Presence of ID=2 means White is here
-                            if(Radio.RxTable.IDPresents(2)) {
-                                Led.StartOrRestart(lsqAppearWhite);
-                            }
-                            else Led.StartOrRestart(lsqAppearGreen);
-                            AppearTimeout = APPEAR_DURATION;
-#else
-                            // Presence of ID=1 means Green is here
+//                            if(Radio.RxTable.IDPresents(2)) {
+//                                Led.StartOrRestart(lsqAppearWhite);
+//                            }
+//                            else Led.StartOrRestart(lsqAppearGreen);
+//                            AppearTimeout = APPEAR_DURATION;
+//#else
+                            // Different IDs give different colours
                             if(Radio.RxTable.IDPresents(1)) {
                                 Led.StartOrRestart(lsqAppearGreen);
-                                AppearTimeout = APPEAR_DURATION;
+                            } else if (Radio.RxTable.IDPresents(2)) {
+                                Led.StartOrRestart(lsqAppearRed);
+                            } else if (Radio.RxTable.IDPresents(3)) {
+                                Led.StartOrRestart(lsqAppearBlue);
+                            } else if (Radio.RxTable.IDPresents(4)) {
+                                Led.StartOrRestart(lsqAppearYellow);
+                            } else if (Radio.RxTable.IDPresents(5)) {
+                                Led.StartOrRestart(lsqAppearMagenta);
+                            } else if (Radio.RxTable.IDPresents(6)) {
+                                Led.StartOrRestart(lsqAppearCyan);
+                            } else {
+                                Led.StartOrRestart(lsqAppearWhite);
                             }
-#endif
+                            AppearTimeout = APPEAR_DURATION;
+//#endif
                         }
                         Radio.RxTable.Clear();
                     }
