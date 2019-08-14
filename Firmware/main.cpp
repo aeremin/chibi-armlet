@@ -33,14 +33,20 @@ static const uint8_t PwrTable[12] = {
         CC_PwrPlus12dBm   // 11
 };
 
+rPkt_t PktTx, PktRx;
+
+#define MESH_PWR_LVL_ID     8   // 5 dBm
+
 int32_t ID = 1;
 int32_t RssiThr = -99;
 uint8_t PwrLvlId = 7; // 0dBm
+uint8_t Damage = 1;
 
 // EEAddresses
 #define EE_ADDR_ID          0
 #define EE_ADDR_THRESHOLD   4
 #define EE_ADDR_PWR_LVL_ID  8
+#define EE_ADDR_DAMAGE_ID   12
 
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 Beeper_t Beeper {BEEPER_PIN};
@@ -53,6 +59,9 @@ void ReadParams();
 uint8_t SetID(int32_t NewID);
 uint8_t SetThr(int32_t NewThr);
 uint8_t SetPwr(uint32_t NewPwrId);
+
+void MeshTask();
+void BeaconTask();
 #endif
 
 int main(void) {
@@ -70,7 +79,6 @@ int main(void) {
     PinSetHi(GPIOC, 15);
     PinSetupOut(GPIOC, 14, omPushPull);
     Uart.Init();
-    SetID(ID);
     ReadParams();
 
     if(!Sleep::WasInStandby()) {
@@ -92,71 +100,76 @@ int main(void) {
     }
 
     if(CC.Init() == retvOk) {
-        if(!Sleep::WasInStandby()) {
+        if(!Sleep::WasInStandby()) { // Show CC is ok
             Led.StartOrRestart(lsqStart);
             chThdSleepMilliseconds(126);
             Iwdg::Reload();
             chThdSleepMilliseconds(126);
             Iwdg::Reload();
         }
-        // Setup CC
-        CC.SetTxPower(PwrTable[PwrLvlId]);
+        // Common CC params
         CC.SetPktSize(RPKT_LEN);
         CC.SetChannel(0);
-        // Transmit
-        rPkt_t Pkt;
-        Pkt.From = ID;
-        Pkt.To = 0; // to everyone
-        Pkt.RssiThr = RssiThr;
-        Pkt.Value = PwrLvlId;
-        PinSetHi(GPIOC, 14);
-        CC.Recalibrate();
-        CC.Transmit(&Pkt, RPKT_LEN);
-        PinSetLo(GPIOC, 14);
+
         Iwdg::Reload();
-        // Receive
-        if(CC.Receive(4, &Pkt, RPKT_LEN) == retvOk) {
-//            Printf("%u: Thr: %d; Pwr: %u\r", Pkt.From, Pkt.RssiThr, Pkt.PowerLvlId);
-//            chThdSleepMilliseconds(9);
-            if(Pkt.From == 1 and Pkt.To == ID) { // From host to me
-                if(Pkt.RssiThr > 0) {
-                    Led.Init();
-                    Beeper.Init();
-                    Beeper.StartOrRestart(bsqSearch);
-                    Led.StartOrRestart(lsqSearch);
-                    chThdSleepMilliseconds(108);
-                }
-                else {
-                    SetThr(Pkt.RssiThr);
-                    SetPwr(Pkt.Value);
-                }
-            }
-        }
-        CC.EnterPwrDown();
+        MeshTask();
+        Iwdg::Reload();
+        BeaconTask();
+        Iwdg::Reload();
     }
-    else {
+    else { // CC failure
         Led.Init();
         Led.StartOrRestart(lsqFailure);
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
-        chThdSleepMilliseconds(126);
-        Iwdg::Reload();
+        for(int i=0; i<11; i++) {
+            Iwdg::Reload();
+            chThdSleepMilliseconds(126);
+        }
     }
 
+    // Enter sleep
+    CC.EnterPwrDown();
     chSysLock();
     Iwdg::Reload();
     Sleep::EnterStandby();
     chSysUnlock();
 
     while(true); // Will never be here
+}
+
+void MeshTask() {
+    // Receive
+    if(CC.Receive(4, &Pkt, RPKT_LEN) == retvOk) {
+//            Printf("%u: Thr: %d; Pwr: %u\r", Pkt.From, Pkt.RssiThr, Pkt.PowerLvlId);
+//            chThdSleepMilliseconds(9);
+        if(Pkt.From == 1 and Pkt.To == ID) { // From host to me
+            if(Pkt.RssiThr > 0) {
+                Led.Init();
+                Beeper.Init();
+                Beeper.StartOrRestart(bsqSearch);
+                Led.StartOrRestart(lsqSearch);
+                chThdSleepMilliseconds(108);
+            }
+            else {
+                SetThr(Pkt.RssiThr);
+                SetPwr(Pkt.Value);
+            }
+        }
+        CC.SetTxPower(PwrTable[MESH_PWR_LVL_ID]);
+
+    }
+}
+
+void BeaconTask() {
+    CC.SetTxPower(PwrTable[PwrLvlId]);
+    PktTx.From = ID;
+    PktTx.Cmd = rcmdBeacon;
+    PktTx.PktID = PKTID_DO_NOT_RETRANSMIT;
+    PktTx.Beacon.RssiThr = RssiThr;
+    PktTx.Beacon.Damage = Damage;
+    PinSetHi(GPIOC, 14); // DEBUG
+    CC.Recalibrate();
+    CC.Transmit(&PktTx, RPKT_LEN);
+    PinSetLo(GPIOC, 14); // DEBUG
 }
 
 #if 1 // =========================== Cmd handling ==============================

@@ -15,12 +15,53 @@
 #include "color.h"
 
 #if 1 // =========================== Pkt_t =====================================
+
+enum RCmd_t {
+    rcmdNone = 0,
+    rcmdPing = 1,
+    rcmdPong = 2,
+    rcmdBeacon = 3,
+    rcmdScream = 4,
+    rcmdLustraParams = 5,
+    rcmdLocketParams = 6,
+    rcmdLocketExplode = 7,
+    rcmdLocketDie = 8,
+};
+
 struct rPkt_t {
     uint16_t From;
     uint16_t To;
-    int8_t RssiThr;
-    uint8_t Value;
+    RCmd_t Cmd : 4;
+    uint8_t PktID : 4; // Do not retransmit if zero
+    union {
+        struct {
+            uint16_t MaxLvlID;
+            uint8_t Reply;
+        } Pong; // 3
+
+        struct {
+            int8_t RssiThr;
+            uint8_t Damage;
+        } Beacon; // 2
+
+        struct {
+            uint8_t Power;
+            int8_t RssiThr;
+            uint8_t Damage;
+        } LustraParams; // 3
+
+        struct {
+            uint8_t MaxHP;
+        } LocketParams; // 1
+
+        struct {
+            int8_t RssiThr;
+        } Die; // 1
+    }; // union
+    rPkt_t() : From(0), To(0), Cmd(rcmdNone), PktID(0) {}
 } __attribute__ ((__packed__));
+
+#define PKTID_DO_NOT_RETRANSMIT 0
 #endif
 
 
