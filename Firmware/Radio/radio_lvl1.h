@@ -31,6 +31,7 @@ enum RCmd_t {
 struct rPkt_t {
     uint16_t From;
     uint16_t To;
+    uint16_t TransmitterID;
     RCmd_t Cmd : 4;
     uint8_t PktID : 4; // Do not retransmit if zero
     union {
@@ -58,10 +59,10 @@ struct rPkt_t {
             int8_t RssiThr;
         } Die; // 1
     }; // union
-    rPkt_t() : From(0), To(0), Cmd(rcmdNone), PktID(0) {}
 } __attribute__ ((__packed__));
 
 #define PKTID_DO_NOT_RETRANSMIT 0
+#define PKTID_TOP_VALUE         0x0F
 #endif
 
 
