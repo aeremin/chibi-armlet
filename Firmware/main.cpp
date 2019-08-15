@@ -33,11 +33,12 @@ rPkt_t Pkt;
 
 #define MESH_PWR_LVL_ID     8   // 5 dBm
 #define DEEPSLEEP_TIME_MS   153 // time between activity
-#define MESH_RX_TIME_MS     36  // For how long to RX waiting valid pkt
+#define MESH_RX_TIME_MS     45  // For how long to RX waiting valid pkt
 #define MESH_TX_TIME_MS     180 // For how long to transmit what need to be transmitted
 #define MESH_DELAY_BETWEEN_RETRANSMIT_MS_MIN    11
 #define MESH_DELAY_BETWEEN_RETRANSMIT_MS_MAX    36
 #define MESH_RETRANSMIT_COUNT                   9
+#define MESH_PKTID_STORAGE_TIME_MS              300000 // 5 minutes
 
 int32_t ID = 1;
 int32_t RssiThr = -99;
@@ -71,16 +72,20 @@ void TransmitMeshPkt();
 #endif
 
 #if 1 // ================= RingBuf for PktIDs =================
-#define PKTID_BUF_SZ    12
-class IdAndTmr_t {
-public:
-    uint32_t Tmr = 0;
-    uint8_t ID = 0;
-} __packed;
+struct IdAndTmr_t {
+    uint32_t Tmr;
+    uint8_t ID;
+} __packed; // 5 bytes
+
+#define PKTID_BUF_CNT           12
+#define PKTID_BUF_DWORD_CNT     (((PKTID_BUF_CNT * sizeof(IdAndTmr_t)) + 3) / 4)
 
 class CircBufId_t {
 private:
-    IdAndTmr_t IBuf[PKTID_BUF_SZ];
+    union {
+        uint32_t DWordBuf[PKTID_BUF_DWORD_CNT];
+        IdAndTmr_t IBuf[PKTID_BUF_CNT];
+    };
 public:
     bool Presents(uint8_t AID) {
         for(IdAndTmr_t &IIdTmr : IBuf) {
@@ -91,8 +96,8 @@ public:
 
     void Add(uint8_t AID) {
         uint32_t OldestIndx = 0, TmrMax  = 0;
-        for(uint32_t i=0; i<PKTID_BUF_SZ; i++) {
-            if(IBuf[i].ID == 0) { // Fill if empty
+        for(uint32_t i=0; i<PKTID_BUF_CNT; i++) {
+            if(IBuf[i].ID == PKTID_DO_NOT_RETRANSMIT) { // Fill if empty
                 IBuf[i].ID = AID;
                 IBuf[i].Tmr = 0;
                 return;
@@ -110,27 +115,57 @@ public:
     }
 
     void Clear() {
-        for(uint32_t i=0; i<PKTID_BUF_SZ; i++) {
-            IBuf[i].ID = 0;
+        for(uint32_t i=0; i<PKTID_BUF_CNT; i++) {
+            IBuf[i].ID = PKTID_DO_NOT_RETRANSMIT;
             IBuf[i].Tmr = 0;
         }
     }
 
-    void CheckAndFlushWhatNeeded() {}
+    void CheckAndClearWhatNeeded() {
+        for(uint32_t i=0; i<PKTID_BUF_CNT; i++) {
+            if(IBuf[i].ID != PKTID_DO_NOT_RETRANSMIT) {
+                IBuf[i].Tmr += DEEPSLEEP_TIME_MS;
+                // Clear if too old
+                if(IBuf[i].Tmr >= MESH_PKTID_STORAGE_TIME_MS) {
+                    IBuf[i].ID = PKTID_DO_NOT_RETRANSMIT;
+                    IBuf[i].Tmr = 0;
+                }
+            }
+        } // for
+    }
 
-    void Load() {}
-    void Save() {}
+    void Load() {
+        BackupSpc::EnableAccess();
+        for(uint32_t i=0; i<PKTID_BUF_DWORD_CNT; i++) {
+            DWordBuf[i] = BackupSpc::ReadRegister(i);
+        }
+        BackupSpc::DisableAccess();
+    }
+
+    void Save() {
+        BackupSpc::EnableAccess();
+        for(uint32_t i=0; i<PKTID_BUF_DWORD_CNT; i++) {
+            BackupSpc::WriteRegister(i, DWordBuf[i]);
+        }
+        BackupSpc::DisableAccess();
+    }
+
+    void Print() {
+        for(uint32_t i=0; i<PKTID_BUF_CNT; i++) {
+            Printf("%u: %u, %u\r", i, IBuf[i].ID, IBuf[i].Tmr);
+        }
+    }
 };
 
 CircBufId_t PktIdBuf;
 #endif
 
 int main(void) {
-    // ==== Init Vcore & clock system ====
+    // Init Vcore & clock system
     SetupVCore(vcore1V5);
     Clk.SetMSI4MHz();
     Clk.UpdateFreqValues();
-    // ==== Init OS ====
+    // Init OS
     halInit();
     chSysInit();
 
@@ -142,13 +177,17 @@ int main(void) {
     ReadParams();
     if(Sleep::WasInStandby()) {
         PktIdBuf.Load();
+//        PktIdBuf.Print();
     }
     else {
         Led.Init();
         Led.StartOrRestart(lsqStart0);
-        Printf("\r%S %S\rID=%u; Thr=%d; Pwr=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID, RssiThr, PwrLvlId);
+        Printf("\r%S %S\rID=%u; Thr=%d; Pwr=%u; Dmg=%u\r",
+                APP_NAME, XSTRINGIFY(BUILD_TIME), ID, RssiThr, PwrLvlId, Damage);
         Clk.PrintFreqs();
         PktIdBuf.Clear();
+
+        Printf("%u\r", RPKT_LEN);
 
         // Try to receive Cmd by UART
         for(int i=0; i<27; i++) {
@@ -173,7 +212,7 @@ int main(void) {
         CC.SetChannel(0);
         // Tasks
         MeshTask();
-        if(ID < ID_NO_BEACON) BeaconTask();
+        if(ID < ID_NO_BEACON) BeaconTask(); // Do not transmit beacon if not needed
     }
     else { // CC failure
         Led.Init();
@@ -193,7 +232,7 @@ int main(void) {
 
 void MeshTask() {
     // Process buffer
-    PktIdBuf.CheckAndFlushWhatNeeded();
+    PktIdBuf.CheckAndClearWhatNeeded();
     // Rx for some time
     systime_t Start = chVTGetSystemTimeX();
     while(true) {
@@ -208,10 +247,11 @@ void MeshTask() {
                 break;
             }
             else { // For someone else
-                if(Pkt.PktID != 0) { // Needs retransmission
+                if(Pkt.PktID != PKTID_DO_NOT_RETRANSMIT) { // Needs retransmission
                     if(!PktIdBuf.Presents(Pkt.PktID)) { // Was not retransmitted yet
                         PktIdBuf.Add(Pkt.PktID);
-                        PktIdBuf.Save();
+                        // Prepare pkt for retransmission
+                        Pkt.TransmitterID = ID;
                         TransmitMeshPkt();
                         break;
                     } // if was not retransmitted
@@ -219,6 +259,7 @@ void MeshTask() {
             } // if for us
         } // if RX ok
     } // while
+    PktIdBuf.Save();
 }
 
 // Process Cmd-for-us
@@ -226,7 +267,7 @@ void ProcessRCmdAndPrepareReply() {
     // Common preparations
     Pkt.To = Pkt.From;
     Pkt.From = ID;
-    if(Pkt.PktID != 0) { // Increase PktID if not 0
+    if(Pkt.PktID != PKTID_DO_NOT_RETRANSMIT) { // Increase PktID if not PKTID_DO_NOT_RETRANSMIT
         if(Pkt.PktID >= PKTID_TOP_VALUE) Pkt.PktID = 1;
         else Pkt.PktID++;
     }
@@ -257,8 +298,17 @@ void ProcessRCmdAndPrepareReply() {
     } // switch
 }
 
+// Transmit Pkt several times with random interval
 void TransmitMeshPkt() {
-//    CC.SetTxPower(PwrTable[MESH_PWR_LVL_ID]);
+    CC.SetTxPower(PwrTable[MESH_PWR_LVL_ID]);
+    for(int i=0; i<MESH_RETRANSMIT_COUNT; i++) {
+        uint32_t Delay_ms = Random::Generate(MESH_DELAY_BETWEEN_RETRANSMIT_MS_MIN, MESH_DELAY_BETWEEN_RETRANSMIT_MS_MAX);
+        chThdSleepMilliseconds(Delay_ms);
+        PinSetHi(GPIOC, 14); // DEBUG
+        CC.Recalibrate();
+        CC.Transmit(&Pkt, RPKT_LEN);
+        PinSetLo(GPIOC, 14); // DEBUG
+    }
 }
 
 void BeaconTask() {
@@ -324,6 +374,7 @@ void ReadParams() {
     RssiThr = EE::Read32(EE_ADDR_THRESHOLD);
     PwrLvlId = EE::Read32(EE_ADDR_PWR_LVL_ID);
     if(PwrLvlId > 11) PwrLvlId = 11;
+    Damage = EE::Read32(EE_ADDR_DAMAGE_ID);
 }
 
 uint8_t SetID(int32_t NewID) {
@@ -354,6 +405,18 @@ uint8_t SetPwr(uint32_t NewPwrId) {
     uint8_t rslt = EE::Write32(EE_ADDR_PWR_LVL_ID, NewPwrId);
     if(rslt == retvOk) {
         PwrLvlId = NewPwrId;
+        return retvOk;
+    }
+    else {
+        Printf("EE error: %u\r", rslt);
+        return retvFail;
+    }
+}
+
+uint8_t SetDmg(uint32_t NewDmg) {
+    uint8_t rslt = EE::Write32(EE_ADDR_DAMAGE_ID, NewDmg);
+    if(rslt == retvOk) {
+        Damage = NewDmg;
         return retvOk;
     }
     else {
