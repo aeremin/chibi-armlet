@@ -187,8 +187,6 @@ int main(void) {
         Clk.PrintFreqs();
         PktIdBuf.Clear();
 
-        Printf("%u\r", RPKT_LEN);
-
         // Try to receive Cmd by UART
         for(int i=0; i<27; i++) {
             chThdSleepMilliseconds(99);
