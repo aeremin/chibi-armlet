@@ -86,7 +86,8 @@ struct rPkt_t {
         struct {
             int8_t RssiThr;
             uint8_t Damage;
-        } __attribute__ ((__packed__)) Beacon; // 2
+            uint8_t Power;
+        } __attribute__ ((__packed__)) Beacon; // 3
 
         struct {
             uint8_t Power;

@@ -321,6 +321,7 @@ void BeaconTask() {
     PktTx.PktID = PKTID_DO_NOT_RETRANSMIT;
     PktTx.Beacon.RssiThr = RssiThr;
     PktTx.Beacon.Damage = Damage;
+    PktTx.Beacon.Power = PwrLvlId;
     PinSetHi(GPIOC, 14); // DEBUG
     CC.Recalibrate();
     CC.Transmit(&PktTx, RPKT_LEN);
