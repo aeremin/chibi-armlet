@@ -32,12 +32,11 @@ static const uint8_t PwrTable[12] = {
 rPkt_t PktRx, PktTx;
 
 #define MESH_PWR_LVL_ID     8   // 5 dBm
-#define DEEPSLEEP_TIME_MS   153 // time between activity
-#define MESH_RX_TIME_MS     45  // For how long to RX waiting valid pkt
-#define MESH_TX_TIME_MS     180 // For how long to transmit what need to be transmitted
+#define DEEPSLEEP_TIME_MS   99 // time between activity
+#define MESH_RX_TIME_MS     99  // For how long to RX waiting valid pkt
+#define MESH_TX_TIME_MS     999 // For how long to transmit what need to be transmitted
 #define MESH_DELAY_BETWEEN_RETRANSMIT_MS_MIN    11
-#define MESH_DELAY_BETWEEN_RETRANSMIT_MS_MAX    36
-#define MESH_RETRANSMIT_COUNT                   9
+#define MESH_DELAY_BETWEEN_RETRANSMIT_MS_MAX    63
 #define MESH_PKTID_STORAGE_TIME_MS              300000 // 5 minutes
 
 int32_t ID = 1;
@@ -302,7 +301,10 @@ void ProcessRCmdAndPrepareReply() {
 // Transmit Pkt several times with random interval
 void TransmitMeshPkt() {
     CC.SetTxPower(PwrTable[MESH_PWR_LVL_ID]);
-    for(int i=0; i<MESH_RETRANSMIT_COUNT; i++) {
+    systime_t Start = chVTGetSystemTimeX();
+    while(true) {
+        int32_t TxTime_ms = (int32_t)MESH_TX_TIME_MS - (int32_t)(TIME_I2MS(chVTTimeElapsedSinceX(Start)));
+        if(TxTime_ms <= 0) break;
         uint32_t Delay_ms = Random::Generate(MESH_DELAY_BETWEEN_RETRANSMIT_MS_MIN, MESH_DELAY_BETWEEN_RETRANSMIT_MS_MAX);
         PinSetHi(GPIOC, 14); // DEBUG
         CC.Recalibrate();
