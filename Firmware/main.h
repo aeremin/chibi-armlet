@@ -8,7 +8,7 @@
 #pragma once
 
 #define CHNL_MIN    1
-#define CHNL_MAX    4
+#define CHNL_MAX    1
 
 
 #define GREEN_AND_WHITE      FALSE

@@ -22,7 +22,7 @@ static void OnCmd(Shell_t *PShell);
 LedRGB_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN };
 
 // ==== Timers ====
-static TmrKL_t TmrEverySecond {TIME_MS2I(999), evtIdEverySecond, tktPeriodic};
+static TmrKL_t TmrEverySecond {TIME_MS2I(99), evtIdEverySecond, tktPeriodic};
 static uint32_t AppearTimeout = 0;
 static uint32_t TableCheckTimeout = CHECK_PERIOD_S;
 #endif
@@ -62,38 +62,9 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdEverySecond:
-//                Printf("Second\r");
-                // Check if time to disappear
-                if(AppearTimeout > 0) {
-                    AppearTimeout--;
-                    if(AppearTimeout == 0) Led.StartOrRestart(lsqDisappear);
-                }
-                // Check if time to check RxTable
-                if(TableCheckTimeout > 0) {
-                    TableCheckTimeout--;
-                    if(TableCheckTimeout == 0) {
-                        TableCheckTimeout = CHECK_PERIOD_S;
-                        // Check table
-                        if(Radio.RxTable.GetCount() > 0) {
-                            Printf("Cnt=%u\r", Radio.RxTable.GetCount());
-#if GREEN_AND_WHITE
-                            // Presence of ID=2 means White is here
-                            if(Radio.RxTable.IDPresents(2)) {
-                                Led.StartOrRestart(lsqAppearWhite);
-                            }
-                            else Led.StartOrRestart(lsqAppearGreen);
-                            AppearTimeout = APPEAR_DURATION;
-#else
-                            // Presence of ID=1 means Green is here
-                            if(Radio.RxTable.IDPresents(1)) {
-                                Led.StartOrRestart(lsqAppearGreen);
-                                AppearTimeout = APPEAR_DURATION;
-                            }
-#endif
-                        }
-                        Radio.RxTable.Clear();
-                    }
-                }
+            	Radio.accumulator.Decay(10);
+            	Led.SetColor(Radio.accumulator.get());
+            	Printf("Blue = %u", Radio.accumulator.get().B);
                 break;
 
             case evtIdShellCmd:

@@ -47,13 +47,11 @@ static void rLvl1Thread(void *arg) {
             CC.Recalibrate();
             rPkt_t PktRx;
             int8_t Rssi;
-            uint8_t RxRslt = CC.Receive(63, &PktRx, RPKT_LEN, &Rssi);
+            uint8_t RxRslt = CC.Receive(200, &PktRx, RPKT_LEN, &Rssi);
             if(RxRslt == retvOk) {
-                Printf("ch=%u; Rssi=%d; ID=%u\r", i, Rssi, PktRx.ID);
-                Radio.RxTable.AddId(PktRx.ID);
+                Radio.accumulator.Add(PktRx);
             }
         } // for i
-        Radio.TryToSleep(810);
     } // while true
 }
 

@@ -11,16 +11,13 @@
 #include "ch.h"
 #include "cc1101.h"
 #include "kl_buf.h"
+#include "color.h"
 #include "uart.h"
 #include "MsgQ.h"
 
 #if 1 // =========================== Pkt_t =====================================
 struct rPkt_t {
-    uint32_t ID;
-    rPkt_t& operator = (const rPkt_t &Right) {
-        ID = Right.ID;
-        return *this;
-    }
+    uint8_t r, g, b;
 } __attribute__ ((__packed__));
 #endif
 
@@ -62,85 +59,34 @@ struct RMsg_t {
 #define MIN_SLEEP_DURATION_MS   18
 #endif
 
-#if 1 // ============================= RX Table ================================
-#define RXTABLE_SZ              4
-#define RXT_PKT_REQUIRED        FALSE
-class RxTable_t {
-private:
-#if RXT_PKT_REQUIRED
-    rPkt_t IBuf[RXTABLE_SZ];
-#else
-    uint8_t IdBuf[RXTABLE_SZ];
-#endif
-    uint32_t Cnt = 0;
+class ColorAccumulator {
 public:
-#if RXT_PKT_REQUIRED
-    void AddOrReplaceExistingPkt(rPkt_t &APkt) {
-        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == APkt.ID) {
-                IBuf[i] = APkt; // Replace with newer pkt
-                return;
-            }
-        }
-        IBuf[Cnt] = APkt;
-        Cnt++;
-    }
+	Color_t get() const { return Color_t(r, g, b); }
+	void Add(rPkt_t packet) {
+		r += packet.r;
+		if (r > 255) r = 255;
 
-    uint8_t GetPktByID(uint8_t ID, rPkt_t **ptr) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == ID) {
-                *ptr = &IBuf[i];
-                return OK;
-            }
-        }
-        return FAILURE;
-    }
+		g += packet.g;
+		if (g > 255) g = 255;
 
-    bool IDPresents(uint8_t ID) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == ID) return true;
-        }
-        return false;
-    }
-#else
-    void AddId(uint8_t ID) {
-        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IdBuf[i] == ID) return;
-        }
-        IdBuf[Cnt] = ID;
-        Cnt++;
-    }
+		b += packet.b;
+		if (b > 255) b = 255;
+	}
 
-    bool IDPresents(uint8_t ID) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IdBuf[i] == ID) return true;
-        }
-        return false;
-    }
+	void Decay(uint8_t step) {
+		r = r > step ? r - step : 0;
+		g = g > step ? g - step : 0;
+		b = b > step ? b - step : 0;
+	}
 
-#endif
-    uint32_t GetCount() { return Cnt; }
-    void Clear() { Cnt = 0; }
-
-    void Print() {
-        Printf("RxTable Cnt: %u\r", Cnt);
-        for(uint32_t i=0; i<Cnt; i++) {
-#if RXT_PKT_REQUIRED
-            Printf("ID: %u; State: %u\r", IBuf[i].ID, IBuf[i].State);
-#else
-            Printf("ID: %u\r", IdBuf[i]);
-#endif
-        }
-    }
+private:
+	uint16_t r, g, b;
 };
-#endif
 
 class rLevel1_t {
 public:
     EvtMsgQ_t<RMsg_t, R_MSGQ_LEN> RMsgQ;
-    RxTable_t RxTable;
+    ColorAccumulator accumulator;
     uint8_t Init();
     // Inner use
     void TryToSleep(uint32_t SleepDuration);
