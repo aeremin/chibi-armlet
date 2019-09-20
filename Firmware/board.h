@@ -34,28 +34,26 @@
 #define UART_RX_PIN     10
 
 // LED
-#define LED_EN_PIN      { GPIOB, 2, omPushPull }
-#define LED_G_PIN       { GPIOB, 1, TIM3, 4, invInverted, omOpenDrain, 255 }
-#define LED_B_PIN       { GPIOB, 0, TIM3, 3, invInverted, omOpenDrain, 255 }
-#define LED_R_PIN       { GPIOB, 5, TIM3, 2, invInverted, omOpenDrain, 255 }
+#define LED_R_PIN       { GPIOB, 1, TIM3, 4, invNotInverted, omPushPull, 255 }
+#define LED_G_PIN       { GPIOB, 0, TIM3, 3, invNotInverted, omPushPull, 255 }
+#define LED_B_PIN       { GPIOB, 5, TIM3, 2, invNotInverted, omPushPull, 255 }
 
 // Vibro
-#define VIBRO_SETUP     { GPIOB, 12, TIM10, 1, invNotInverted, omPushPull, 99 }
+#define VIBRO_SETUP     { GPIOB, 6, TIM4, 1, invNotInverted, omPushPull, 99 }
 
 // Beeper
 #define BEEPER_TOP      22
-#define BEEPER_PIN      { GPIOB, 15, TIM11, 1, invNotInverted, omPushPull, BEEPER_TOP }
-
+#define BEEPER_PIN      { GPIOB, 3, TIM2, 2, invNotInverted, omPushPull, BEEPER_TOP }
 
 // I2C
 #if I2C1_ENABLED
 #define I2C1_GPIO       GPIOB
-#define I2C1_SCL        6
-#define I2C1_SDA        7
+#define I2C1_SCL        8
+#define I2C1_SDA        9
 #endif
 
 // Pill power
-#define PILL_PWR_PIN    { GPIOB, 3, omPushPull }
+#define PILL_PWR_PIN    { GPIOB, 7, omPushPull }
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, GPIOA,4, GPIOA,3
@@ -117,7 +115,7 @@
 
 #if 1 // ========================== USART ======================================
 #define PRINTF_FLOAT_EN FALSE
-#define UART_TXBUF_SZ   256
+#define UART_TXBUF_SZ   1024
 #define UART_RXBUF_SZ   99
 
 #define UARTS_CNT       1
